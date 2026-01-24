@@ -1,9 +1,12 @@
 <x-guest-layout>
+    <!--
     @if (session('status'))
         <div class="mb-4 text-sm text-green-600">
             {{ session('status') }}
         </div>
     @endif
+    -->
+    
    <div class = "min-h-screen">
    <div class="flex w-full h-full">
        <div class="left-column-pass relative">

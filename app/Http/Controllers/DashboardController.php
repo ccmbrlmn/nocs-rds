@@ -7,8 +7,14 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function showDashboard()
-    {
+public function showDashboard()
+{
+    // Default empty collections
+    $scheduledRequests = collect();
+    $calendarEvents = collect();
+
+    // Only fetch sensitive data if user is authenticated
+    if (auth()->check()) {
         $today = \Carbon\Carbon::today()->toDateString();
 
         $scheduledRequests = \App\Models\Requests::where('status', 'In Progress')
@@ -17,8 +23,10 @@ class DashboardController extends Controller
 
         $calendarEvents = \App\Models\Requests::where('status', 'In Progress')
             ->get(['event_name', 'setup_date', 'location']);
-
-        return view('admin.admin-dashboard', compact('scheduledRequests', 'calendarEvents'));
     }
 
+    return view('admin.admin-dashboard', compact('scheduledRequests', 'calendarEvents'));
 }
+
+}
+

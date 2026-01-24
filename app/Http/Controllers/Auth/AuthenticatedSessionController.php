@@ -60,3 +60,4 @@ class AuthenticatedSessionController extends Controller
     }
 
 }
+

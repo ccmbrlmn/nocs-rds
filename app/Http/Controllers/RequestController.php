@@ -193,7 +193,7 @@ class RequestController extends Controller
         $requestData['requested_by'] = $userName;
 
         //change this to nocs_services@gbox.adnu.edu.ph
-        Mail::to('mcadag@gbox.adnu.edu.ph')->send(new NewRequestNotification($requestData));
+        Mail::to('niccastillo@gbox.adnu.edu.ph')->send(new NewRequestNotification($requestData));
 
         return redirect()->back()->with('success', 'Request submitted successfully!');
     }
