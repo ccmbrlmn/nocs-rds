@@ -13,7 +13,7 @@
         <div class="request-header flex items-center justify-between w-full mb-3">
             <div class="mt-4">
                 <h2 class="text-3xl font-semibold mb-2">{{ $request->user->name}}</h2> 
-                <p class="text-2xl text-gray-600">{{ $request->representative_name }}</p>
+
                 @php
                     $status = $request->status;
                     $colors = config('status')[$status];
@@ -103,7 +103,7 @@
                         <p class="detail-text">{{ $request->event_name }}</p>
                     </div>
                 </div>
-
+                
                 <div class="flex items-center gap-3 mb-6">
                     <span class="material-symbols-outlined text-gray-600">event_available</span>
                     <div>
@@ -111,12 +111,20 @@
                         <p class="detail-text">{{ $request->purpose }}</p>
                     </div>
                 </div>
-
+                
                 <div class="flex items-center gap-3 mb-6">
-                    <span class="material-symbols-outlined text-gray-600">calendar_clock</span>
+                    <span class="material-symbols-outlined text-gray-600">inventory_2</span>
                     <div>
-                        <p class="header-text font-semibold mb-1">Date of Event:</p>
-                        <p class="detail-text">{{ \Carbon\Carbon::parse($request->start_date)->format('M d') }} - {{ \Carbon\Carbon::parse($request->created_at)->format('d, Y') }}</p>
+                        <p class="header-text font-semibold mb-1">Request Item Name:</p>
+                        <p class="detail-text">{{ $request->item_name }}</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="material-symbols-outlined text-gray-600">tag</span>
+                    <div>
+                        <p class="header-text font-semibold mb-1">Request Item Number:</p>
+                        <p class="detail-text">{{ $request->item_number }}</p>
                     </div>
                 </div>
             </div>
@@ -129,18 +137,28 @@
                         <p class="detail-text">{{ $request->location }}</p>
                     </div>
                 </div>
+                
                 <div class="flex items-center gap-3 mb-6">
-                    <span class="material-symbols-outlined text-gray-600">group</span>
+                    <span class="material-symbols-outlined text-gray-600">calendar_clock</span>
                     <div>
-                        <p class="header-text font-semibold mb-1">No. of Users:</p>
-                        <p class="detail-text">{{ $request->users }} users</p>
+                        <p class="header-text font-semibold mb-1">Date of Event:</p>
+                        <p class="detail-text">{{ \Carbon\Carbon::parse($request->start_date)->format('M d') }} - {{ \Carbon\Carbon::parse($request->created_at)->format('d, Y') }}</p>
                     </div>
                 </div>
+                
                 <div class="flex items-center gap-3 mb-6">
                     <span class="material-symbols-outlined text-gray-600">calendar_clock</span>
                     <div>
                         <p class="header-text font-semibold mb-1">Request Set-up Date:</p>
                         <p class="detail-text">{{ $request->setup_date }} | {{ $request->setup_time }}</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="material-symbols-outlined text-gray-600">group</span>
+                    <div>
+                        <p class="header-text font-semibold mb-1">No. of Users:</p>
+                        <p class="detail-text">{{ $request->users }} users</p>
                     </div>
                 </div>
             </div>

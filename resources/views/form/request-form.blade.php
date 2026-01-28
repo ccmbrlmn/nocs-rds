@@ -56,7 +56,24 @@
                 <x-input-label for="other_purpose" :value="__('Specify Purpose')" />
                 <input type="text" id="other_purpose" name="other_purpose" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
             </div>
+            
+            <div class="mb-4">
+                <x-input-label for="item_name" :value="__('Item Name')" />
+                <x-text-input id="item_name" class="block mt-1 w-full" type="text" name="item_name" required />
+            </div>
 
+            <div class="mb-4">
+                <x-input-label for="item_number" :value="__('Item Number')" />
+                <x-text-input 
+                    id="item_number" 
+                    class="block mt-1 w-full" 
+                    type="number" 
+                    name="item_number" 
+                    min="1" 
+                    value="1" 
+                    required 
+                />
+            </div>
 
             <div class="mb-4 flex gap-4">
                 <div class="w-full">

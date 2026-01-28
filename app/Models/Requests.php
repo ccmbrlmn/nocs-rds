@@ -16,6 +16,8 @@ class Requests extends Model
         'representative_name',
         'event_name',
         'purpose',
+        'item_name',
+        'item_number',
         'other_purpose',
         'start_date',
         'end_date',
