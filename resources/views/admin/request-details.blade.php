@@ -9,13 +9,21 @@
             </h1>
         </div>
     </div>
-
-  
     <div class="request-details p-5 rounded-lg bg-white">
         <div class="request-header flex items-center justify-between w-full mb-3">
             <div class="mt-4">
                 <h2 class="text-3xl font-semibold mb-2">{{ $request->user->name}}</h2> 
                 <p class="text-2xl text-gray-600">{{ $request->representative_name }}</p>
+                @php
+                    $status = $request->status;
+                    $colors = config('status')[$status];
+                @endphp
+
+                <span class="px-4 py-1 rounded-full text-sm font-semibold
+                {{ $colors['text'] }} {{ $colors['bg'] }}">
+                    {{ $status }}
+                </span>
+
             </div>
             
             <div class="flex gap-4 items-center">
@@ -36,9 +44,10 @@
                                 {{ __('Decline') }}
                             </x-primary-button>
                         </div>
+
                     @elseif($request->status === 'In Progress')
                         {{-- Complete Button --}}
-                       <div>
+                        <div>
                             <form action="{{ route('requests.complete', $request->id) }}" method="POST">
                                 @csrf
                                 <x-primary-button style="background-color: #0575E6; color: white; width: 100px; height: 40px;">
@@ -46,28 +55,41 @@
                                 </x-primary-button>
                             </form>
                         </div>
-
-
-                        {{-- Cancel Button --}}
-                        <div x-data="{ open: false }">
-                            @include('form.cancel-form')
-                            <x-primary-button @click="open = true" style="background-color: #D7070B; color: white; width: 100px; height: 40px;">
-                                {{ __('Cancel') }}
-                            </x-primary-button>
-                        </div>
                     @endif
-                @else
-                    {{-- If not NOCS, just show cancel --}}
-                    <div x-data="{ open: false }">
-                        @include('form.cancel-form')
-                        <x-primary-button @click="open = true" style="background-color: #D7070B; color: white; width: 100px; height: 40px;">
+
+                    {{-- Cancel Button (for NOCS users) --}}
+                      <div x-data="{ openCancelForm: false }">
+                        <!-- Cancel Button -->
+                        <x-primary-button
+                            type="button"
+                            @click="openCancelForm = true"
+                            style="background-color: #D7070B; color: white; width: 100px; height: 40px;"
+                        >
                             {{ __('Cancel') }}
                         </x-primary-button>
-                    </div>        
+
+                        <!-- Cancel Form Modal -->
+                        @include('form.cancel-form')
+                    </div>
+
+
+                @else
+                    {{-- Cancel Button (works for both NOCS and non-NOCS) --}}
+                    <div x-data="{ openCancelForm: false }">
+                        <x-primary-button
+                            type="button"
+                            @click="openCancelForm = true"
+                            style="background-color: #D7070B; color: white; width: 100px; height: 40px;"
+                        >
+                            {{ __('Cancel') }}
+                        </x-primary-button>
+
+                        <!-- Cancel Form Modal -->
+                        @include('form.cancel-form')
+                    </div>
+
                 @endif
             </div>
-
-
         </div>
        
         <hr class="mb-4">
@@ -97,9 +119,8 @@
                         <p class="detail-text">{{ \Carbon\Carbon::parse($request->start_date)->format('M d') }} - {{ \Carbon\Carbon::parse($request->created_at)->format('d, Y') }}</p>
                     </div>
                 </div>
-
-               
             </div>
+
             <div class="right-col-info">
                 <div class="flex items-center gap-3 mb-6">
                     <span class="material-symbols-outlined text-gray-600">location_on</span>
@@ -122,70 +143,68 @@
                         <p class="detail-text">{{ $request->setup_date }} | {{ $request->setup_time }}</p>
                     </div>
                 </div>
-              
             </div>
         </div>
 
         <hr class="mb-4 mt-4">
 
-<p class="header-text font-semibold mb-1">Deployment Information</p>
+        <p class="header-text font-semibold mb-1">Deployment Information</p>
 
-<div class="request-information flex justify-between pt-3">
-    @php
-        $userIsNocs = auth()->check() && auth()->user()->email === 'nocs_services@gbox.adnu.edu.ph';
-    @endphp
+        <div class="request-information flex justify-between pt-3">
+            @php
+                $userIsNocs = auth()->check() && auth()->user()->email === 'nocs_services@gbox.adnu.edu.ph';
+            @endphp
 
-    {{-- If status is In Progress --}}
-    @if($request->status === 'In Progress')
-        @if($userIsNocs || !$userIsNocs)
-            <div class="left-col-info">
-                <div class="flex items-center gap-3 mb-6">
-                    <span class="material-symbols-outlined text-gray-600">manage_accounts</span>
-                    <div>
-                        <p class="header-text font-semibold mb-1">Name of Personnel:</p>
-                        <p class="detail-text">{{ $request->personnel_name }}</p>
+            {{-- If status is In Progress --}}
+            @if($request->status === 'In Progress')
+                @if($userIsNocs || !$userIsNocs)
+                    <div class="left-col-info">
+                        <div class="flex items-center gap-3 mb-6">
+                            <span class="material-symbols-outlined text-gray-600">manage_accounts</span>
+                            <div>
+                                <p class="header-text font-semibold mb-1">Name of Personnel:</p>
+                                <p class="detail-text">{{ $request->personnel_name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right-col-info">
+                        <div class="flex items-center gap-3 mb-6">
+                            <span class="material-symbols-outlined text-gray-600">home_repair_service</span>
+                            <div>
+                                <p class="header-text font-semibold mb-1">Additional Equipments:</p>
+                                <p class="detail-text">{{ $request->other_equipments }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+            {{-- If status is Cancelled --}}
+            @elseif($request->status === 'Declined' && $userIsNocs)
+                <div class="left-col-info w-full">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="material-symbols-outlined text-gray-600">cancel</span>
+                        <div>
+                            <p class="header-text font-semibold mb-1">Cancellation Reason:</p>
+                            <p class="detail-text">{{ $request->cancel_reason }}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="right-col-info">
-                <div class="flex items-center gap-3 mb-6">
-                    <span class="material-symbols-outlined text-gray-600">home_repair_service</span>
-                    <div>
-                        <p class="header-text font-semibold mb-1">Additional Equipments:</p>
-                        <p class="detail-text">{{ $request->other_equipments }}</p>
+
+            {{-- If status is Declined --}}
+            @elseif($request->status === 'Declined' && !$userIsNocs)
+                <div class="left-col-info w-full">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="material-symbols-outlined text-gray-600">block</span>
+                        <div>
+                            <p class="header-text font-semibold mb-1">Decline Reason:</p>
+                            <p class="detail-text">{{ $request->decline_reason }}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        @endif
-
-    {{-- If status is Cancelled --}}
-    @elseif($request->status === 'Declined' && $userIsNocs)
-        <div class="left-col-info w-full">
-            <div class="flex items-center gap-3 mb-6">
-                <span class="material-symbols-outlined text-gray-600">cancel</span>
-                <div>
-                    <p class="header-text font-semibold mb-1">Cancellation Reason:</p>
-                    <p class="detail-text">{{ $request->cancel_reason }}</p>
-                </div>
-            </div>
+            @endif
         </div>
-
-    {{-- If status is Declined --}}
-    @elseif($request->status === 'Declined' && !$userIsNocs)
-        <div class="left-col-info w-full">
-            <div class="flex items-center gap-3 mb-6">
-                <span class="material-symbols-outlined text-gray-600">block</span>
-                <div>
-                    <p class="header-text font-semibold mb-1">Decline Reason:</p>
-                    <p class="detail-text">{{ $request->decline_reason }}</p>
-                </div>
-            </div>
-        </div>
-    @endif
-</div>
 
     </div>
-    
 </x-app-layout>
 
 <style>
@@ -231,4 +250,8 @@
         font-size: 1.5rem;
         color:#404040;
     }
+    
+    [x-cloak] { display: none !important; }
+
 </style>
+

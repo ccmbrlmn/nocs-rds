@@ -3,6 +3,9 @@
     <div class="w-full max-w-full mx-4 px-2 lg:px-8 vh-100">
       <div class="grid grid-cols-full gap-8 max-w-6xl mx-auto xl:max-w-full vh-100">
       
+      <!-- new -->
+      <script src="//unpkg.com/alpinejs" defer></script>
+
         <!-- Calendar -->
         <div class="col-span-full xl:col-span-7 px-4 py-6 sm:p-10 bg-gradient-to-b from-white/25 to-white xl:bg-white rounded-2xl max-xl:row-start-1 w-full h-[800px]">
           <div class="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
@@ -21,12 +24,22 @@
                 </button>
               </div>
             </div>
-            <button @click="open = true" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-              Add Request
-            </button>
+            
+            <div x-data="{ openRequestForm: false }">
+                <!-- Add Request Button -->
+                <button @click="openRequestForm = true" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Add Request
+                </button>
+
+                <!-- Request Form Modal -->
+                @include('form.request-form')
+            </div>
+
+
+
           </div>
 
-          <div class="border border-indigo-200 rounded-xl w-full h-full flex-col">
+          <div class="border border-indigo-200 rounded-xl w-full flex-col">
             <div class="grid grid-cols-7 rounded-t-3xl border-b border-indigo-200 bg-indigo-50 text-indigo-600 text-base font-semibold">
               <div class="py-4 border-r border-indigo-200 flex items-center justify-center">Sun</div>
               <div class="py-4 border-r border-indigo-200 flex items-center justify-center">Mon</div>
@@ -50,7 +63,8 @@
 
 
 <script>
-  const scheduledRequests = @json($scheduledRequests);
+  const calendarEvents = @json($calendarEvents);
+  const statusColors = @json(config('status'));
 
   document.addEventListener('DOMContentLoaded', () => {
   const calendarTitle = document.getElementById('calendar-title');
@@ -83,35 +97,135 @@
   for (let i = firstDayOfMonth; i > 0; i--) {
     calendarDays.innerHTML += `<div class="flex p-3.5 bg-gray-50 border-r border-b border-indigo-200 text-xs font-semibold text-gray-400">${lastDayOfPrevMonth - i + 1}</div>`;
   }
+  
+
+
 
   // Main days
-for (let day = 1; day <= lastDateOfMonth; day++) {
+  for (let day = 1; day <= lastDateOfMonth; day++) {
   const isToday = isCurrentMonth && day === today.getDate();
   const displayDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-  const eventsToday = scheduledRequests.filter(ev => ev.date === displayDate);
+  const eventsToday = calendarEvents.filter(ev => ev.setup_date === displayDate);
+
+  const MAX_VISIBLE = 2;
+  const visibleEvents = eventsToday.slice(0, MAX_VISIBLE);
+  const hiddenCount = eventsToday.length - MAX_VISIBLE;
 
   let eventsHtml = '';
-  eventsToday.forEach(ev => {
-    eventsHtml += `<div class="mt-5 text-xs text-blue-600 font-medium truncate">${ev.event_name}</div>`;
+  visibleEvents.forEach(ev => {
+  
+    let colorClass = 'text-indigo-600';
+
+    if (statusColors[ev.status]) {
+      colorClass = statusColors[ev.status].text;
+    }
+
+    eventsHtml += `<div class="text-xs font-medium truncate ${colorClass}">${ev.event_name}</div>`;
   });
 
   calendarDays.innerHTML += `
-    <div class="relative border-r border-b border-blue-200 text-xs font-semibold flex flex-col items-start justify-start p-2">
-      <span class="absolute top-1 left-2 ${isToday ? 'bg-blue-600 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center' : ''}">
+    <div
+      x-data="{ open: false }"
+      @click="open = true"
+      class="relative border-r border-b border-blue-200 text-xs font-semibold
+flex flex-col items-start justify-start p-2 pt-8 cursor-pointer hover:bg-indigo-50"
+    >
+      <span class="absolute top-1 left-2 ${isToday ? 'bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center' : ''}">
         ${day}
       </span>
+
       ${eventsHtml}
-    </div>`;
+
+      ${hiddenCount > 0 ? `<div class="mt-1 text-xs text-indigo-600 font-semibold">+${hiddenCount} more</div>` : ''}
+
+      <div
+        x-show="open"
+        @click.stop
+        class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+      >
+        <div class="bg-white rounded-xl w-[420px] p-5">
+          <div class="flex justify-between mb-3">
+            <h3 class="font-semibold text-lg">${monthNames[month]} ${day}, ${year}</h3>
+            <button @click="open = false">✕</button>
+          </div>
+
+          ${eventsToday.map(ev => `
+            <div class="py-2 border-b text-sm">
+              <strong>${ev.event_name}</strong>
+              <div class="text-xs text-gray-500">${ev.status}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
 }
+
+
+
+calendarDays.innerHTML += `
+  <div 
+    x-data="{ open: false }"
+    @click="open = true"
+class="relative border-r border-b border-blue-200 text-xs font-semibold flex flex-col items-start justify-start p-2 pt-8 cursor-pointer hover:bg-indigo-50"
+
+  >
+
+    <span class="absolute top-1 left-2 ${isToday ? 'bg-blue-600 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center' : ''}">
+      ${day}
+    </span>
+
+    ${eventsHtml}
+
+    ${hiddenCount > 0 ? `
+      <div class="mt-1 text-xs text-indigo-600 font-semibold">
+        +${hiddenCount} more
+      </div>
+    ` : ''}
+
+    <!-- EXPANDED MODAL -->
+    <div
+      x-show="open"
+      @click.stop
+      class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+    >
+      <div class="bg-white rounded-xl w-[420px] p-5">
+        <div class="flex justify-between mb-3">
+          <h3 class="font-semibold text-lg">${monthNames[month]} ${day}, ${year}</h3>
+          <button @click="open = false" class="text-gray-500">✕</button>
+        </div>
+
+        ${eventsToday.map(ev => `
+          <div class="py-2 border-b text-sm">
+            <strong>${ev.event_name}</strong>
+            <div class="text-xs text-gray-500">${ev.status}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+  </div>
+`;
+
 
 
   // Fill next month's extra cells
   const totalCells = firstDayOfMonth + lastDateOfMonth;
   const nextDays = totalCells <= 35 ? 35 - totalCells : 42 - totalCells;
-
+  
   for (let i = 1; i <= nextDays; i++) {
-    calendarDays.innerHTML += `<div class="flex p-3.5 bg-gray-50 border-r border-b border-indigo-200 text-xs text-gray-400">${i}</div>`;
+calendarDays.innerHTML += `
+  <div class="relative border-r border-b border-blue-200 text-xs font-semibold
+flex flex-col items-start justify-start p-2 pt-8 cursor-pointer hover:bg-indigo-50">
+    <span class="absolute top-1 left-2 ${isToday ? 'bg-blue-600 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center' : ''}">
+      ${day}
+    </span>
+    ${eventsHtml}
+  </div>
+`;
+    
+
   }
 }
 
@@ -133,7 +247,7 @@ for (let day = 1; day <= lastDateOfMonth; day++) {
 
 <style>
 .border {
-    height: 90%;
+
     display: flex;
     flex-direction: column;
 }
@@ -141,15 +255,35 @@ for (let day = 1; day <= lastDateOfMonth; day++) {
 #calendar-days {
     flex-grow: 1;
     display: grid;
+    /** old **/
+    /**
     grid-template-rows: repeat(6, 1fr); 
+    **/
+    
+    /** new **/
+    grid-auto-rows: minmax(120px, auto);
 }
 
+/** old **/
+/**
 #calendar-days div {
     min-height: 100px; 
     display: flex;
     align-items: center;
     justify-content: center;
 }
+**/
+
+/** new **/
+#calendar-days > div {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    position: relative;
+}
+
 
 #calendar-days span {
     position: absolute;

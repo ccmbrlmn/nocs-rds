@@ -1,11 +1,17 @@
 <x-app-layout>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Dashboard') }}
         </h2>
     </x-slot>
-
-    <div class="p-6 flex gap-6" x-data="{ open: false }">
+    
+    <!-- new -->
+    <div class="p-6 flex gap-6"
+     x-data="{ openRequestForm: false, openCancelForm: false }">
+    
     <!-- Card Schedule -->
     <div class="card-sched mt-5">
         <h2 class="font-manrope text-3xl leading-tight text-gray-900 mb-1.5 mt-5">Scheduled Requests</h2>
@@ -37,11 +43,17 @@
     <!-- Calendar -->
     <div class="cal-col">
         <div class="calendar">
-            @include('layouts.calendar')
+            <!-- new -->
+            @include('layouts.calendar', ['calendarEvents' => $calendarEvents])
         </div>
     </div>
 
-    @include('form.request-form')
+@auth
+    <div x-data="{ openRequestForm: false }">
+        <!-- Add Request button is in the calendar -->
+        @include('form.request-form')
+    </div>
+@endauth
 </div>
 
 </x-app-layout>
@@ -54,4 +66,7 @@
     .cal-col{
         width: 70%;
     }
+    
+  [x-cloak] { display: none !important; }
+
 </style>

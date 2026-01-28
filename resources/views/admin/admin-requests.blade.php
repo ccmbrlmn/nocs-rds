@@ -106,12 +106,7 @@
         </div>
 
         @php
-            $statusColors = [
-                'Open' => 'text-green-600 bg-green-100', 
-                'In Progress' => 'text-yellow-600 bg-yellow-100', 
-                'Closed' => 'text-gray-600 bg-gray-200', 
-                'Declined' => 'text-red-600 bg-red-100', 
-            ];
+            $statusColors = config('status');
         @endphp
 
     @foreach ($requests as $request)
@@ -127,7 +122,15 @@
             <div class="col w-1/6"><p class="text-gray-600 text-center">{{ $request->purpose }}</p></div>
             <div class="col w-1/6">
                 <span class="px-3 py-1 rounded-full font-semibold flex justify-center items-center {{ $statusColors[$request->status] }}">
-                    {{ $request->status }}
+                
+                @php
+                    $colors = $statusColors[$request->status];
+                @endphp
+
+                <span class="px-3 py-1 rounded-full font-semibold flex justify-center items-center {{ $colors['text'] }} {{ $colors['bg'] }}">
+                    {{ $request->status == 'In Progress' ? 'Active' : ($request->status == 'Declined' ? 'Canceled' : $request->status) }}
+                </span>
+
                 </span>
             </div>
 
