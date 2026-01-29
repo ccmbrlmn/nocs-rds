@@ -91,7 +91,7 @@
         </div>
     </div>
 
-    
+
     <div class="request-history-list p-3 rounded-tr-lg rounded-tl-lg">
         <div class="head bg-blue-100 p-3 rounded-tr-lg rounded-tl-lg">
             <div class="text">
@@ -108,7 +108,7 @@
         @php
             $statusColors = config('status');
         @endphp
-
+<div class="request-history-wrapper">
     @foreach ($requests as $request)
     <div class="request-row bg-white hover:bg-blue-50 border border-gray-200 transition duration-200">
         <div class="row flex justify-between items-center space-x-4 p-2">
@@ -138,12 +138,13 @@
     </div>
     @endforeach
 
-
+    </div>
 
     </div>
 </x-app-layout>
 
 <style>
+
     .material-symbols-outlined {
         font-size: 28px;
         vertical-align: middle;
@@ -164,4 +165,44 @@
         margin-right: 5rem;
         margin-bottom: 0.5rem;
     }
+    
+    .request-history-wrapper {
+    max-height: 600px;
+    overflow-y: auto;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.5rem;
+}
+
+.request-history-wrapper {
+    max-height: 600px;
+    overflow-y: auto;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.5rem;
+
+}
+
+.request-history-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.request-history-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.request-history-wrapper::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.request-history-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.request-history-list {
+    margin: 0;
+    margin-left: 4.5rem;
+    margin-right: 5rem;
+}
+
 </style>

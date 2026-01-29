@@ -112,21 +112,22 @@
                     </div>
                 </div>
                 
-                <div class="flex items-center gap-3 mb-6">
-                    <span class="material-symbols-outlined text-gray-600">inventory_2</span>
-                    <div>
-                        <p class="header-text font-semibold mb-1">Request Item Name:</p>
-                        <p class="detail-text">{{ $request->item_name }}</p>
-                    </div>
+            <div class="flex items-start gap-3 mb-6">
+                <span class="material-symbols-outlined text-gray-600">inventory_2</span>
+                <div>
+                    <p class="header-text font-semibold mb-1">Requested Items:</p>
+                    <ul class="detail-text list-disc list-inside">
+                        @if(!empty($request->items))
+                            @foreach(json_decode($request->items, true) as $item)
+                                <li>{{ $item['name'] }} — Quantity: {{ $item['quantity'] }}</li>
+                            @endforeach
+                        @else
+                            <li>No items requested</li>
+                        @endif
+                    </ul>
                 </div>
-                
-                <div class="flex items-center gap-3 mb-6">
-                    <span class="material-symbols-outlined text-gray-600">tag</span>
-                    <div>
-                        <p class="header-text font-semibold mb-1">Request Item Number:</p>
-                        <p class="detail-text">{{ $request->item_number }}</p>
-                    </div>
-                </div>
+            </div>
+
             </div>
 
             <div class="right-col-info">

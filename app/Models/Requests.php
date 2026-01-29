@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -16,8 +15,7 @@ class Requests extends Model
         'representative_name',
         'event_name',
         'purpose',
-        'item_name',
-        'item_number',
+        'items',
         'other_purpose',
         'start_date',
         'end_date',
@@ -27,6 +25,14 @@ class Requests extends Model
         'users',
         'requested_by',
         'status',
+        'personnel_name',
+        'other_equipments',
+        'decline_reason',
+        'cancel_reason',
+    ];
+
+    protected $casts = [
+        'items' => 'array',
     ];
 
     public function user()
@@ -34,3 +40,4 @@ class Requests extends Model
         return $this->belongsTo(User::class, 'requested_by');
     }
 }
+
