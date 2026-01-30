@@ -66,11 +66,13 @@
                     @endguest
 
                     @auth
+                    
                     <li class="px-4 py-2 hover:bg-gray-100">
-                        <a href="{{ route('password.request') }}" 
-                            class="flex justify-between items-center w-full rounded-md text-black cursor-pointer ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white">
-                            <span>Change Password</span>
-                            <span class="material-symbols-outlined">lock</span>
+                        <a href="{{ route('profile.edit') }}"
+                            class="flex justify-between items-center w-full rounded-md text-black cursor-pointer"
+                            @click.stop>
+                            <span>Profile</span>
+                            <span class="material-symbols-outlined">person</span>
                         </a>
                     </li>
 

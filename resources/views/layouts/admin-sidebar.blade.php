@@ -61,6 +61,7 @@
                     </a>
                 </li>
 
+
                 <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                     <form method="POST" action="{{ route('logout') }}" class="flex justify-between items-center w-full">
                         @csrf
