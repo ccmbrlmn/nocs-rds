@@ -27,14 +27,24 @@
                     <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
                     <x-input-error :messages="$errors->get('password')" class="mt-2" />
                 </div>
-                <!-- Forgot Pass -->
-                <div>
+                
+                <div class="flex justify-between items-center mt-2 text-sm">
                     @if (Route::has('password.request'))
-                        <a class="underline text-sm text-gray-600 hover:text-gray-900" href="{{ route('password.request') }}">
+                        <a class="underline text-gray-600 hover:text-gray-900"
+                           href="{{ route('password.request') }}">
                             {{ __('Forgot your password?') }}
                         </a>
                     @endif
+
+                    @if (Route::has('register'))
+                        <a class="underline text-gray-600 hover:text-gray-900"
+                           href="{{ route('register') }}">
+                            {{ __('Register') }}
+                        </a>
+                    @endif
                 </div>
+
+                
                 <div class ="mt-4 w-full">
                 <x-primary-button style="background-color: #0575E6; color: white; width: 100%;">
                     {{ __('Log in') }}

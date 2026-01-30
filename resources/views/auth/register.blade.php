@@ -8,9 +8,6 @@
         </span> 
     </a>
 
-
-        
-
         <img src="{{ asset('assets/images/reg-bg.png') }}" 
              class="absolute bottom-0 left-0 w-100 h-auto ">
 
