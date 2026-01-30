@@ -153,6 +153,8 @@
     .request-history-list {
         margin-left: 4.5rem;
         margin-right: 5rem;
+        display: flex;
+        flex-direction: column;
     }
 
     .header-container {
@@ -165,44 +167,30 @@
         margin-right: 5rem;
         margin-bottom: 0.5rem;
     }
-    
+
     .request-history-wrapper {
-    max-height: 600px;
-    overflow-y: auto;
-    border: 1px solid #E5E7EB;
-    border-radius: 0.5rem;
-}
+        flex: 1;
+        height: 400px;
+        overflow-y: auto;
+    }
 
-.request-history-wrapper {
-    max-height: 600px;
-    overflow-y: auto;
-    border: 1px solid #E5E7EB;
-    border-radius: 0.5rem;
 
-}
+    .request-history-wrapper::-webkit-scrollbar {
+        width: 8px;
+    }
 
-.request-history-wrapper::-webkit-scrollbar {
-    width: 8px;
-}
+    .request-history-wrapper::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
 
-.request-history-wrapper::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
+    .request-history-wrapper::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
 
-.request-history-wrapper::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-}
-
-.request-history-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-
-.request-history-list {
-    margin: 0;
-    margin-left: 4.5rem;
-    margin-right: 5rem;
-}
+    .request-history-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
 
 </style>

@@ -144,13 +144,6 @@ class RequestController extends Controller
         return redirect()->back()->with('success', 'Request cancel with reason.');
     }
 
-
-
-
-
-
-    
-
     public function store(Request $request){
         $validated = $request->validate([
             'representative_name' => 'required|string',
@@ -191,8 +184,7 @@ class RequestController extends Controller
             'decline_reason' => $validated['decline_reason'] ?? null,
             'cancel_reason' => $validated['cancel_reason'] ?? null,
         ]);
-
-
+        
         $requestData = $validated;
         $requestData['requested_by'] = $userName;
 
@@ -201,5 +193,45 @@ class RequestController extends Controller
 
         return redirect()->back()->with('success', 'Request submitted successfully!');
     }
+    
+            public function update(Request $request, $id)
+        {
+            // Find the request
+            $req = Requests::findOrFail($id);
+
+            // Validate incoming data
+            $validated = $request->validate([
+                'representative_name' => 'required|string',
+                'event_name' => 'required|string',
+                'purpose' => 'required|string',
+                'items' => 'required|array',
+                'items.*.name' => 'required|string',
+                'items.*.quantity' => 'required|integer|min:1',
+                'other_purpose' => 'nullable|string',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date',
+                'setup_date' => 'nullable|date',
+                'setup_time' => 'nullable',
+                'location' => 'required|string',
+                'users' => 'required|integer',
+            ]);
+
+            // Update the request
+            $req->representative_name = $validated['representative_name'];
+            $req->event_name = $validated['event_name'];
+            $req->purpose = $validated['purpose'];
+            $req->other_purpose = $validated['other_purpose'] ?? null;
+            $req->start_date = $validated['start_date'];
+            $req->end_date = $validated['end_date'];
+            $req->setup_date = $validated['setup_date'] ?? null;
+            $req->setup_time = $validated['setup_time'] ?? null;
+            $req->location = $validated['location'];
+            $req->users = $validated['users'];
+            $req->items = json_encode($validated['items']); // encode items array to JSON
+
+            $req->save();
+
+            return redirect()->back()->with('success', 'Request updated successfully!');
+        }
 
 }

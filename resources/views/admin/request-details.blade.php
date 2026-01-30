@@ -10,6 +10,44 @@
         </div>
     </div>
     <div class="request-details p-5 rounded-lg bg-white">
+    {{-- Notifications --}}
+        @if(session('success'))
+            <div 
+                x-data="{ show: true }"
+                x-show="show"
+                x-transition
+                class="mb-4 p-3 bg-green-100 text-green-700 rounded flex items-center justify-between"
+            >
+                <span>{{ session('success') }}</span>
+
+                <button 
+                    @click="show = false"
+                    class="text-green-700 font-bold ml-4 hover:text-green-900"
+                >
+                    ✕
+                </button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div 
+                x-data="{ show: true }"
+                x-show="show"
+                x-transition
+                class="mb-4 p-3 bg-red-100 text-red-700 rounded flex items-center justify-between"
+            >
+                <span>{{ session('error') }}</span>
+
+                <button 
+                    @click="show = false"
+                    class="text-red-700 font-bold ml-4 hover:text-red-900"
+                >
+                    ✕
+                </button>
+            </div>
+        @endif
+
+
         <div class="request-header flex items-center justify-between w-full mb-3">
             <div class="mt-4">
                 <h2 class="text-3xl font-semibold mb-2">{{ $request->user->name}}</h2> 
@@ -26,70 +64,36 @@
 
             </div>
             
-            <div class="flex gap-4 items-center">
-                @if(auth()->check() && auth()->user()->email === 'nocs_services@gbox.adnu.edu.ph')
+        <div class="flex gap-4 items-center">
+            @auth
+                @if($request->status === 'Open')
+                    {{-- Cancel Button (only show if status is Open) --}}
                     @if($request->status === 'Open')
-                        {{-- Accept Button --}}
-                        <div x-data="{ open: false }">
-                            @include('form.deployment-form')
-                            <x-primary-button @click="open = true" style="background-color: #12D707; color: white; width: 100px; height: 40px;">
-                                {{ __('Accept') }}
+                        <div x-data="{ openCancelForm: false }">
+                            <x-primary-button type="button" @click="openCancelForm = true" style="background-color: #D7070B; color: white; width: 100px; height: 40px;">
+                                {{ __('Cancel') }}
                             </x-primary-button>
-                        </div>
-
-                        {{-- Decline Button --}}
-                        <div x-data="{ open: false }">
-                            @include('form.decline-form')
-                            <x-primary-button @click="open = true" style="background-color: #D7070B; color: white; width: 100px; height: 40px;">
-                                {{ __('Decline') }}
-                            </x-primary-button>
-                        </div>
-
-                    @elseif($request->status === 'In Progress')
-                        {{-- Complete Button --}}
-                        <div>
-                            <form action="{{ route('requests.complete', $request->id) }}" method="POST">
-                                @csrf
-                                <x-primary-button style="background-color: #0575E6; color: white; width: 100px; height: 40px;">
-                                    {{ __('Complete') }}
-                                </x-primary-button>
-                            </form>
+                            @include('form.cancel-form')
                         </div>
                     @endif
 
-                    {{-- Cancel Button (for NOCS users) --}}
-                      <div x-data="{ openCancelForm: false }">
-                        <!-- Cancel Button -->
-                        <x-primary-button
-                            type="button"
-                            @click="openCancelForm = true"
-                            style="background-color: #D7070B; color: white; width: 100px; height: 40px;"
-                        >
-                            {{ __('Cancel') }}
+                    {{-- Edit Button --}}
+                    <div x-data="{ openEdit: false }">
+                        <x-primary-button @click="openEdit = true" style="background-color:#0575E6; color:white; width:100px; height:40px;">
+                            {{ __('Edit') }}
                         </x-primary-button>
-
-                        <!-- Cancel Form Modal -->
-                        @include('form.cancel-form')
+                        @include('form.edit-request-form', ['request' => $request])
                     </div>
-
-
-                @else
-                    {{-- Cancel Button (works for both NOCS and non-NOCS) --}}
-                    <div x-data="{ openCancelForm: false }">
-                        <x-primary-button
-                            type="button"
-                            @click="openCancelForm = true"
-                            style="background-color: #D7070B; color: white; width: 100px; height: 40px;"
-                        >
-                            {{ __('Cancel') }}
-                        </x-primary-button>
-
-                        <!-- Cancel Form Modal -->
-                        @include('form.cancel-form')
-                    </div>
-
                 @endif
-            </div>
+            @endauth
+        </div>
+
+
+
+            
+
+
+            
         </div>
        
         <hr class="mb-4">
@@ -236,6 +240,8 @@
         margin-left: 4.5rem;
         margin-right: 5rem;
         padding: 2rem;
+        max-height: calc(100vh - 160px);
+        overflow-y: auto;
     }
 
     h1 {
@@ -251,15 +257,19 @@
         margin-top: 10px;
     }
 
-    .left-col-info {
-        text-align: left;
-        width: 50%; 
-    }
-
+    .left-col-info,
     .right-col-info {
         text-align: left;
-        width: 50%;
+        width: 48%;
+        min-width: 250px;
     }
+
+    .request-information {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2%;
+    }
+
 
     .header-text{
         font-size: 1.5rem;

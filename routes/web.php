@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/history', function () { return view('history'); })->name('history');
     Route::get('/my-requests', [RequestController::class, 'userRequest'])->name('user.requests');
     Route::get('/requests', [RequestController::class, 'index'])->name('requests');
+    Route::put('/requests/{request}', [RequestController::class, 'update'])->name('requests.update');
     Route::post('/requests/store', [RequestController::class, 'store'])->name('requests.store');
     Route::get('/request-details/{id}', [RequestController::class, 'show'])->name('request-details.show');
     Route::post('/requests/{id}/accept', [RequestController::class, 'accept'])->name('requests.accept');

@@ -112,7 +112,8 @@
                 'Declined' => 'text-red-600 bg-red-100', 
             ];
         @endphp
-
+        
+    <div class="request-history-wrapper">
     @foreach ($requests as $request)
     <div class="request-row bg-white hover:bg-blue-50 border border-gray-200 transition duration-200">
         <div class="row flex justify-between items-center space-x-4 p-2">
@@ -133,6 +134,7 @@
         </div>
     </div>
     @endforeach
+    </div>
 
 
 
@@ -148,6 +150,14 @@
     .request-history-list {
         margin-left: 4.5rem;
         margin-right: 5rem;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 300px);
+    }
+    
+    .request-history-wrapper {
+        flex: 1;
+        overflow-y: auto;
     }
 
     .header-container {

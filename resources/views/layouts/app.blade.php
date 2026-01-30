@@ -34,7 +34,8 @@
 
         
         <!-- Page Content -->
-        <div class="flex-1 p-6 vh-100">
+            <div class="flex-1 p-6 overflow-hidden">
+
             {{ $slot }}
         </div>
     </div>
