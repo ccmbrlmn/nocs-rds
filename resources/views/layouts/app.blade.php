@@ -21,7 +21,8 @@
        
     </head>
     <body class="font-sans antialiased">
-    <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex">
+    <div class="h-screen bg-gray-100 dark:bg-gray-900 flex overflow-hidden">
+
         <!-- Side Bar Nav -->
         
         <div class="sidebar-layout bg-white dark:bg-gray-800">
@@ -34,7 +35,7 @@
 
         
         <!-- Page Content -->
-            <div class="flex-1 p-6 overflow-hidden">
+            <div class="flex-1 p-6 overflow-y-auto scroll-smooth">
 
             {{ $slot }}
         </div>

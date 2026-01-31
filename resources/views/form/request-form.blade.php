@@ -52,7 +52,13 @@
                            class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
                 </div>
                 
-                <div x-data="{ items: [] }" class="mb-4">
+                <div 
+                    x-data="{
+                        maxItems: 5,
+                        items: [{ name: '', quantity: 1 }]
+                    }" 
+                    class="mb-4"
+                >
 
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Requested Items
@@ -86,14 +92,19 @@
                         </button>
                     </div>
                 </template>
-
-
+                
                     <!-- Add item button -->
                     <button type="button"
-                            @click="items.push({ name: '', quantity: 1 })"
+                            @click="if (items.length < maxItems) items.push({ name: '', quantity: 1 })"
+                            x-show="items.length < maxItems"
                             class="text-sm text-blue-600 hover:underline mt-2">
                         + Add item
                     </button>
+
+                    <p x-show="items.length >= maxItems"
+                       class="text-xs text-red-500 mt-1">
+                        Maximum of 5 items only.
+                    </p>
 
                 </div>
                 </div>

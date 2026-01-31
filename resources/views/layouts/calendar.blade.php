@@ -135,7 +135,9 @@ flex flex-col items-start justify-start p-2 pt-8 cursor-pointer hover:bg-indigo-
         ${day}
       </span>
 
+    <div class="calendar-events">
       ${eventsHtml}
+    </div>
 
       ${hiddenCount > 0 ? `<div class="mt-1 text-xs text-indigo-600 font-semibold">+${hiddenCount} more</div>` : ''}
 
@@ -176,7 +178,9 @@ class="relative border-r border-b border-blue-200 text-xs font-semibold flex fle
       ${day}
     </span>
 
-    ${eventsHtml}
+    <div class="calendar-events">
+      ${eventsHtml}
+    </div>
 
     ${hiddenCount > 0 ? `
       <div class="mt-1 text-xs text-indigo-600 font-semibold">
@@ -221,7 +225,11 @@ flex flex-col items-start justify-start p-2 pt-8 cursor-pointer hover:bg-indigo-
     <span class="absolute top-1 left-2 ${isToday ? 'bg-blue-600 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center' : ''}">
       ${day}
     </span>
-    ${eventsHtml}
+
+    <div class="calendar-events">
+      ${eventsHtml}
+    </div>
+
   </div>
 `;
     
@@ -255,26 +263,9 @@ flex flex-col items-start justify-start p-2 pt-8 cursor-pointer hover:bg-indigo-
 #calendar-days {
     flex-grow: 1;
     display: grid;
-    /** old **/
-    /**
-    grid-template-rows: repeat(6, 1fr); 
-    **/
-    
-    /** new **/
     grid-auto-rows: minmax(120px, auto);
 }
 
-/** old **/
-/**
-#calendar-days div {
-    min-height: 100px; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-**/
-
-/** new **/
 #calendar-days > div {
     min-height: 120px;
     display: flex;
@@ -291,4 +282,19 @@ flex flex-col items-start justify-start p-2 pt-8 cursor-pointer hover:bg-indigo-
     left: 6px; 
     font-size: 14px; 
 }
+
+.calendar-events {
+    margin-top: 4px;
+    max-height: 60px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.calendar-events > div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
 </style>

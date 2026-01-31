@@ -149,7 +149,7 @@ class RequestController extends Controller
             'representative_name' => 'required|string',
             'event_name' => 'required|string',
             'purpose' => 'required|string',
-            'items' => 'required|array',
+            'items' => 'required|array|max:5',
             'items.*.name' => 'required|string',
             'items.*.quantity' => 'required|integer|min:1',
             'other_purpose' => 'nullable|string',
@@ -188,8 +188,10 @@ class RequestController extends Controller
         $requestData = $validated;
         $requestData['requested_by'] = $userName;
 
-        //change this to nocs_services@gbox.adnu.edu.ph
-        Mail::to('aosora611@gmail.com')->send(new NewRequestNotification($requestData));
+        Mail::to(config('mail.admin'))->send(
+            new NewRequestNotification($requestData)
+        );
+
 
         return redirect()->back()->with('success', 'Request submitted successfully!');
     }
@@ -204,9 +206,11 @@ class RequestController extends Controller
                 'representative_name' => 'required|string',
                 'event_name' => 'required|string',
                 'purpose' => 'required|string',
-                'items' => 'required|array',
+
+                'items' => 'required|array|max:5',
                 'items.*.name' => 'required|string',
                 'items.*.quantity' => 'required|integer|min:1',
+
                 'other_purpose' => 'nullable|string',
                 'start_date' => 'required|date',
                 'end_date' => 'required|date',
@@ -215,6 +219,7 @@ class RequestController extends Controller
                 'location' => 'required|string',
                 'users' => 'required|integer',
             ]);
+
 
             // Update the request
             $req->representative_name = $validated['representative_name'];
