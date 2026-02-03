@@ -167,9 +167,6 @@
         <p class="header-text font-semibold mb-1">Deployment Information</p>
 
         <div class="request-information flex justify-between pt-3">
-            @php
-                $userIsNocs = auth()->check() && auth()->user()->email === 'nocs_services@gbox.adnu.edu.ph';
-            @endphp
 
             @if($request->status === 'Active')
                 <div class="left-col-info">
@@ -194,7 +191,7 @@
                         </div>
                     </div>
                 </div>
-            @elseif($request->status === 'Declined' && $userIsNocs)
+            @elseif($request->status === 'Declined')
                 <div class="left-col-info w-full">
                     <div class="flex items-center gap-3 mb-6">
                         <span class="material-symbols-outlined text-gray-600">cancel</span>
@@ -204,7 +201,7 @@
                         </div>
                     </div>
                 </div>
-            @elseif($request->status === 'Declined' && !$userIsNocs)
+            @elseif($request->status === 'Declined')
                 <div class="left-col-info w-full">
                     <div class="flex items-center gap-3 mb-6">
                         <span class="material-symbols-outlined text-gray-600">block</span>
