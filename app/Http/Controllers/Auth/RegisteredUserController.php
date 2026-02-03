@@ -47,4 +47,35 @@ class RegisteredUserController extends Controller
 
         return redirect(route('dashboard', absolute: false));
     }
+    
+    public function storeAdmin(Request $request)
+{
+    // Validate input
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        'admin_key' => ['required'],
+    ]);
+
+    // Validate admin secret key
+    if ($request->admin_key !== config('app.admin_register_key')) {
+        return back()->withErrors([
+            'admin_key' => 'Invalid admin registration key.'
+        ])->withInput();
+    }
+
+    // Create admin user
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'role' => 'admin',
+    ]);
+
+    Auth::login($user);
+
+    return redirect()->route('admin-dashboard')
+        ->with('success', 'Admin account created successfully.');
+}
 }

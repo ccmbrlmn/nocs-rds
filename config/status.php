@@ -2,19 +2,24 @@
 
 return [
     'Open' => [
-        'text' => 'text-blue-600',
-        'bg'   => 'bg-blue-100',
-    ],
-    'In Progress' => [
+        'bg' => 'bg-green-100',
         'text' => 'text-green-600',
-        'bg'   => 'bg-green-100',
+        'calendar' => '#3B82F6',
+    ],
+    'Active' => [
+        'bg' => 'bg-yellow-100',
+        'text' => 'text-yellow-600',
+        'calendar' => '#22C55E', 
     ],
     'Closed' => [
+        'bg' => 'bg-gray-200',
         'text' => 'text-gray-600',
-        'bg'   => 'bg-gray-200',
+        'calendar' => '#9CA3AF',
     ],
     'Declined' => [
+        'bg' => 'bg-red-100',
         'text' => 'text-red-600',
-        'bg'   => 'bg-red-100',
+        'calendar' => '#EF4444',
     ],
 ];
+

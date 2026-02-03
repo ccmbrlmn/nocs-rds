@@ -29,9 +29,9 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        if ($user->email === 'nocs_services@gbox.adnu.edu.ph') {
-            return redirect()->route('admin-dashboard');
-        }
+    if ($user->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
@@ -52,12 +52,13 @@ class AuthenticatedSessionController extends Controller
 
     protected function authenticated(Request $request, $user)
     {
-        if ($user->email === 'nocs_services@gbox.adnu.edu.ph') {
-            return redirect()->route('admin-dashboard');  
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');  
         }
 
         return redirect()->route('dashboard');  
     }
+
 
 }
 

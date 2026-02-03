@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Requests extends Model
 {
@@ -29,6 +30,7 @@ class Requests extends Model
         'other_equipments',
         'decline_reason',
         'cancel_reason',
+        'handled_by',
     ];
 
     protected $casts = [
@@ -39,5 +41,29 @@ class Requests extends Model
     {
         return $this->belongsTo(User::class, 'requested_by');
     }
+
+    
+        public function handler()
+    {
+        return $this->belongsTo(User::class, 'handled_by');
+    }
+    
+        public function handledByAdmin()
+    {
+        return $this->belongsTo(User::class, 'handled_by');
+    }
+    
+    public function getComputedStatusAttribute()
+{
+    if ($this->status !== 'Closed' && $this->end_date && Carbon::parse($this->end_date)->endOfDay()->isPast()) {
+        return 'Closed';
+    }
+    return $this->status;
+}
+
+    
+
+    
+    
 }
 

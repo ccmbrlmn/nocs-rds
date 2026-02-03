@@ -7,31 +7,6 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    // old
-    /**
-    public function showDashboard()
-    {
-        // Default empty collections
-        $scheduledRequests = collect();
-        $calendarEvents = collect();
-
-        // Only fetch sensitive data if user is authenticated
-        if (auth()->check()) {
-            $today = \Carbon\Carbon::today()->toDateString();
-
-            $scheduledRequests = \App\Models\Requests::where('status', 'In Progress')
-                ->whereDate('start_date', $today)
-                ->get();
-
-            $calendarEvents = \App\Models\Requests::where('status', 'In Progress')
-                ->get(['event_name', 'setup_date', 'location']);
-        }
-
-        return view('admin.admin-dashboard', compact('scheduledRequests', 'calendarEvents'));
-    }
-    **/
-    
-    // new
         public function showDashboard()
     {
         $scheduledRequests = collect();
@@ -41,9 +16,8 @@ class DashboardController extends Controller
             $userId = auth()->id();
             $today = Carbon::today()->toDateString();
 
-            // LEFT CARD: Today's scheduled (In Progress only)
             $scheduledRequests = Requests::where('requested_by', $userId)
-                ->where('status', 'In Progress')
+                ->where('status', 'Active')
                 ->whereDate('setup_date', $today)
                 ->orderBy('setup_time')
                 ->get();
@@ -60,7 +34,7 @@ class DashboardController extends Controller
                 ]);
         }
 
-        return view('admin.admin-dashboard', compact('scheduledRequests', 'calendarEvents'));
+        return view('admin.user-dashboard', compact('scheduledRequests', 'calendarEvents'));
     }
 
     

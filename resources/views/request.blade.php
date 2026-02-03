@@ -24,8 +24,8 @@
                 </a>
             </li>
             <li class="me-2">
-                <a href="{{ route('user.requests', ['status' => 'In Progress']) }}" 
-                   class="inline-block px-3 py-2 rounded-lg {{ request('status') == 'In Progress' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
+                <a href="{{ route('user.requests', ['status' => 'Active']) }}" 
+                   class="inline-block px-3 py-2 rounded-lg {{ request('status') == 'Active' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
                    Active
                 </a>
             </li>
@@ -38,7 +38,7 @@
             <li class="me-2">
                 <a href="{{ route('user.requests', ['status' => 'Declined']) }}" 
                    class="inline-block px-3 py-2 rounded-lg {{ request('status') == 'Declined' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                   Canceled
+                   Declined
                 </a>
             </li>
         </ul>
@@ -96,7 +96,7 @@
             <div class="text">
                 <div class="row flex justify-between items-center space-x-4">
                     <div class="col w-1/6"><p class="pt-2 font-semibold text-center">Request No.</p></div>
-                    <div class="col w-2/6"><p class="pt-2 font-semibold text-center">Requester</p></div>
+                    <div class="col w-2/6"><p class="pt-2 font-semibold text-center">Event</p></div>
                     <div class="col w-1/6"><p class="pt-2 font-semibold text-center">Date</p></div>
                     <div class="col w-1/6"><p class="pt-2 font-semibold text-center">Request</p></div>
                     <div class="col w-1/6"><p class="pt-2 font-semibold text-center">Status</p></div>
@@ -107,7 +107,7 @@
         @php
             $statusColors = [
                 'Open' => 'text-green-600 bg-green-100', 
-                'In Progress' => 'text-yellow-600 bg-yellow-100', 
+                'Active' => 'text-yellow-600 bg-yellow-100', 
                 'Closed' => 'text-gray-600 bg-gray-200', 
                 'Declined' => 'text-red-600 bg-red-100', 
             ];
@@ -126,7 +126,9 @@
             <div class="col w-1/6"><p class="text-gray-600 text-center">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</p></div>
             <div class="col w-1/6"><p class="text-gray-600 text-center">{{ $request->purpose }}</p></div>
             <div class="col w-1/6">
-                <span class="px-3 py-1 rounded-full font-semibold flex justify-center items-center {{ $statusColors[$request->status] }}">
+            <span class="px-3 py-1 rounded-full font-semibold flex justify-center items-center 
+            {{ $statusColors[$request->status] ?? 'text-gray-600 bg-gray-100' }}">
+
                     {{ $request->status }}
                 </span>
             </div>

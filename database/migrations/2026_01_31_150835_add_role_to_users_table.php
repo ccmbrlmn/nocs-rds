@@ -9,21 +9,20 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up()
+    public function up(): void
     {
-        Schema::table('requests', function (Blueprint $table) { // plural
-            $table->text('decline_reason')->nullable()->after('status');
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('role')->default('user')->after('password');
         });
     }
-
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::table('requests', function (Blueprint $table) {
-            $table->dropColumn('decline_reason');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('role');
         });
     }
 };

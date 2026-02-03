@@ -3,142 +3,144 @@
         <div class="header">
             <h1 class="flex items-center gap-2 text-3xl">
                 <span class="material-symbols-outlined text-2xl">description</span> 
-                Requests
+                User Requests
             </h1>
         </div>
     </div>
-    
 
-     <div class="filter-container flex items-center space-x-4">
+<div class="filter-container flex items-center space-x-4">
+
+    {{-- STATUS FILTER --}}
+    <div class="flex items-center space-x-4">
         <div class="filter-tab">
-        <ul class="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:text-gray-400 bg-white px-1 py-1 rounded-md">
+            <ul class="flex flex-wrap text-sm font-medium text-center text-gray-500 bg-white px-1 py-1 rounded-md">
+                @foreach(['All' => null, 'Open' => 'Open', 'Active' => 'Active', 'Closed' => 'Closed', 'Declined' => 'Declined'] as $label => $status)
+                    <li class="me-2">
+                        <a href="{{ route('admin.requests', array_merge(request()->query(), ['status' => $status])) }}"
+                           class="inline-block px-3 py-2 rounded-lg {{ request('status') == $status || ($status === null && !request('status')) ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
+                            {{ $label }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+
+{{-- DATE FILTER --}}
+<div class="flex items-center space-x-4">
+
+
+    <div class="filter-tab">
+        <ul class="flex flex-wrap text-sm font-medium text-center text-gray-500 bg-white px-1 py-1 rounded-md">
             <li class="me-2">
-                <a href="{{ route('admin.requests') }}" 
-                   class="inline-block px-3 py-2 rounded-lg {{ request('status') ? 'hover:bg-gray-100' : 'bg-blue-600 text-white' }}">
-                   All
+                <a href="{{ route('admin.requests', array_merge(request()->query(), ['date_filter' => null])) }}"
+                   class="inline-block px-3 py-2 rounded-lg {{ request('date_filter') ? 'hover:bg-gray-100' : 'bg-blue-600 text-white' }}">
+                    All Time
                 </a>
             </li>
             <li class="me-2">
-                <a href="{{ route('admin.requests', ['status' => 'Open']) }}" 
-                   class="inline-block px-3 py-2 rounded-lg {{ request('status') == 'Open' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                   Open
+                <a href="{{ route('admin.requests', array_merge(request()->query(), ['date_filter' => '30_days'])) }}"
+                   class="inline-block px-3 py-2 rounded-lg {{ request('date_filter') == '30_days' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
+                    30 Days
                 </a>
             </li>
             <li class="me-2">
-                <a href="{{ route('admin.requests', ['status' => 'In Progress']) }}" 
-                   class="inline-block px-3 py-2 rounded-lg {{ request('status') == 'In Progress' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                   Active
+                <a href="{{ route('admin.requests', array_merge(request()->query(), ['date_filter' => '7_days'])) }}"
+                   class="inline-block px-3 py-2 rounded-lg {{ request('date_filter') == '7_days' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
+                    7 Days
                 </a>
             </li>
             <li class="me-2">
-                <a href="{{ route('admin.requests', ['status' => 'Closed']) }}" 
-                   class="inline-block px-3 py-2 rounded-lg {{ request('status') == 'Closed' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                   Closed
-                </a>
-            </li>
-            <li class="me-2">
-                <a href="{{ route('admin.requests', ['status' => 'Declined']) }}" 
-                   class="inline-block px-3 py-2 rounded-lg {{ request('status') == 'Declined' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                   Canceled
+                <a href="{{ route('admin.requests', array_merge(request()->query(), ['date_filter' => '24_hours'])) }}"
+                   class="inline-block px-3 py-2 rounded-lg {{ request('date_filter') == '24_hours' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
+                    24 Hours
                 </a>
             </li>
         </ul>
-       
     </div>
 
+</div>
 
-   <div class="filter-container flex items-center space-x-4"> 
-        <div class="filter-tab">
-                <ul class="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:text-gray-400 bg-white px-1 py-1 rounded-md">
-                    <li class="me-2">
-                        <a href="{{ route('admin.requests', array_merge(request()->query(), ['date_filter' => null])) }}" 
-                        class="inline-block px-3 py-2 rounded-lg {{ request('date_filter') ? 'hover:bg-gray-100' : 'bg-blue-600 text-white' }}">
-                        All Time
-                        </a>
-                    </li>
-                    <li class="me-2">
-                        <a href="{{ route('admin.requests', array_merge(request()->query(), ['date_filter' => '30_days'])) }}" 
-                        class="inline-block px-3 py-2 rounded-lg {{ request('date_filter') == '30_days' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                        30 Days
-                        </a>
-                    </li>
-                    <li class="me-2">
-                        <a href="{{ route('admin.requests', array_merge(request()->query(), ['date_filter' => '7_days'])) }}" 
-                        class="inline-block px-3 py-2 rounded-lg {{ request('date_filter') == '7_days' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                        7 Days
-                        </a>
-                    </li>
-                    <li class="me-2">
-                        <a href="{{ route('admin.requests', array_merge(request()->query(), ['date_filter' => '24_hours'])) }}" 
-                        class="inline-block px-3 py-2 rounded-lg {{ request('date_filter') == '24_hours' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                        24 Hours
-                        </a>
-                    </li>
-                </ul>
-            </div>
 
-            <div class="calendar-tab bg-white px-3 py-2 flex items-center space-x-3 rounded-md">
-                <form action="{{ route('user.requests') }}" method="GET">
-                <input type="date" name="specific_date" value="{{ request('specific_date') }}" 
-        class="px-2 py-1 text-sm text-gray-600 bg-transparent focus:outline-none focus:ring-0 border-0">
+    {{-- DATE PICKER --}}
+<div class="calendar-tab bg-white px-3 py-2 flex items-center space-x-3 rounded-md">
 
-                    
-                    @foreach(request()->except('specific_date') as $key => $value)
-                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                    @endforeach
-                </form>
-            </div>
-        </div>
+        <form action="{{ route('admin.requests') }}" method="GET">
+            <input type="date"
+                   name="specific_date"
+                   value="{{ request('specific_date') }}"
+                   class="px-2 py-1 text-sm text-gray-600 bg-transparent focus:outline-none border-0">
+
+            @foreach(request()->except('specific_date') as $key => $value)
+                <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+            @endforeach
+        </form>
     </div>
 
+</div>
 
+
+    {{-- TABLE --}}
     <div class="request-history-list p-3 rounded-tr-lg rounded-tl-lg">
         <div class="head bg-blue-100 p-3 rounded-tr-lg rounded-tl-lg">
-            <div class="text">
-                <div class="row flex justify-between items-center space-x-4">
-                    <div class="col w-1/6"><p class="pt-2 font-semibold text-center">Request No.</p></div>
-                    <div class="col w-2/6"><p class="pt-2 font-semibold text-center">Requester</p></div>
-                    <div class="col w-1/6"><p class="pt-2 font-semibold text-center">Date</p></div>
-                    <div class="col w-1/6"><p class="pt-2 font-semibold text-center">Request</p></div>
-                    <div class="col w-1/6"><p class="pt-2 font-semibold text-center">Status</p></div>
-                </div>
-            </div>      
+            <div class="row flex justify-between items-center space-x-4">
+                <div class="col w-1/6 text-center font-semibold">Request No.</div>
+                <div class="col w-1/6 text-center font-semibold">Requester</div>
+                <div class="col w-1/6 text-center font-semibold">Event</div>
+                <div class="col w-1/6 text-center font-semibold">Date</div>
+                <div class="col w-1/6 text-center font-semibold">Purpose</div>
+                <div class="col w-1/6 text-center font-semibold">Status</div>
+            </div>
         </div>
 
-        @php
-            $statusColors = config('status');
-        @endphp
+        @php $statusColors = config('status'); @endphp
+
 <div class="request-history-wrapper">
-    @foreach ($requests as $request)
-    <div class="request-row bg-white hover:bg-blue-50 border border-gray-200 transition duration-200">
-        <div class="row flex justify-between items-center space-x-4 p-2">
-            <div class="col w-1/6"><p class="text-gray-600 text-center">#{{ $request->id }}</p></div>
-            <div class="col w-2/6 justify-center flex">
-                <a href="{{ route('request-details.show', $request->id) }}" class="text-gray-600 text-center">
-                    {{ $request->event_name }}
-                </a>
-            </div>
-            <div class="col w-1/6"><p class="text-gray-600 text-center">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</p></div>
-            <div class="col w-1/6"><p class="text-gray-600 text-center">{{ $request->purpose }}</p></div>
-            <div class="col w-1/6">
-                <span class="px-3 py-1 rounded-full font-semibold flex justify-center items-center {{ $statusColors[$request->status] }}">
-                
-                @php
-                    $colors = $statusColors[$request->status];
-                @endphp
+    @foreach($requests as $request)
+        <div class="request-row bg-white hover:bg-blue-50 border border-gray-200 transition duration-200 cursor-pointer"
+             onclick="window.location='{{ route('admin.request-details', $request->id) }}'">
+            <div class="row flex justify-between items-center space-x-4 p-2">
 
-                <span class="px-3 py-1 rounded-full font-semibold flex justify-center items-center {{ $colors['text'] }} {{ $colors['bg'] }}">
-                    {{ $request->status == 'In Progress' ? 'Active' : ($request->status == 'Declined' ? 'Canceled' : $request->status) }}
+                <div class="col w-1/6 text-center text-gray-600">#{{ $request->id }}</div>
+
+                <div class="col w-1/6 justify-center flex">
+                    {{ $request->user->name }}
+                </div>
+
+                <div class="col w-1/6 text-center text-gray-600">
+                    {{ $request->event_name ?? '-' }}
+                </div>
+
+                <div class="col w-1/6 text-center text-gray-600">
+                    {{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}
+                </div>
+
+                <div class="col w-1/6 text-center text-gray-600">
+                    {{ $request->purpose }}
+                </div>
+
+                {{-- STATUS --}}
+                <div class="col w-1/6 flex justify-center">
+                    @php
+                        $statusConfig = $statusColors[$request->status] ?? $statusColors['Open'];
+                        $label = match($request->status) {
+                            'Active' => 'Active',
+                            'Declined' => 'Declined',
+                            default => $request->status,
+                        };
+                    @endphp
+
+                <span class="px-3 py-1 rounded-full font-semibold text-sm flex justify-center items-center {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }}">
+                    {{ $label }}
                 </span>
 
-                </span>
-            </div>
+                </div>
 
+            </div>
         </div>
-    </div>
     @endforeach
+</div>
 
-    </div>
 
     </div>
 </x-app-layout>
@@ -194,3 +196,4 @@
     }
 
 </style>
+

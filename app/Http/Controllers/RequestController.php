@@ -87,7 +87,7 @@ class RequestController extends Controller
     
 
     public function show($id) {
-        $request = Requests::findOrFail($id); 
+        $request = Requests::with('handledByAdmin')->findOrFail($id); 
         return view('admin.request-details', compact('request')); 
     }
 
@@ -95,9 +95,10 @@ class RequestController extends Controller
     {
         $deploymentRequest = Requests::findOrFail($id); 
 
-        $deploymentRequest->personnel_name = $request->personnel_name;
+
         $deploymentRequest->other_equipments = $request->other_equipments;
         $deploymentRequest->status = 'In Progress';
+        $deploymentRequest->handled_by = auth()->id();
 
         $deploymentRequest->save();
 
@@ -199,7 +200,10 @@ class RequestController extends Controller
             public function update(Request $request, $id)
         {
             // Find the request
-            $req = Requests::findOrFail($id);
+            $req = Requests::where('id', $id)
+                ->where('requested_by', auth()->id())
+                ->firstOrFail();
+
 
             // Validate incoming data
             $validated = $request->validate([
@@ -232,7 +236,7 @@ class RequestController extends Controller
             $req->setup_time = $validated['setup_time'] ?? null;
             $req->location = $validated['location'];
             $req->users = $validated['users'];
-            $req->items = json_encode($validated['items']); // encode items array to JSON
+            $req->items = $validated['items'];
 
             $req->save();
 

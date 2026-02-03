@@ -26,11 +26,7 @@
         <!-- Side Bar Nav -->
         
         <div class="sidebar-layout bg-white dark:bg-gray-800">
-            @if (auth()->check() && auth()->user()->email === 'nocs_services@gbox.adnu.edu.ph')
-                @include('layouts.admin-sidebar')
-            @else
-                @include('layouts.sidebar-nav')    
-             @endif
+    @include('layouts.sidebar-nav') {{-- single sidebar handles admin, user, guest --}}
         </div>
 
         

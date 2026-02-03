@@ -1,5 +1,5 @@
 <nav x-data="{ open: false }">
-   <aside class="sidebar">
+    <aside class="sidebar">
         <div class="sidebar-header">
             <div class="row">
                 <div class="column">
@@ -12,91 +12,102 @@
         </div>
 
         <ul class="sidebar-links">
-            <li>
-                <a href="{{ route('dashboard') }}"
-                    class="{{ Route::is('dashboard') ? 'active' : '' }}">
-                    <span class="material-symbols-outlined">dashboard</span>
-                    Dashboard
-                </a>
-            </li>
             @auth
-            <li>
-                <a href="{{ route('user.requests') }}" 
-                    class="{{ request()->routeIs('user.requests', 'request-details.show') ? 'active' : '' }}">
-                    <span class="material-symbols-outlined">description</span>
-                    Requests
-                </a>
-            </li>
-           
+                @if(Auth::user()->role === 'admin')
+                    <li>
+                        <a href="{{ route('admin.dashboard') }}" class="{{ Route::is('admin.dashboard') ? 'active' : '' }}">
+                            <span class="material-symbols-outlined">dashboard</span> Dashboard
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('admin.requests') }}" class="{{ request()->routeIs('admin.requests', 'admin.request-details') ? 'active' : '' }}">
+                            <span class="material-symbols-outlined">description</span> Requests
+                        </a>
+                    </li>
+
+                    @php
+                        $firstAdminId = \App\Models\User::where('role', 'admin')->orderBy('id')->first()->id ?? null;
+                    @endphp
+
+                    @if(Auth::id() === $firstAdminId)
+                        <li>
+                            <a href="{{ route('admin.create') }}" class="{{ Route::is('admin.create') ? 'active' : '' }}">
+                                <span class="material-symbols-outlined">person_add</span> Add Admin
+                            </a>
+                        </li>
+                    @endif
+
+                @else
+                    <li>
+                        <a href="{{ route('dashboard') }}" class="{{ Route::is('dashboard') ? 'active' : '' }}">
+                            <span class="material-symbols-outlined">dashboard</span> Dashboard
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('user.requests') }}" class="{{ request()->routeIs('requests', 'request-details') ? 'active' : '' }}">
+                            <span class="material-symbols-outlined">description</span> Requests
+                        </a>
+                    </li>
+                @endif
+            @else
+                <li>
+                    <a href="{{ route('dashboard') }}">
+                        <span class="material-symbols-outlined">dashboard</span> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('login') }}">
+                        <span class="material-symbols-outlined">description</span> Requests
+                    </a>
+                </li>
             @endauth
-        
         </ul>
 
-        <div class="relative" x-data="{ open: false }">
-            <div class="user-account cursor-pointer"
-                @click="open = !open">
-                <div class="user-profile flex items-center gap-1">
-                    <img src="{{ asset('assets/images/user-pic.png') }}" alt="profile-img" class="w-10 h-10 rounded-full">
-                    <div class="user-detail">
-                        <h3 class="text-lg font-semibold">
-                            {{ Auth::check() ? Auth::user()->name : 'Guest' }}
-                        </h3>
-                        <span class="text-sm text-white">
-                            {{ Auth::check() ? Auth::user()->email : 'Not Logged In' }}
-                        </span>
+        <div class="relative mt-6" x-data="{ open: false }">
+            <div class="user-account cursor-pointer" @click="open = !open">
+                <div class="user-profile flex items-center gap-3 p-2 hover:bg-transparent rounded-lg transition-colors">
+                    <img src="{{ asset('assets/images/user-pic.png') }}" alt="profile-img" class="w-12 h-12 rounded-full border-2 border-white">
+                    <div class="user-detail flex flex-col overflow-hidden">
+                        <h3 class="text-white text-lg font-semibold truncate">{{ Auth::check() ? Auth::user()->name : 'Guest' }}</h3>
+                        <span class="text-white text-sm truncate">{{ Auth::check() ? Auth::user()->email : 'Not Logged In' }}</span>
                     </div>
+                    <span class="material-symbols-outlined text-white ml-auto">
+                        expand_more
+                    </span>
                 </div>
             </div>
 
-            <div x-show="open" x-transition 
-                class="dropup-menu absolute bottom-full left-0 bg-white shadow-lg rounded-lg p-2 border border-gray-200"
-                x-bind:style="open ? 'height: auto;' : ''">
-                
-                <ul class="text-sm text-gray-700 h-full flex flex-col justify-between">
+            <div x-show="open" x-transition
+                 @click.away="open = false"
+                 class="dropup-menu absolute bottom-full left-0 w-full bg-white shadow-lg rounded-lg p-2 border border-gray-200 mt-2 z-50">
+                <ul class="flex flex-col gap-2">
                     @guest
-                    <li class="px-4 py-2 hover:bg-gray-100">
-                        <a href="{{ route('login') }}" 
-                            class="flex justify-between items-center w-full rounded-md text-black cursor-pointer ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
-                            @click.stop>
-                            <span>Log in</span>
-                            <span class="material-symbols-outlined">account_circle</span>
-                        </a>
-                    </li>
-                   
-                    @endguest
-
-                    @auth
-                    
-                    <li class="px-4 py-2 hover:bg-gray-100">
-                        <a href="{{ route('profile.edit') }}"
-                            class="flex justify-between items-center w-full rounded-md text-black cursor-pointer"
-                            @click.stop>
-                            <span>Profile</span>
-                            <span class="material-symbols-outlined">person</span>
-                        </a>
-                    </li>
-
-
-                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                        <form method="POST" action="{{ route('logout') }}" class="flex justify-between items-center w-full">
-                            @csrf
-                            <a href="{{ route('logout') }}"
-                                onclick="event.preventDefault();
-                                    this.closest('form').submit();"
-                                class="flex justify-between items-center w-full">
-                                <span>Log Out</span>
-                                <span class="material-symbols-outlined">logout</span>
+                        <li>
+                            <a href="{{ route('login') }}" class="flex items-center gap-2 text-gray-800 hover:bg-gray-100 p-2 rounded">
+                                <span class="material-symbols-outlined text-gray-600">login</span> Log In
                             </a>
-                        </form>
-                    </li>
+                        </li>
+                    @endguest
+                    @auth
+                        <li>
+                            <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 text-gray-800 hover:bg-gray-100 p-2 rounded">
+                                <span class="material-symbols-outlined text-gray-600">person</span> Profile
+                            </a>
+                        </li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="flex items-center gap-2 w-full text-gray-800 hover:bg-gray-100 p-2 rounded">
+                                    <span class="material-symbols-outlined text-gray-600">logout</span> Log Out
+                                </button>
+                            </form>
+                        </li>
                     @endauth
                 </ul>
             </div>
-
-
         </div>
-
     </aside>
 </nav>
-
 
