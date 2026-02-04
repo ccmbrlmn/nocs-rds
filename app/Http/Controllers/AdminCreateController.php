@@ -39,5 +39,15 @@ class AdminCreateController extends Controller
         return redirect()->route('admin.dashboard')
                          ->with('success', 'New admin created successfully.');
     }
+    
+    public function indexCreatedAdmins()
+{
+    $admins = User::where('role', 'admin')
+                  ->where('created_by', auth()->id())
+                  ->get();
+
+    return view('auth.admin-list', compact('admins'));
+}
+
 }
 

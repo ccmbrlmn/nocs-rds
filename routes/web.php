@@ -12,6 +12,10 @@ use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminCreateController;
 
+use App\Http\Controllers\AdminController;
+
+Route::get('/admin/{admin}/logs', [AdminController::class, 'logs'])->name('admin.logs');
+
 Route::get('/check-auth', function() {
     return [
         'check' => Auth::check(),
@@ -34,6 +38,9 @@ Route::post('/admin/register', [RegisteredUserController::class, 'storeAdmin'])
     ->middleware('guest');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+        Route::get('created-admins', [App\Http\Controllers\AdminCreateController::class, 'indexCreatedAdmins'])
+         ->name('admin.created-admins');
+         
     Route::get('/dashboard', [DashboardController::class, 'showDashboard'])->name('dashboard');
     Route::get('/history', function () { return view('history'); })->name('history');
 

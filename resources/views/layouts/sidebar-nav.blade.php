@@ -32,9 +32,9 @@
 
                     @if(Auth::id() === $firstAdminId)
                         <li>
-                            <a href="{{ route('admin.create') }}" class="{{ Route::is('admin.create') ? 'active' : '' }}">
-                                <span class="material-symbols-outlined">person_add</span> Add Admin
-                            </a>
+                                    <a href="{{ route('admin.created-admins') }}" class="{{ Route::is('admin.created-admins') ? 'active' : '' }}">
+            <span class="material-symbols-outlined">group</span> My Admins
+        </a>
                         </li>
                     @endif
 

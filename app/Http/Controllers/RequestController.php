@@ -85,7 +85,7 @@ class RequestController extends Controller
 
     public function show($id) {
         $request = Requests::with('handledByAdmin')->findOrFail($id); 
-        return view('admin.request-details', compact('request')); 
+        return view('admin.user-request-details', compact('request')); 
     }
 
     public function accept(Request $request, $id)
