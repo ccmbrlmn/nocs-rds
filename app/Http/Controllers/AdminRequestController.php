@@ -11,8 +11,17 @@ class AdminRequestController extends Controller
     public function index()
     {
         $requests = RequestModel::all();
+
+        foreach ($requests as $req) {
+            if ($req->computed_status === 'Closed' && $req->status !== 'Closed') {
+                $req->status = 'Closed';
+                $req->save();
+            }
+        }
+
         return view('admin.admin-requests', compact('requests'));
     }
+
 
     public function show($id)
     {
@@ -23,7 +32,7 @@ class AdminRequestController extends Controller
     public function accept($id)
     {
         $request = RequestModel::findOrFail($id);
-        $request->status = 'In Progress';
+        $request->status = 'Active';
         $request->handled_by = Auth::id();
         $request->save();
 

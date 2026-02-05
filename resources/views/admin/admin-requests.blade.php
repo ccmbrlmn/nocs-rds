@@ -121,20 +121,17 @@
 
                 {{-- STATUS --}}
                 <div class="col w-1/6 flex justify-center">
-                    @php
-                        $statusConfig = $statusColors[$request->status] ?? $statusColors['Open'];
-                        $label = match($request->status) {
-                            'Active' => 'Active',
-                            'Declined' => 'Declined',
-                            default => $request->status,
-                        };
-                    @endphp
+                    
+                @php
+                    $label = $request->computed_status;
+                    $statusConfig = $statusColors[$label] ?? $statusColors['Open'];
+                @endphp
 
-                <span class="px-3 py-1 rounded-full font-semibold text-sm flex justify-center items-center {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }}">
-                    {{ $label }}
-                </span>
-
+                    <span class="px-3 py-1 rounded-full font-semibold text-sm flex justify-center items-center {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }}">
+                        {{ $label }}
+                    </span>
                 </div>
+
 
             </div>
         </div>

@@ -94,7 +94,7 @@ class RequestController extends Controller
 
 
         $deploymentRequest->other_equipments = $request->other_equipments;
-        $deploymentRequest->status = 'In Progress';
+        $deploymentRequest->status = 'Active';
         $deploymentRequest->handled_by = auth()->id();
 
         $deploymentRequest->save();
@@ -105,7 +105,7 @@ class RequestController extends Controller
     public function complete($id)
     {
         $requestRecord = Requests::findOrFail($id); 
-        if( $requestRecord->status === 'In Progress'){
+        if( $requestRecord->status === 'Active'){
             $requestRecord->status = 'Closed';
             $requestRecord->save();
         }

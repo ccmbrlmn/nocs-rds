@@ -19,6 +19,9 @@
 
         <div class="flex gap-5 flex-col">
             @forelse ($scheduledRequests as $sched)
+                @php
+        $isToday = \Carbon\Carbon::parse($sched->setup_date)->isToday();
+    @endphp
                 <div class="p-6 rounded-xl bg-white">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-2.5">

@@ -53,13 +53,29 @@ class Requests extends Model
         return $this->belongsTo(User::class, 'handled_by');
     }
     
-    public function getComputedStatusAttribute()
+public function getComputedStatusAttribute()
 {
-    if ($this->status !== 'Closed' && $this->end_date && Carbon::parse($this->end_date)->endOfDay()->isPast()) {
+    if ($this->status === 'Declined') {
+        return 'Canceled';
+    }
+
+    $today = Carbon::today();
+
+    if ($this->status === 'Closed') {
         return 'Closed';
     }
-    return $this->status;
+
+    if ($this->end_date && Carbon::parse($this->end_date)->endOfDay()->isPast()) {
+        return 'Closed';
+    }
+
+    if ($this->setup_date && Carbon::parse($this->setup_date)->isPast() && $this->status !== 'Closed') {
+        return 'Closed';
+    }
+
+    return $this->status ?: 'Open';
 }
+
 
     
 

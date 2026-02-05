@@ -18,7 +18,7 @@ class DashboardController extends Controller
 
             $scheduledRequests = Requests::where('requested_by', $userId)
                 ->where('status', 'Active')
-                ->whereDate('setup_date', $today)
+                ->whereDate('setup_date', '>=', $today)
                 ->orderBy('setup_time')
                 ->get();
 
