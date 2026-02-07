@@ -11,7 +11,7 @@ use App\Http\Controllers\AdminRequestController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminCreateController;
-
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 
 Route::get('/admin/{admin}/logs', [AdminController::class, 'logs'])->name('admin.logs');
@@ -71,6 +71,17 @@ Route::middleware([AdminMiddleware::class, 'auth'])->prefix('admin')->group(func
     Route::post('requests/decline/{id}', [AdminRequestController::class, 'decline'])->name('admin.requests.decline');
     Route::post('requests/complete/{id}', [AdminRequestController::class, 'complete'])->name('admin.requests.complete');
 });
+
+Route::middleware([AdminMiddleware::class, 'auth'])->prefix('admin')->group(function () {
+    Route::get('users', [AdminController::class, 'listUsers'])->name('admin.users');
+    Route::get('users/{user}/logs', [UserController::class, 'logs'])
+    ->name('admin.users.logs');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('user.requests');
+});
+
 
 require __DIR__.'/auth.php';
 

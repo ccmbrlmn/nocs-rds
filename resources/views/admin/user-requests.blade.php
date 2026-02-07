@@ -102,33 +102,38 @@
         </div>
 
         <div class="request-history-wrapper">
-            @foreach ($requests as $request)
-            <div class="request-row bg-white hover:bg-blue-50 border border-gray-200 transition duration-200">
-                <div class="row flex justify-between items-center space-x-4 p-2">
-                    <div class="col w-1/6"><p class="text-gray-600 text-center">#{{ $request->id }}</p></div>
-                    <div class="col w-2/6 justify-center flex">
-                        <a href="{{ route('request-details.show', $request->id) }}" class="text-gray-600 text-center">
-                            {{ $request->event_name }}
-                        </a>
-                    </div>
-                    <div class="col w-1/6"><p class="text-gray-600 text-center">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</p></div>
-                    <div class="col w-1/6"><p class="text-gray-600 text-center">{{ $request->purpose }}</p></div>
-
-                    <div class="col w-1/6 flex justify-center">
-                        @php
-                            $label = $request->computed_status;
-                            $statusConfig = $statusColors[$label] ?? $statusColors['Open'];
-                        @endphp
-
-                        <span class="px-3 py-1 rounded-full font-semibold text-sm flex justify-center items-center
-                            {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }}">
-                            {{ $label }}
-                        </span>
-                    </div>
-
+        
+        @foreach ($requests as $request)
+        <a href="{{ route('request-details.show', $request->id) }}" class="request-row block bg-white hover:bg-blue-50 border border-gray-200 transition duration-200">
+            <div class="row flex justify-between items-center space-x-4 p-2 cursor-pointer">
+                <div class="col w-1/6"><p class="text-gray-600 text-center">#{{ $request->id }}</p></div>
+                <div class="col w-2/6 justify-center flex">
+                    <p class="text-gray-600 text-center">{{ $request->event_name }}</p>
                 </div>
-            </div>
-            @endforeach
+                <div class="col w-1/6"><p class="text-gray-600 text-center">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</p></div>
+                <div class="col w-1/6"><p class="text-gray-600 text-center">{{ $request->purpose }}</p></div>
+
+        <div class="col w-1/6 flex justify-center">
+            @php
+                $status = $request->computed_status;
+                $statusClasses = [
+                    'Open' => 'bg-yellow-200 text-yellow-800',
+                    'Active' => 'bg-blue-200 text-blue-800',
+                    'Closed' => 'bg-green-200 text-green-800',
+                    'Declined' => 'bg-red-200 text-red-800',
+                ];
+            @endphp
+
+            <span class="px-2 py-1 rounded-full text-xs {{ $statusClasses[$status] ?? 'bg-gray-200 text-gray-600' }}">
+                {{ $status }}
+            </span>
+        </div>
+    </div>
+</a>
+@endforeach
+
+            
+            
         </div>
 
     </div>

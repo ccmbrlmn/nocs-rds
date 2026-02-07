@@ -1,6 +1,6 @@
 <section class="relative">
   <div class="w-full py-10 relative z-10">
-    <div class="w-full max-w-full mx-4 px-2 lg:px-8 vh-100">
+    <div class="w-full max-w-full mx-4 px-2 lg:px-8">
       <div class="grid grid-cols-full gap-8 max-w-6xl mx-auto xl:max-w-full vh-100">
 
         <script src="//unpkg.com/alpinejs" defer></script>
@@ -95,15 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       let eventsHtml = '';
       visibleEvents.forEach(ev => {
-        let now = new Date();
-        let eventDate = new Date(ev.setup_date);
-        let statusLabel = ev.status;
-        if (ev.status === 'Declined') statusLabel = 'Declined';
-        else if (ev.status === 'Active') statusLabel = 'Active';
-        else if (now > eventDate) statusLabel = 'Closed';
-        else statusLabel = 'Open';
-        let colorClass = 'text-indigo-600';
-        if (statusColors[statusLabel]) colorClass = statusColors[statusLabel].text;
+        let statusLabel = ev.computed_status;
+        let colorClass = statusColors[statusLabel] ? statusColors[statusLabel].text : 'text-indigo-600';
         eventsHtml += `<div class="text-xs font-medium truncate ${colorClass}">${ev.event_name} (${statusLabel})</div>`;
       });
 
@@ -119,21 +112,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button @click="open = false" class="text-gray-500">✕</button>
               </div>
               ${eventsToday.map(ev => {
-                let now = new Date();
-                let eventDate = new Date(ev.setup_date);
-                let statusLabel = ev.status;
-
-                if (ev.status === 'Declined') {
-                    statusLabel = 'Declined';
-                } else if (now > eventDate) {
-                    statusLabel = 'Closed';
-                } else if (ev.status === 'Active') {
-                    statusLabel = 'Active';
-                } else {
-                    statusLabel = 'Open';
-                }
-
-                return `<div class="py-2 border-b text-sm"><strong>${ev.event_name}</strong><div class="text-xs text-gray-500">${statusLabel}</div></div>`;
+                let statusLabel = ev.computed_status;
+                let colorClass = statusColors[statusLabel] ? statusColors[statusLabel].text : 'text-indigo-600';
+                return `<div class="py-2 border-b text-sm">
+                          <strong>${ev.event_name}</strong>
+                          <div class="${colorClass} text-xs">${statusLabel}</div>
+                        </div>`;
               }).join('')}
             </div>
           </div>
@@ -210,4 +194,3 @@ document.addEventListener('DOMContentLoaded', () => {
     line-height: 1.2;
 }
 </style>
-

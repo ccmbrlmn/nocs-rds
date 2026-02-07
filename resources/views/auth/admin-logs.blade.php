@@ -1,51 +1,66 @@
 <x-app-layout>
-    <div class="header-container flex items-center gap-5 text-white font-medium p-2 mt-8 mb-3">
-        <div class="header flex justify-between items-center w-full">
-            <h1 class="flex items-center gap-2 text-3xl">
-                <span class="material-symbols-outlined text-2xl">history</span>
-                {{ $admin->name }}'s Logs
-            </h1>
+    {{-- Header --}}
+    <div class="flex items-center justify-between mt-8 mb-4 px-4">
+        <h1 class="flex items-center gap-2 text-2xl font-semibold text-gray-800">
+            <span class="material-symbols-outlined text-2xl">history</span>
+            {{ $admin->name }}'s Logs
+        </h1>
 
-            <a href="{{ route('admin.created-admins') }}" 
-               class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-               Back
-            </a>
-        </div>
+        <a href="{{ route('admin.created-admins') }}"
+           class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition">
+            Back
+        </a>
     </div>
 
-    <div class="request-history-list p-3 rounded-tr-lg rounded-tl-lg">
-        <div class="head bg-blue-100 p-3 rounded-tr-lg rounded-tl-lg">
-            <div class="row flex justify-between items-center space-x-4">
-                <div class="col w-1/6 text-center font-semibold">Request No.</div>
-                <div class="col w-2/6 text-center font-semibold">Event</div>
-                <div class="col w-1/6 text-center font-semibold">Action</div>
-                <div class="col w-2/6 text-center font-semibold">Date</div>
+    {{-- Logs Table --}}
+    <div class="bg-white rounded-lg shadow mx-4 overflow-hidden">
+
+        {{-- Table Header --}}
+        <div class="bg-blue-100 px-4 py-3">
+            <div class="flex text-sm font-semibold text-gray-700">
+                <div class="w-1/6 text-center">Request No.</div>
+                <div class="w-2/6 text-center">Event</div>
+                <div class="w-1/6 text-center">Action</div>
+                <div class="w-2/6 text-center">Date</div>
             </div>
         </div>
 
-        <div class="request-history-wrapper">
+        {{-- Table Body --}}
+        <div class="divide-y divide-gray-200">
             @forelse($logs as $log)
-                <div class="request-row bg-white hover:bg-blue-50 border border-gray-200 transition duration-200">
-                    <div class="row flex justify-between items-center space-x-4 p-2">
-                        <div class="col w-1/6 text-center text-gray-600">#{{ $log->id }}</div>
-                        <div class="col w-2/6 text-center text-gray-600">{{ $log->event_name ?? '-' }}</div>
-                        <div class="col w-1/6 text-center text-gray-600">
-                            @if($log->handled_by == $admin->id)
-                                {{ $log->status }} Request
-                            @elseif($log->created_by == $admin->id)
-                                Created Request
+                <div class="px-4 py-3 hover:bg-blue-50 transition">
+                    <div class="flex items-center text-sm text-gray-600">
+                        <div class="w-1/6 text-center font-medium">#{{ $log->id }}</div>
+
+                        <div class="w-2/6 text-center">
+                            {{ $log->event_name ?? '-' }}
+                        </div>
+
+                        <div class="w-1/6 text-center font-medium">
+                            @if($log->handled_by === $admin->id)
+                                @if($log->status === 'Active')
+                                    <span class="text-green-600">Accepted</span>
+                                @elseif($log->status === 'Declined')
+                                    <span class="text-red-600">Declined</span>
+                                @else
+                                    -
+                                @endif
+                            @else
+                                -
                             @endif
                         </div>
-                        <div class="col w-2/6 text-center text-gray-600">
+
+                        <div class="w-2/6 text-center">
                             {{ \Carbon\Carbon::parse($log->updated_at)->format('M d, Y H:i') }}
                         </div>
                     </div>
                 </div>
             @empty
-                <div class="bg-white border border-gray-200 p-3 text-center text-gray-500">
+                <div class="py-6 text-center text-gray-500">
                     No logs available.
                 </div>
             @endforelse
         </div>
     </div>
 </x-app-layout>
+

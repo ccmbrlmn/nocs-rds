@@ -1,22 +1,16 @@
-{{-- resources/views/form/edit-request-form.blade.php --}}
-<div x-show="openEdit" x-cloak
-     class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center px-4">
+<div class="bg-white rounded-lg w-full max-w-5xl p-6">
+    {{-- Close button --}}
+    <div class="flex justify-end">
+        <button @click="$dispatch('close-edit')" class="text-gray-500 hover:text-gray-700">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
 
-    <div class="bg-white rounded-lg w-full max-w-5xl p-6" @click.away="openEdit = false">
+    <h1 class="form-header mb-5 text-center text-2xl font-semibold">Edit Request</h1>
 
-        {{-- Close button --}}
-        <div class="flex justify-end">
-            <button @click="openEdit = false" class="text-gray-500 hover:text-gray-700">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-        </div>
-
-        <h1 class="form-header mb-5 text-center text-2xl font-semibold">Edit Request</h1>
-
-        {{-- Edit Request Form --}}
-        <form action="{{ route('requests.update', $request->id) }}" method="POST">
-            @csrf
-            @method('PUT')
+    <form action="{{ route('requests.update', $request->id) }}" method="POST">
+        @csrf
+        @method('PUT')
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
