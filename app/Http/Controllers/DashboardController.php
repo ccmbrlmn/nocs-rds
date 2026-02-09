@@ -24,10 +24,7 @@ class DashboardController extends Controller
 
 
 $calendarEvents = Requests::whereNotNull('setup_date')
-    ->whereBetween('setup_date', [
-        now()->subMonths(12)->startOfMonth(),
-        now()->addMonths(12)->endOfMonth()
-    ])
+    ->where('requested_by', auth()->id())
     ->get([
         'id',
         'event_name',

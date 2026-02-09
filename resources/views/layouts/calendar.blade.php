@@ -1,5 +1,5 @@
 <section class="relative">
-  <div class="w-full py-10 relative z-10">
+<div class="w-full relative z-10">
     <div class="w-full max-w-full mx-4 px-2 lg:px-8">
       <div class="grid grid-cols-full gap-8 max-w-6xl mx-auto xl:max-w-full vh-100">
 
@@ -23,12 +23,13 @@
               </div>
             </div>
             
-            <div x-data="{ openRequestForm: false }">
-              <button @click="openRequestForm = true" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                  Add Request
-              </button>
-              @include('form.request-form')
-            </div>
+        <div>
+          <a href="{{ route('user.requests') }}"
+             class="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow">
+              View Requests
+          </a>
+        </div>
+
           </div>
 
           <div class="border border-indigo-200 rounded-xl w-full flex-col">
