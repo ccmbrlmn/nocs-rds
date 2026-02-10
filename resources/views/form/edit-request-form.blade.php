@@ -1,10 +1,11 @@
 <div class="bg-white rounded-lg w-full max-w-5xl p-6">
     {{-- Close button --}}
     <div class="flex justify-end">
-        <button @click="$dispatch('close-edit')" class="text-gray-500 hover:text-gray-700">
-            <span class="material-symbols-outlined">close</span>
-        </button>
-    </div>
+        <button @click="window.dispatchEvent(new Event('close-edit'))"
+        class="text-gray-500 hover:text-gray-700">
+    <span class="material-symbols-outlined">close</span>
+</button>
+</div>
 
     <h1 class="form-header mb-5 text-center text-2xl font-semibold">Edit Request</h1>
 

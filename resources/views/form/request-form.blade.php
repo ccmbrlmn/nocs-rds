@@ -21,7 +21,6 @@
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            <!-- LEFT COLUMN -->
             <div>
                 <div class="mb-4">
                     <x-input-label for="representative_name" value="Name of Representative" />
@@ -75,7 +74,6 @@
                                class="w-full h-10 px-3 rounded-md border-gray-300 shadow-sm"
                                required>
 
-                        <!-- Quantity -->
                         <input type="number"
                                :name="`items[${index}][quantity]`"
                                x-model="item.quantity"
@@ -83,7 +81,6 @@
                                class="w-24 h-10 px-2 rounded-md border-gray-300 shadow-sm"
                                required>
 
-                        <!-- Remove -->
                         <button type="button"
                                 x-show="items.length > 1"
                                 @click="items.splice(index, 1)"
@@ -109,7 +106,6 @@
                 </div>
                 </div>
 
-            <!-- RIGHT COLUMN -->
             <div>
                 <div class="mb-4 flex gap-4">
                     <div class="w-full">
@@ -149,18 +145,50 @@
             </div>
             </div>
             
-            <div class="mb-4 flex items-start gap-2">
-                <input type="checkbox"
-                       id="terms_agreement"
-                       name="terms_agreement"
-                       required
-                       onclick="toggleSubmitButton()"
-                       class="mt-1">
+            <div x-data="{ openTerms: false }" class="mb-4">
 
-                <label for="terms_agreement" class="text-sm text-gray-700">
-                    I understand that any borrowed materials will be my responsibility, and any damages incurred will be shouldered by me.
-                </label>
-            </div>
+    <!-- Checkbox -->
+    <div class="flex items-start gap-2">
+        <input type="checkbox"
+               id="terms_agreement"
+               name="terms_agreement"
+               required
+               onclick="toggleSubmitButton()"
+               class="mt-1">
+
+        <label for="terms_agreement" class="text-sm text-gray-700">
+            I have read and agree to the 
+            <span @click="openTerms = true" 
+                  class="text-blue-600 underline cursor-pointer">
+                terms and conditions
+            </span>.
+        </label>
+    </div>
+
+    <!-- Terms Modal -->
+<div x-show="openTerms" x-cloak
+     class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-lg w-full max-w-2xl p-6 shadow-lg"
+         @click.away="openTerms = false">
+        <h2 class="text-xl font-semibold mb-4">Terms and Conditions & Liability</h2>
+        <div class="h-64 overflow-y-auto mb-4 text-sm text-gray-700 border p-3 rounded">
+            <p><strong>Liability:</strong> Any borrowed items will be your responsibility. Damages or losses incurred during the event will be shouldered by the requester.</p>
+            <p><strong>Usage:</strong> Borrowed items must be returned in the same condition as received. Any misuse or negligence is prohibited.</p>
+            <p><strong>Compliance:</strong> By agreeing, you acknowledge that you understand these terms and will comply with all policies.</p>
+        </div>
+
+        <div class="flex justify-end gap-3">
+            <button @click="openTerms = false"
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                I Accept
+            </button>
+        </div>
+    </div>
+</div>
+
+
+</div>
+
 
 
             <div class="mt-4">

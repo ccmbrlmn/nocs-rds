@@ -43,13 +43,37 @@
     <div class="flex gap-3 items-center">
         @auth
             @if(strtolower($request->status) === 'open' && auth()->id() === $request->requested_by)
+                
                 <div x-data="{ openEdit: false }" class="relative">
-                    <x-primary-button @click="openEdit = true" class="shadow-md"
-                        style="background-color: #3B82F6; color: white; width: 110px; height: 42px;">
-                        Edit
-                    </x-primary-button>
-                    {{-- modal code remains the same --}}
-                </div>
+    <x-primary-button
+        @click="openEdit = true"
+        class="shadow-md"
+        style="background-color: #3B82F6; color: white; width: 110px; height: 42px;">
+        Edit
+    </x-primary-button>
+
+<template x-teleport="body">
+    <div
+    x-show="openEdit"
+    x-transition.opacity
+    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
+    style="display: none;"
+    @keydown.escape.window="openEdit = false"
+    @close-edit.window="openEdit = false"
+>
+
+        <div
+            @click.outside="openEdit = false"
+            class="w-full max-w-5xl mx-4"
+        >
+            @include('form.edit-request-form', ['request' => $request])
+        </div>
+    </div>
+</template>
+
+</div>
+
+                
             @endif
         @endauth
     </div>

@@ -43,49 +43,53 @@
                 @auth
                     @if(auth()->user()->role === 'admin' && $request->status === 'Open')
 
-                    <div x-data="{ openAccept: false }">
-                        <x-primary-button @click="openAccept = true" class="shadow-md" style="background-color: #22C55E; color: white; width: 110px; height: 42px;">
-                            Accept
-                        </x-primary-button>
+                    
+<!-- Accept Button & Dialog -->
+<div x-data="{ openAccept: false }">
+    <x-primary-button @click="openAccept = true" class="shadow-md" style="background-color: #22C55E; color: white; width: 110px; height: 42px;">
+        Accept
+    </x-primary-button>
 
-                        <div x-show="openAccept" x-cloak class="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center px-4">
-                            <div class="bg-white rounded-xl w-full max-w-md p-6 shadow-lg" @click.away="openAccept = false">
-                                <h2 class="text-xl font-semibold mb-4">Confirm Acceptance</h2>
-                                <p class="mb-4">Are you sure you want to accept this request?</p>
-                                <div class="flex justify-end gap-3">
-                                    <button @click="openAccept = false" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
-                                    <form action="{{ route('admin.requests.accept', $request->id) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Yes, Accept</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <div x-show="openAccept" x-cloak class="fixed inset-0 bg-black bg-opacity-25 z-50 flex items-center justify-center px-4">
+        <div class="bg-white rounded-xl w-full max-w-sm p-5 border border-gray-200 shadow-sm" @click.away="openAccept = false">
+            <h2 class="text-lg font-semibold mb-2">Confirm Acceptance</h2>
+            <p class="mb-4 text-gray-600">Are you sure you want to accept this request?</p>
+            <div class="flex justify-end gap-2">
+                <button @click="openAccept = false" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition">Cancel</button>
+                <form action="{{ route('admin.requests.accept', $request->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition">Yes, Accept</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-                    <div x-data="{ openDecline: false, reason: '' }">
-                        <x-primary-button @click="openDecline = true" class="shadow-md" style="background-color: #EF4444; color: white; width: 110px; height: 42px;">
-                            Decline
-                        </x-primary-button>
+<!-- Decline Button & Dialog -->
+<div x-data="{ openDecline: false, reason: '' }">
+    <x-primary-button @click="openDecline = true" class="shadow-md" style="background-color: #EF4444; color: white; width: 110px; height: 42px;">
+        Decline
+    </x-primary-button>
 
-                        <div x-show="openDecline" x-cloak class="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center px-4">
-                            <div class="bg-white rounded-xl w-full max-w-md p-6 shadow-lg" @click.away="openDecline = false">
-                                <h2 class="text-xl font-semibold mb-4">Decline Request</h2>
-                                <p class="mb-2">Please provide a reason for declining this request:</p>
-                                <textarea x-model="reason" class="w-full p-3 border rounded-lg mb-4" rows="4" placeholder="Enter reason" required></textarea>
-                                <div class="flex justify-end gap-3">
-                                    <button @click="openDecline = false" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
-                                    <form :action="'{{ route('admin.requests.decline', $request->id) }}'" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="decline_reason" :value="reason">
-                                        <button type="submit" :disabled="reason === ''" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700" :class="{ 'opacity-50 cursor-not-allowed': reason === '' }">
-                                            Decline
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <div x-show="openDecline" x-cloak class="fixed inset-0 bg-black bg-opacity-25 z-50 flex items-center justify-center px-4">
+        <div class="bg-white rounded-xl w-full max-w-sm p-5 border border-gray-200 shadow-sm" @click.away="openDecline = false">
+            <h2 class="text-lg font-semibold mb-2">Decline Request</h2>
+            <p class="mb-2 text-gray-600">Please provide a reason:</p>
+            <textarea x-model="reason" class="w-full p-2 border border-gray-300 rounded-md mb-4 text-sm" rows="3" placeholder="Enter reason" required></textarea>
+            <div class="flex justify-end gap-2">
+                <button @click="openDecline = false" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition">Cancel</button>
+                <form :action="'{{ route('admin.requests.decline', $request->id) }}'" method="POST">
+                    @csrf
+                    <input type="hidden" name="decline_reason" :value="reason">
+                    <button type="submit" :disabled="reason === ''" class="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        Decline
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 
                     @endif
                 @endauth
@@ -273,6 +277,8 @@
 }
 
 h1 { font-size: 1.7rem; }
+
+[x-cloak] { display: none !important; }
 
 </style>
 

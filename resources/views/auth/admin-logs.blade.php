@@ -37,18 +37,21 @@
                         </div>
 
                         <div class="w-1/6 text-center font-medium">
-                            @if($log->handled_by === $admin->id)
-                                @if($log->status === 'Active')
-                                    <span class="text-green-600">Accepted</span>
-                                @elseif($log->status === 'Declined')
-                                    <span class="text-red-600">Declined</span>
-                                @else
-                                    -
-                                @endif
-                            @else
-                                -
-                            @endif
-                        </div>
+    @if($log->handled_by === $admin->id)
+        @if($log->status === 'Active')
+            <span class="text-green-600">Accepted</span>
+        @elseif($log->status === 'Declined')
+            <span class="text-red-600">Declined</span>
+        @else
+            <span class="text-gray-400">Closed</span>
+        @endif
+    @elseif($log->created_by === $admin->id)
+        <span class="text-blue-600">Created</span>
+    @else
+        <span class="text-gray-400">-</span>
+    @endif
+</div>
+
 
                         <div class="w-2/6 text-center">
                             {{ \Carbon\Carbon::parse($log->updated_at)->format('M d, Y H:i') }}
