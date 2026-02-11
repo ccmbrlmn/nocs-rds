@@ -53,10 +53,11 @@
                     </li>
 
                     <li>
-                        <a href="{{ route('user.requests') }}" class="{{ request()->routeIs('requests', 'request-details') ? 'active' : '' }}">
+                        <a href="{{ route('user.requests') }}" class="{{ request()->routeIs('user.requests', 'request-details.show') ? 'active' : '' }}">
                             <span class="material-symbols-outlined">description</span> Requests
                         </a>
                     </li>
+
                 @endif
             @else
                 <li>
@@ -89,6 +90,7 @@
             <div x-show="open" x-transition
                  @click.away="open = false"
                  class="dropup-menu absolute bottom-full left-0 w-full bg-white shadow-lg rounded-lg p-2 border border-gray-200 mt-2 z-50">
+                 
                 <ul class="flex flex-col gap-2">
                     @guest
                         <li>
@@ -97,6 +99,7 @@
                             </a>
                         </li>
                     @endguest
+                    
                     @auth
                         <li>
                             <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 text-gray-800 hover:bg-gray-100 p-2 rounded">
@@ -112,6 +115,7 @@
                             </form>
                         </li>
                     @endauth
+                    
                 </ul>
             </div>
         </div>

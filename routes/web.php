@@ -13,6 +13,7 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminCreateController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
+use App\Models\UserLog;
 
 Route::get('/admin/{admin}/logs', [AdminController::class, 'logs'])->name('admin.logs');
 
@@ -80,6 +81,31 @@ Route::middleware([AdminMiddleware::class, 'auth'])->prefix('admin')->group(func
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('user.requests');
+});
+
+Route::get('/notifications', function () {
+    $user = Auth::user();
+    if (!$user) return response()->json([]);
+
+    $notifications = UserLog::with('request')
+        ->where('user_id', $user->id)
+        ->whereIn('action', ['request_accepted', 'request_declined'])
+        ->where('is_read', false)
+        ->orderBy('updated_at', 'desc')
+        ->get();
+
+    return response()->json($notifications);
+});
+
+Route::post('/notifications/read', function () {
+    $user = Auth::user();
+    if (!$user) return response()->json([]);
+
+    UserLog::where('user_id', $user->id)
+        ->whereIn('action', ['request_accepted', 'request_declined'])
+        ->update(['is_read' => true]);
+
+    return response()->json(['status' => 'ok']);
 });
 
 

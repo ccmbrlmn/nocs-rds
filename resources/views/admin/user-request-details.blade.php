@@ -233,13 +233,13 @@
 }
 
 .request-details {
-    margin-left: 4.5rem;
-    margin-right: 5rem;
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
 }
 
 .header-container {
-    margin-left: 5rem;
-    margin-right: 5rem;
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
 }
 
 .header-text {

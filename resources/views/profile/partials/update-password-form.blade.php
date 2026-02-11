@@ -1,65 +1,161 @@
-<section>
+<section class="space-y-6">
     <header>
-        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {{ __('Update Password') }}
         </h2>
 
-        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {{ __('Ensure your account is using a long, random password to stay secure.') }}
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            {{ __('Use a strong password to keep your account secure.') }}
         </p>
     </header>
 
     <form
         method="post"
         action="{{ route('password.update') }}"
-        class="mt-6 space-y-6"
-        x-data="{ dirty: false }"
+        class="space-y-6"
+        x-data="passwordChecker()"
         @keydown.enter.prevent
         @input="dirty = true"
     >
-
-
         @csrf
         @method('put')
 
         <div>
             <x-input-label for="update_password_current_password" :value="__('Current Password')" />
-            <x-text-input id="update_password_current_password" name="current_password" type="password" class="mt-1 block w-full" autocomplete="current-password" />
+            <x-text-input
+                id="update_password_current_password"
+                name="current_password"
+                type="password"
+                class="mt-2 block w-full"
+                autocomplete="current-password"
+            />
             <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
         </div>
 
         <div>
             <x-input-label for="update_password_password" :value="__('New Password')" />
-            <x-text-input id="update_password_password" name="password" type="password" class="mt-1 block w-full" autocomplete="new-password" />
+
+            <x-text-input
+                id="update_password_password"
+                name="password"
+                type="password"
+                class="mt-2 block w-full"
+                autocomplete="new-password"
+                x-model="password"
+                @input="checkStrength"
+            />
+
+            <div
+                x-show="password.length > 0"
+                x-transition.opacity
+                class="mt-3 space-y-1 text-sm"
+            >
+
+                <p class="flex items-center gap-2" :class="rules.length ? 'text-green-600' : 'text-gray-500'">
+                    <span class="material-symbols-outlined text-base">
+                        check_circle
+                    </span>
+                    Minimum 8 characters
+                </p>
+
+                <p class="flex items-center gap-2" :class="rules.upper ? 'text-green-600' : 'text-gray-500'">
+                    <span class="material-symbols-outlined text-base">
+                        check_circle
+                    </span>
+                    Uppercase letter (A–Z)
+                </p>
+
+                <p class="flex items-center gap-2" :class="rules.lower ? 'text-green-600' : 'text-gray-500'">
+                    <span class="material-symbols-outlined text-base">
+                        check_circle
+                    </span>
+                    Lowercase letter (a–z)
+                </p>
+
+                <p class="flex items-center gap-2" :class="rules.number ? 'text-green-600' : 'text-gray-500'">
+                    <span class="material-symbols-outlined text-base">
+                        check_circle
+                    </span>
+                    Number (0–9)
+                </p>
+
+                <p class="flex items-center gap-2" :class="rules.special ? 'text-green-600' : 'text-gray-500'">
+                    <span class="material-symbols-outlined text-base">
+                        check_circle
+                    </span>
+                    Special character (!@#$%^&*)
+                </p>
+
+            </div>
+
             <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2" />
         </div>
 
         <div>
             <x-input-label for="update_password_password_confirmation" :value="__('Confirm Password')" />
-            <x-text-input id="update_password_password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full" autocomplete="new-password" />
+            <x-text-input
+                id="update_password_password_confirmation"
+                name="password_confirmation"
+                type="password"
+                class="mt-2 block w-full"
+                autocomplete="new-password"
+            />
             <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <div class="flex items-center gap-4">
+        <!-- Action Footer -->
+        <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+
+            <div>
+                @if (session('status') === 'password-updated')
+                    <p
+                        x-data="{ show: true }"
+                        x-show="show"
+                        x-transition.opacity
+                        x-init="setTimeout(() => show = false, 2000)"
+                        class="text-sm font-medium text-green-600 dark:text-green-400"
+                    >
+                        {{ __('Password updated successfully.') }}
+                    </p>
+                @endif
+            </div>
+
             <button
                 type="submit"
-                class="inline-flex items-center px-4 py-2 bg-indigo-600 dark:bg-indigo-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 dark:hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                x-bind:disabled="!dirty"
+                class="inline-flex items-center px-6 py-2.5 bg-indigo-600 dark:bg-indigo-500 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 dark:hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                :disabled="!dirty || !valid"
             >
-                {{ __('Save') }}
+                {{ __('Save Changes') }}
             </button>
 
-
-
-            @if (session('status') === 'password-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600 dark:text-gray-400"
-                >{{ __('Saved.') }}</p>
-            @endif
         </div>
     </form>
 </section>
+
+<script>
+function passwordChecker() {
+    return {
+        dirty: false,
+        password: '',
+        valid: false,
+        rules: {
+            length: false,
+            upper: false,
+            lower: false,
+            number: false,
+            special: false,
+        },
+
+        checkStrength() {
+            this.rules.length = this.password.length >= 8;
+            this.rules.upper = /[A-Z]/.test(this.password);
+            this.rules.lower = /[a-z]/.test(this.password);
+            this.rules.number = /[0-9]/.test(this.password);
+            this.rules.special = /[^A-Za-z0-9]/.test(this.password);
+
+            this.valid = Object.values(this.rules).every(v => v === true);
+        }
+    }
+}
+</script>
+

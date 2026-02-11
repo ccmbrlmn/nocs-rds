@@ -45,7 +45,7 @@
                     <li class="me-2">
                         <a href="{{ route('user.requests', ['status' => 'Declined']) }}" 
                            class="inline-block px-3 py-2 rounded-lg {{ request('status') == 'Declined' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                           Canceled
+                           Declined
                         </a>
                     </li>
                 </ul>
@@ -83,7 +83,8 @@
             <div class="calendar-tab bg-white px-3 py-2 flex items-center space-x-3 rounded-md">
                 <form action="{{ route('user.requests') }}" method="GET">
                     <input type="date" name="specific_date" value="{{ request('specific_date') }}" 
-                           class="px-2 py-1 text-sm text-gray-600 bg-transparent focus:outline-none focus:ring-0 border-0">
+       class="px-2 py-1 text-sm text-gray-600 bg-transparent focus:outline-none focus:ring-0 border-0"
+       onchange="this.form.submit()">
                     @foreach(request()->except('specific_date') as $key => $value)
                         <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                     @endforeach
@@ -105,45 +106,63 @@
                 </div>      
             </div>
 
-            {{-- Scroll container now outside, on right --}}
-            <div class="request-history-wrapper absolute top-0 right-0 bottom-0 left-0 overflow-y-auto">
-                @foreach ($requests as $request)
-                <a href="{{ route('request-details.show', $request->id) }}" class="request-row block bg-white hover:bg-blue-50 border border-gray-200 transition duration-200">
-                    <div class="row flex justify-between items-center space-x-4 p-2 cursor-pointer">
-                        <div class="col w-1/6"><p class="text-gray-600 text-center">#{{ $request->id }}</p></div>
-                        <div class="col w-2/6 justify-center flex">
-                            <p class="text-gray-600 text-center">{{ $request->event_name }}</p>
-                        </div>
-                        <div class="col w-1/6"><p class="text-gray-600 text-center">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</p></div>
-                        <div class="col w-1/6"><p class="text-gray-600 text-center">{{ $request->purpose }}</p></div>
-
-                        <div class="col w-1/6 flex justify-center">
-                            @php
-                                $status = $request->computed_status;
-                                $statusClasses = [
-                                    'Open' => 'bg-yellow-200 text-yellow-800',
-                                    'Active' => 'bg-blue-200 text-blue-800',
-                                    'Closed' => 'bg-green-200 text-green-800',
-                                    'Declined' => 'bg-red-200 text-red-800',
-                                ];
-                            @endphp
-
-                            <span class="px-2 py-1 rounded-full text-xs {{ $statusClasses[$status] ?? 'bg-gray-200 text-gray-600' }}">
-                                {{ $status }}
-                            </span>
-                        </div>
-                    </div>
-                </a>
-                @endforeach
+{{-- Scroll container now outside, on right --}}
+<div class="request-history-wrapper absolute top-0 right-0 bottom-0 left-0 overflow-y-auto">
+    @foreach ($requests as $request)
+    <a href="{{ route('request-details.show', $request->id) }}" class="request-row block bg-white hover:bg-blue-50 border border-gray-200 transition duration-200">
+        <div class="row flex justify-between items-center space-x-4 p-2 cursor-pointer">
+            <!-- Use $loop->iteration for Request No. -->
+            <div class="col w-1/6"><p class="text-gray-600 text-center">#{{ $loop->iteration }}</p></div>
+            <div class="col w-2/6 justify-center flex">
+                <p class="text-gray-600 text-center">{{ $request->event_name }}</p>
             </div>
+            <div class="col w-1/6"><p class="text-gray-600 text-center">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</p></div>
+            <div class="col w-1/6"><p class="text-gray-600 text-center">{{ $request->purpose }}</p></div>
+
+            <div class="col w-1/6 flex justify-center">
+                @php
+                    $status = $request->computed_status;
+                    $statusClasses = [
+                        'Open' => 'bg-yellow-200 text-yellow-800',
+                        'Active' => 'bg-blue-200 text-blue-800',
+                        'Closed' => 'bg-green-200 text-green-800',
+                        'Declined' => 'bg-red-200 text-red-800',
+                    ];
+                @endphp
+
+                <span class="px-2 py-1 rounded-full text-xs {{ $statusClasses[$status] ?? 'bg-gray-200 text-gray-600' }}">
+                    {{ $status }}
+                </span>
+            </div>
+        </div>
+    </a>
+    @endforeach
+</div>
+
         </div>
     </div>
 </x-app-layout>
 
 <style>
+
+.header-container {
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+}
+
+.request-history-list {
+    padding-left: 0;
+    padding-right: 0;
+}
 .material-symbols-outlined {
     font-size: 28px;
     vertical-align: middle;
+}
+
+.filter-container {
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .request-history-list {
@@ -151,26 +170,25 @@
     flex-direction: column;
     height: calc(100vh - 300px);
     position: relative;
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 5rem;
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+    padding-left: 0;
     padding-right: 0;
 
-    /* Remove internal scrolling */
     overflow: visible;
 }
 
 .request-history-wrapper {
-    position: relative; /* changed from absolute */
+    position: relative;
     top: auto;
     bottom: auto;
     left: auto;
     right: auto;
-    overflow: visible; /* remove inner scroll */
+    overflow: visible;
 }
 
 .request-history-wrapper::-webkit-scrollbar {
-    width: 8px; /* scrollbar on the far right */
+    width: 8px;
 }
 
 .request-history-wrapper::-webkit-scrollbar-track {
@@ -185,17 +203,6 @@
 
 .request-history-wrapper::-webkit-scrollbar-thumb:hover {
     background: #555;
-}
-
-.header-container {
-    margin-left: 5rem;
-    margin-right: 5rem;
-}
-
-.filter-container {
-    margin-left: 5rem;
-    margin-right: 5rem;
-    margin-bottom: 0.5rem;
 }
 </style>
 

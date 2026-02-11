@@ -67,17 +67,7 @@ public function userRequest(Request $request, $userId = null)
         return view('admin.user-request-details', compact('request')); 
     }
 
-    public function accept(Request $request, $id)
-    {
-        $deploymentRequest = Requests::findOrFail($id); 
-
-        $deploymentRequest->other_equipments = $request->other_equipments;
-        $deploymentRequest->status = 'Active';
-        $deploymentRequest->handled_by = auth()->id();
-        $deploymentRequest->save();
-
-        return redirect()->back()->with('success', 'Request updated successfully.');
-    }
+    
 
     public function complete($id)
     {
@@ -264,12 +254,48 @@ public function myRequests(Request $request)
         $query->whereDate('created_at', $specificDate);
     }
 
-    $requests = $query->get(); // No need to save
+    $requests = $query->get();
 
-    // Optional: Prepare logs if needed
     $logs = UserLog::where('user_id', $userId)->get()->groupBy('request_id');
 
     return view('admin.user-requests', compact('requests', 'logs'));
 }
+
+public function getNotifications()
+{
+    $userId = auth()->id();
+
+    $notifications = UserLog::with('request')
+        ->where('user_id', $userId)
+        ->whereIn('action', ['request_accepted', 'request_declined'])
+        ->where('is_read', false)
+        ->orderBy('updated_at', 'desc')
+        ->get();
+
+    return response()->json($notifications);
+}
+
+public function accept(Request $request, $id)
+{
+    $deploymentRequest = Requests::findOrFail($id); 
+
+    $deploymentRequest->other_equipments = $request->other_equipments;
+    $deploymentRequest->status = 'Active';
+    $deploymentRequest->handled_by = auth()->id();
+    $deploymentRequest->save();
+
+    // Log the action for the requesting user
+    UserLog::create([
+        'user_id' => $deploymentRequest->requested_by,
+        'request_id' => $deploymentRequest->id,
+        'action' => 'request_accepted',
+        'description' => 'Your request "' . $deploymentRequest->event_name . '" has been accepted.',
+        'is_read' => false
+    ]);
+
+    return redirect()->back()->with('success', 'Request updated successfully.');
+}
+
+
 }
 
