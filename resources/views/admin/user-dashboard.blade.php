@@ -3,15 +3,9 @@
         [x-cloak] { display: none !important; }
     </style>
 
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('User Dashboard') }}
-        </h2>
-    </x-slot>
 
     <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        {{-- Greeting --}}
-        <div class="text-xl font-semibold text-gray-800 dark:text-gray-200">
+        <div class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
             @php
                 date_default_timezone_set('Asia/Manila');
                 $hour = now()->hour;
@@ -27,7 +21,6 @@
             @endif
         </div>
 
-        {{-- Search + Notification --}}
         <div class="flex items-center gap-4"
              
              x-data="{
@@ -67,7 +60,7 @@ x-init="fetchNotifications(); setInterval(fetchNotifications, 30000)"
 
             <div class="relative">
                 <input type="text" placeholder="Search..."
-                    class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm w-64"
+                    class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm w-[22.5rem]"
                     x-model="searchQuery" @input.debounce.300ms="console.log('Searching for', searchQuery)">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
@@ -165,9 +158,23 @@ x-init="fetchNotifications(); setInterval(fetchNotifications, 30000)"
                     @endif
                 </div>
             </div>
+            
+            @php
+    $todayRequests = $scheduledRequests
+        ->filter(function($sched) {
+            $isToday = \Carbon\Carbon::parse($sched->setup_date)->isToday();
+            $status = $sched->computed_status ?? 'Open';
+            return $isToday && in_array($status, ['Active', 'Closed']);
+        })
+        ->sortBy(function($sched) {
+            return $sched->computed_status === 'Active' ? 0 : 1;
+        })
+        ->values();
+@endphp
+
 
             <div class="sched-scroll flex flex-col gap-3 pr-1" id="sched-container">
-                @forelse ($scheduledRequests as $sched)
+                @forelse ($todayRequests as $sched)
                     @php
                         $isToday = \Carbon\Carbon::parse($sched->setup_date)->isToday();
                         $label = $sched->computed_status ?? 'Open';
@@ -177,32 +184,40 @@ x-init="fetchNotifications(); setInterval(fetchNotifications, 30000)"
                             : 'bg-gray-100 text-gray-700';
                     @endphp
 
-                    <div class="relative p-3 pt-7 pl-4 rounded-2xl border border-gray-100 bg-white hover:bg-gray-50 transition duration-200 hover:shadow-md">
-                        <div class="flex justify-between items-center gap-3">
-                            <div class="flex flex-col gap-1">
-                                <p class="text-sm font-semibold text-gray-800 tracking-tight">
-                                    {{ \Carbon\Carbon::parse($sched->setup_date)->format('M d, Y') }}
-                                    @if($sched->setup_time)
-                                        • {{ \Carbon\Carbon::parse($sched->setup_time)->format('h:i A') }}
-                                    @endif
-                                </p>
-                            </div>
-                            <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $color }}">
-                                {{ $label }}
-                            </span>
-                        </div>
-                        <div class="mt-2 space-y-1.5">
-                            <h6 class="text-base font-semibold text-gray-900 leading-snug">
-                                {{ $sched->event_name }}
-                            </h6>
-                            <p class="text-sm text-gray-500 flex items-center gap-1">
-                                {{ $sched->location }}
-                            </p>
-                            <p class="text-sm text-gray-600 line-clamp-2">
-                                {{ $sched->purpose }}
-                            </p>
-                        </div>
-                    </div>
+<a href="{{ route('request-details.show', $sched->id) }}"
+   class="block relative p-3 pt-7 pl-4 rounded-2xl border border-gray-100 bg-white hover:bg-gray-50 transition duration-200 hover:shadow-md cursor-pointer">
+
+    <div class="flex justify-between items-center gap-3">
+        <div class="flex flex-col gap-1">
+            <p class="text-sm font-semibold text-gray-800 tracking-tight">
+                {{ \Carbon\Carbon::parse($sched->setup_date)->format('M d, Y') }}
+                @if($sched->setup_time)
+                    • {{ \Carbon\Carbon::parse($sched->setup_time)->format('h:i A') }}
+                @endif
+            </p>
+        </div>
+
+        <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $color }}">
+            {{ $label }}
+        </span>
+    </div>
+
+    <div class="mt-2 space-y-1.5">
+        <h6 class="text-base font-semibold text-gray-900 leading-snug">
+            {{ $sched->event_name }}
+        </h6>
+
+        <p class="text-sm text-gray-500 flex items-center gap-1">
+            {{ $sched->location }}
+        </p>
+
+        <p class="text-sm text-gray-600 line-clamp-2">
+            {{ $sched->purpose }}
+        </p>
+    </div>
+
+</a>
+
                 @empty
                     <div class="flex flex-col items-center justify-center h-full text-center py-12">
                         <div class="w-20 h-20 flex items-center justify-center rounded-full bg-indigo-50 mb-4">

@@ -81,7 +81,6 @@
 
         <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-8">
-                {{-- LEFT COLUMN --}}
                 <div class="space-y-6">
                     <div class="flex items-start gap-4 hover:bg-white p-3 rounded-lg transition">
                         <span class="material-symbols-outlined bg-red-100 text-red-600 p-2 rounded-lg">location_on</span>
@@ -119,7 +118,7 @@
                             <ul class="detail-text list-disc list-inside">
                                 @if(count($items))
                                     @foreach($items as $item)
-                                        <li>{{ $item['name'] }} — Quantity: {{ $item['quantity'] }}</li>
+                                        <li>{{ $item['quantity'] }} {{ $item['name'] }}</li>
                                     @endforeach
                                 @else
                                     <li>No items requested</li>
@@ -141,21 +140,33 @@
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-4 hover:bg-white p-3 rounded-lg transition">
-                        <span class="material-symbols-outlined bg-teal-100 text-teal-600 p-2 rounded-lg">calendar_clock</span>
-                        <div>
-                            <p class="header-text font-semibold">Request Set-up Date</p>
-                            <p class="detail-text">{{ $request->setup_date }} | {{ $request->setup_time }}</p>
-                        </div>
-                    </div>
+<div class="flex items-start gap-4 hover:bg-white p-3 rounded-lg transition">
+    <span class="material-symbols-outlined bg-teal-100 text-teal-600 p-2 rounded-lg">calendar_clock</span>
+    <div>
+        <p class="header-text font-semibold">Request Set-up Date</p>
+        <p class="detail-text">
+            @php
+                $dateOnly = \Carbon\Carbon::parse($request->setup_date)->format('Y-m-d');
+                $setupDateTime = $request->setup_time ? "$dateOnly $request->setup_time" : $dateOnly;
+            @endphp
+
+            {{ \Carbon\Carbon::parse($setupDateTime)->format($request->setup_time ? 'M d, Y | h:i A' : 'M d, Y') }}
+        </p>
+    </div>
+</div>
+
+
 
                     <div class="flex items-start gap-4 hover:bg-white p-3 rounded-lg transition">
-                        <span class="material-symbols-outlined bg-emerald-100 text-emerald-600 p-2 rounded-lg">group</span>
-                        <div>
-                            <p class="header-text font-semibold">No. of Users</p>
-                            <p class="detail-text">{{ $request->users }} users</p>
-                        </div>
-                    </div>
+    <span class="material-symbols-outlined bg-emerald-100 text-emerald-600 p-2 rounded-lg">group</span>
+    <div>
+        <p class="header-text font-semibold">No. of Users</p>
+        <p class="detail-text">
+            {{ $request->users }} {{ $request->users == 1 ? 'user' : 'users' }}
+        </p>
+    </div>
+</div>
+
 
                     <div class="flex items-start gap-4 hover:bg-white p-3 rounded-lg transition">
                         <span class="material-symbols-outlined bg-yellow-100 text-yellow-600 p-2 rounded-lg">email</span>
@@ -182,30 +193,42 @@
                         </div>
                     @endif
 
-                    @php
-                        $actionStatus = $request->status;
-                        if($actionStatus === 'Declined') {
-                            $icon = 'cancel';
-                            $actionText = 'Declined the Request';
-                            $iconBg = 'bg-red-600';
-                        } elseif($actionStatus === 'Closed' || $actionStatus === 'Active') {
-                            $icon = 'task_alt';
-                            $actionText = 'Accepted the Request';
-                            $iconBg = 'bg-green-600';
-                        } else {
-                            $icon = 'info';
-                            $actionText = 'No action yet';
-                            $iconBg = 'bg-gray-400';
-                        }
-                    @endphp
+@php
+    $actionStatus = $request->status;
+    if($actionStatus === 'Declined') {
+        $icon = 'cancel';
+        $actionText = 'Declined the Request';
+        $iconBg = 'bg-red-600';
+    } elseif($actionStatus === 'Closed' || $actionStatus === 'Active') {
+        $icon = 'task_alt';
+        $actionText = 'Accepted the Request';
+        $iconBg = 'bg-green-600';
+    } else {
+        $icon = 'info';
+        $actionText = 'No action yet';
+        $iconBg = 'bg-gray-400';
+    }
 
-                    <div class="flex items-start gap-4 hover:bg-white p-3 rounded-lg transition">
-                        <span class="material-symbols-outlined {{ $iconBg }} text-white p-2 rounded-lg">{{ $icon }}</span>
-                        <div>
-                            <p class="header-text font-semibold">Personnel Action</p>
-                            <p class="detail-text">{{ $actionText }}</p>
-                        </div>
-                    </div>
+    // Format the handled time if available
+    $handledTime = $request->handled_at ? \Carbon\Carbon::parse($request->handled_at)->format('M d, Y | h:i A') : null;
+@endphp
+
+<div class="flex items-start gap-4 hover:bg-white p-3 rounded-lg transition">
+    <span class="material-symbols-outlined {{ $iconBg }} text-white p-2 rounded-lg">{{ $icon }}</span>
+    <div>
+        <p class="header-text font-semibold">Personnel Action</p>
+<p class="detail-text">
+    @if($handledTime)
+        {{ $actionText }} on {{ $handledTime }}
+    @else
+        {{ $actionText }}
+    @endif
+</p>
+
+
+    </div>
+</div>
+
 
                     @if($request->status === 'Declined' && $request->decline_reason)
                         <div class="flex items-start gap-4 hover:bg-white p-3 rounded-lg transition">
@@ -228,7 +251,7 @@
 
 <style>
 .material-symbols-outlined {
-    font-size: 28px;
+    font-size: 24px;
     vertical-align: middle;
 }
 
@@ -243,14 +266,48 @@
 }
 
 .header-text {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1F2937;
 }
 
 .detail-text {
-    font-size: 1.5rem;
-    color: #404040;
+    font-size: 1.125rem;
+    color: #4B5563;
 }
 
-h1 { font-size: 1.7rem; }
+.request-details .flex.items-start.gap-4 {
+    padding: 1rem;
+    transition: background 0.2s;
+    border-radius: 0.75rem;
+}
+
+.request-details .flex.items-start.gap-4:hover {
+    background-color: #f9fafb;
+}
+
+h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.request-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.request-header span {
+    font-size: 0.875rem;
+}
+
+ul.detail-text li {
+    font-size: 1.125rem;
+    line-height: 1.6;
+}
+
+.bg-gray-50.rounded-xl.p-6 {
+    margin-bottom: 1.5rem;
+}
 </style>
+
 

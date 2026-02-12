@@ -1,6 +1,5 @@
 <x-app-layout>
     <div class="page-wrapper flex flex-col h-screen">
-        {{-- Header --}}
         <div class="header-container flex items-center gap-5 text-white font-medium p-2 mt-8 mb-3">
             <div class="header">
                 <h1 class="flex items-center gap-2 text-3xl">
@@ -14,7 +13,6 @@
             $statusColors = config('status');
         @endphp
 
-        {{-- Filters --}}
         <div class="filter-container flex items-center space-x-4 mb-2">
             <div class="filter-tab">
                 <ul class="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:text-gray-400 bg-white px-1 py-1 rounded-md">
@@ -90,9 +88,29 @@
                     @endforeach
                 </form>
             </div>
+            
+<div class="sort-tab relative">
+    <form action="{{ route('user.requests') }}" method="GET">
+        <div class="relative inline-block w-auto">
+            <select name="sort"
+                    onchange="this.form.submit()"
+                    class="sort-select">
+                <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}>
+                    Newest First
+                </option>
+                <option value="asc" {{ request('sort') == 'asc' ? 'selected' : '' }}>
+                    Oldest First
+                </option>
+            </select>
         </div>
 
-        {{-- Request history --}}
+        @foreach(request()->except('sort') as $key => $value)
+            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+        @endforeach
+    </form>
+</div>    
+        </div>
+
         <div class="request-history-list p-3 rounded-tr-lg rounded-tl-lg flex-1 relative">
             <div class="head bg-blue-100 p-3 rounded-tr-lg rounded-tl-lg">
                 <div class="text">
@@ -106,13 +124,20 @@
                 </div>      
             </div>
 
-{{-- Scroll container now outside, on right --}}
+
 <div class="request-history-wrapper absolute top-0 right-0 bottom-0 left-0 overflow-y-auto">
     @foreach ($requests as $request)
     <a href="{{ route('request-details.show', $request->id) }}" class="request-row block bg-white hover:bg-blue-50 border border-gray-200 transition duration-200">
         <div class="row flex justify-between items-center space-x-4 p-2 cursor-pointer">
-            <!-- Use $loop->iteration for Request No. -->
-            <div class="col w-1/6"><p class="text-gray-600 text-center">#{{ $loop->iteration }}</p></div>
+           <div class="col w-1/6">
+    <p class="text-gray-600 text-center">
+        @if(request('sort', 'desc') === 'desc')
+            #{{ $totalRequests - $loop->index }}
+        @else
+            #{{ $loop->iteration }}
+        @endif
+    </p>
+</div>
             <div class="col w-2/6 justify-center flex">
                 <p class="text-gray-600 text-center">{{ $request->event_name }}</p>
             </div>
@@ -204,5 +229,49 @@
 .request-history-wrapper::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
+.sort-tab .sort-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: white;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6B7280;
+    text-align: center;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    padding: 0 30px 0 12px;
+    height: 44px;
+    min-width: 160px;
+}
+
+.sort-tab .sort-select:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.sort-tab .sort-select::-ms-expand {
+    display: none;
+}
+
+.sort-tab {
+    position: relative;
+}
+
+.sort-tab::after {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #6B7280;
+    font-size: 0.875rem;
+}
+
+
+
+
 </style>
 

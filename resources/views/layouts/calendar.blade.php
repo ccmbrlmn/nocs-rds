@@ -25,11 +25,14 @@
             </div>
 
             <div>
-              <a href="{{ route('user.requests') }}"
-                 class="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow">
-                  View Requests
-              </a>
+                @if(auth()->check())
+                    <a href="{{ auth()->user()->role === 'admin' ? route('admin.requests') : route('user.requests') }}"
+                       class="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow">
+                        View Requests
+                    </a>
+                @endif
             </div>
+
 
           </div>
 

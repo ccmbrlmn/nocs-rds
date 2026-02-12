@@ -9,7 +9,7 @@
     </div>
 
     <div class="request-history-list p-3 rounded-tr-lg rounded-tl-lg">
-        <div class="head bg-green-100 p-3 rounded-tr-lg rounded-tl-lg">
+        <div class="head bg-blue-100 p-3 rounded-tr-lg rounded-tl-lg">
             <div class="row flex justify-between items-center space-x-4">
                 <div class="col w-1/6 text-center font-semibold">ID</div>
                 <div class="col w-2/6 text-center font-semibold">Name</div>
@@ -20,7 +20,8 @@
 
         <div class="request-history-wrapper">
             @forelse($users as $user)
-                <div class="request-row bg-white hover:bg-green-50 border border-gray-200 transition duration-200 cursor-pointer"
+                {{-- changed hover:bg-green-50 → hover:bg-blue-50 --}}
+                <div class="request-row bg-white hover:bg-blue-50 border border-gray-200 transition duration-200 cursor-pointer"
                      onclick="window.location='{{ route('admin.users.logs', $user->id) }}'">
                     <div class="row flex justify-between items-center space-x-4 p-2">
                         <div class="col w-1/6 text-center text-gray-600">{{ $user->id }}</div>
@@ -39,3 +40,28 @@
         </div>
     </div>
 </x-app-layout>
+
+<style>
+.material-symbols-outlined {
+    font-size: 28px;
+    vertical-align: middle;
+}
+
+.request-history-list {
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.header-container {
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+}
+
+.request-history-wrapper {
+    flex: 1;
+    height: 400px;
+}
+</style>
+

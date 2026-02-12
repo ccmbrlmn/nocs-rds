@@ -6,10 +6,11 @@
                 {{ $user->name }}'s Logs
             </h1>
 
-            <a href="{{ route('admin.users') }}" 
-               class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded flex items-center gap-2">
-               <span class="material-symbols-outlined">arrow_back</span> Back
-            </a>
+<a href="{{ route('admin.users') }}"
+   class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition">
+    Back
+</a>
+
         </div>
     </div>
 
@@ -58,15 +59,15 @@
 
 <style>
     .request-history-list {
-        margin-left: 4.5rem;
-        margin-right: 5rem;
+        margin-left: 1.5rem;
+        margin-right: 1.5rem;
         display: flex;
         flex-direction: column;
     }
 
     .header-container {
-        margin-left: 5rem;
-        margin-right: 5rem;
+        margin-left: 1.5rem;
+        margin-right: 1.5rem;
     }
 
     .request-history-wrapper {

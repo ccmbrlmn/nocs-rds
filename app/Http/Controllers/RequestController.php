@@ -41,9 +41,13 @@ class RequestController extends Controller
         if ($specificDate) {
             $query->whereDate('created_at', $specificDate);
         }
+        
+        $query->orderBy('created_at', $sort);
 
-        $requests = $query->get(); 
-        return view('admin.admin-requests', compact('requests'));
+        $requests = $query->get();
+        $totalRequests = $requests->count();
+ 
+        return view('admin.user-requests', compact('requests', 'logs', 'totalRequests'));
     }
 
 public function userRequest(Request $request, $userId = null)
@@ -80,25 +84,31 @@ public function userRequest(Request $request, $userId = null)
         return redirect()->back()->with('success', 'Request marked as completed.');
     }
 
-    public function decline(Request $request, $id)
-    {
-        $requestRecord = Requests::findOrFail($id);
+public function decline(Request $request, $id)
+{
+    $requestRecord = Requests::findOrFail($id);
 
-        if ($requestRecord->status === 'Open') {
-            $requestRecord->status = 'Declined';
-            $requestRecord->decline_reason = $request->input('decline_reason');
-            $requestRecord->save();
+    if ($requestRecord->status === 'Open') {
+        $requestRecord->status = 'Declined';
+        $requestRecord->decline_reason = $request->input('decline_reason');
 
-            UserLog::create([
-                'user_id' => auth()->id(),
-                'request_id' => $requestRecord->id,
-                'action' => 'request_declined',
-                'description' => 'Declined request: ' . $requestRecord->event_name,
-            ]);
-        }
+        // Set who handled and when
+        $requestRecord->handled_by = auth()->id();
+        $requestRecord->handled_at = now();
 
-        return redirect()->back()->with('success', 'Request declined with reason.');
+        $requestRecord->save();
+
+        UserLog::create([
+            'user_id' => auth()->id(),
+            'request_id' => $requestRecord->id,
+            'action' => 'request_declined',
+            'description' => 'Declined request: ' . $requestRecord->event_name,
+        ]);
     }
+
+    return redirect()->back()->with('success', 'Request declined with reason.');
+}
+
 
     public function cancel(Request $request, $id)
     {
@@ -232,7 +242,7 @@ public function myRequests(Request $request)
     $status = $request->query('status');
     $dateFilter = $request->query('date_filter');
     $specificDate = $request->query('specific_date');
-
+    $sort = $request->query('sort', 'desc');
     $query = Requests::where('requested_by', $userId);
 
     if ($status) {
@@ -253,13 +263,23 @@ public function myRequests(Request $request)
     if ($specificDate) {
         $query->whereDate('created_at', $specificDate);
     }
+    
+    $query->orderBy('created_at', $sort);
+
+    $requests = $query->get();
+    $totalRequests = $requests->count();
+
 
     $requests = $query->get();
 
-    $logs = UserLog::where('user_id', $userId)->get()->groupBy('request_id');
+    $logs = UserLog::where('user_id', $userId)
+        ->get()
+        ->groupBy('request_id');
 
-    return view('admin.user-requests', compact('requests', 'logs'));
+    return view('admin.user-requests', compact('requests', 'logs', 'totalRequests'));
 }
+
+
 
 public function getNotifications()
 {
@@ -282,9 +302,9 @@ public function accept(Request $request, $id)
     $deploymentRequest->other_equipments = $request->other_equipments;
     $deploymentRequest->status = 'Active';
     $deploymentRequest->handled_by = auth()->id();
+    $deploymentRequest->handled_at = now();
     $deploymentRequest->save();
 
-    // Log the action for the requesting user
     UserLog::create([
         'user_id' => $deploymentRequest->requested_by,
         'request_id' => $deploymentRequest->id,

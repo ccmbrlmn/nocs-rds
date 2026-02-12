@@ -31,25 +31,27 @@ class Requests extends Model
         'decline_reason',
         'cancel_reason',
         'handled_by',
+        'handled_at',
     ];
 
     protected $casts = [
         'items' => 'array',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'setup_date' => 'datetime',
+        'handled_at' => 'datetime',
     ];
 
-    // Relationship to the user who requested
     public function user()
     {
         return $this->belongsTo(User::class, 'requested_by');
     }
 
-    // Relationship to the handler
     public function handler()
     {
         return $this->belongsTo(User::class, 'handled_by');
     }
 
-    // Relationship for admin who handled
     public function handledByAdmin()
     {
         return $this->belongsTo(User::class, 'handled_by');
@@ -61,30 +63,21 @@ class Requests extends Model
      */
     public function getComputedStatusAttribute()
     {
-        // If already Declined or Closed, return as-is
         if (in_array($this->status, ['Declined', 'Closed'])) {
             return $this->status;
         }
 
         $now = Carbon::now();
 
-        // If Active and setup_date & setup_time exist, check if it's past
-        if ($this->status === 'Active' && $this->setup_date && $this->setup_time) {
-            $setupDateTime = Carbon::parse($this->setup_date . ' ' . $this->setup_time);
-            if ($now->greaterThan($setupDateTime)) {
-                return 'Closed';
-            }
-        }
+if ($this->status === 'Active' && $this->setup_date && $this->setup_time) {
+    $setupDate = $this->setup_date->format('Y-m-d'); 
+    $setupDateTime = Carbon::parse("$setupDate {$this->setup_time}");
 
-        // If Active and end_date exists, check if end date has passed
-        if ($this->status === 'Active' && $this->end_date) {
-            $endDateTime = Carbon::parse($this->end_date)->endOfDay();
-            if ($now->greaterThan($endDateTime)) {
-                return 'Closed';
-            }
-        }
+    if ($now->greaterThan($setupDateTime)) {
+        return 'Closed';
+    }
+}
 
-        // Default to status or Open if null
         return $this->status ?: 'Open';
     }
 }

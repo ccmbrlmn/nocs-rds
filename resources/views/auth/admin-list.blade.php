@@ -58,21 +58,21 @@
     }
 
     .request-history-list {
-        margin-left: 4.5rem;
-        margin-right: 5rem;
+        margin-left: 1.5rem;
+        margin-right: 1.5rem;
         display: flex;
         flex-direction: column;
     }
 
     .header-container {
-        margin-left: 5rem;
-        margin-right: 5rem;
+        margin-left: 1.5rem;
+        margin-right: 1.5rem;
     }
 
     .request-history-wrapper {
         flex: 1;
         height: 400px;
-        overflow-y: auto;
+
     }
 
     .request-history-wrapper::-webkit-scrollbar {

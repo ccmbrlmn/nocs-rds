@@ -36,7 +36,10 @@ $calendarEvents = Requests::whereNotNull('setup_date')
     ->map(function($ev) {
 
         $now = now();
-        $setupDateTime = Carbon::parse($ev->setup_date . ' ' . ($ev->setup_time ?? '00:00'));
+        
+        $setupDateTime = Carbon::parse(
+            Carbon::parse($ev->setup_date)->toDateString() . ' ' . ($ev->setup_time ?? '00:00')
+        );
 
         // Compute status
         if ($ev->status === 'Declined') {
@@ -58,6 +61,7 @@ $calendarEvents = Requests::whereNotNull('setup_date')
             'computed_status' => $computed
         ];
     });
+
 
 
 
