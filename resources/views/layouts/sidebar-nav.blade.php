@@ -30,20 +30,21 @@
                         $firstAdminId = \App\Models\User::where('role', 'admin')->orderBy('id')->first()->id ?? null;
                     @endphp
 
-                    @if(Auth::id() === $firstAdminId)
-                        <li>
-                            <a href="{{ route('admin.created-admins') }}" class="{{ Route::is('admin.created-admins') ? 'active' : '' }}">
-                                <span class="material-symbols-outlined">admin_panel_settings</span> My Admins
-                            </a>
-                        </li>
-                        
-                        <li>
-                            <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users', 'admin.users.logs') ? 'active' : '' }}">
-                                <span class="material-symbols-outlined">person</span> Users
-                            </a>
-                        </li>
+@if(Auth::user()->role === 'admin')
+    @if(Auth::id() === $firstAdminId)
+        <li>
+            <a href="{{ route('admin.created-admins') }}" class="{{ Route::is('admin.created-admins') ? 'active' : '' }}">
+                <span class="material-symbols-outlined">admin_panel_settings</span> My Admins
+            </a>
+        </li>
+    @endif
 
-                    @endif
+    <li>
+        <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users', 'admin.users.logs') ? 'active' : '' }}">
+            <span class="material-symbols-outlined">person</span> Users
+        </a>
+    </li>
+@endif
 
                 @else
                     <li>

@@ -15,14 +15,15 @@
                 <div class="col w-2/6 text-center font-semibold">Name</div>
                 <div class="col w-2/6 text-center font-semibold">Email</div>
                 <div class="col w-1/6 text-center font-semibold">Created At</div>
+                <div class="col w-1/6 text-center font-semibold">Status</div>
+                <div class="col w-1/6 text-center font-semibold">Actions</div>
             </div>
         </div>
 
         <div class="request-history-wrapper">
             @forelse($users as $user)
                 {{-- changed hover:bg-green-50 → hover:bg-blue-50 --}}
-                <div class="request-row bg-white hover:bg-blue-50 border border-gray-200 transition duration-200 cursor-pointer"
-                     onclick="window.location='{{ route('admin.users.logs', $user->id) }}'">
+                <div class="request-row bg-white hover:bg-blue-50 border border-gray-200 transition duration-200">
                     <div class="row flex justify-between items-center space-x-4 p-2">
                         <div class="col w-1/6 text-center text-gray-600">{{ $user->id }}</div>
                         <div class="col w-2/6 text-center text-gray-600">{{ $user->name }}</div>
@@ -30,6 +31,57 @@
                         <div class="col w-1/6 text-center text-gray-600">
                             {{ \Carbon\Carbon::parse($user->created_at)->format('M d, Y') }}
                         </div>
+                        
+                        <div class="col w-1/6 text-center">
+    @if($user->is_approved)
+        <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
+            Approved
+        </span>
+    @else
+        <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">
+            Pending
+        </span>
+    @endif
+</div>
+                        
+<div class="col w-1/6 text-center flex justify-center gap-2 flex-wrap"
+     onclick="event.stopPropagation();">
+    @if(Auth::user()->role === 'admin' && $user->role === 'user')
+
+        @if(!$user->is_approved)
+            {{-- Approve/Decline --}}
+            <form action="{{ route('admin.users.approve', $user->id) }}" method="POST">
+                @csrf
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm whitespace-nowrap">
+                    Approve
+                </button>
+            </form>
+
+            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to decline/delete this user?');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm whitespace-nowrap">
+                    Decline
+                </button>
+            </form>
+        @else
+            {{-- Approved: Show Edit and Delete --}}
+            <a href="{{ route('admin.users.edit', $user->id) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm whitespace-nowrap">
+                Edit
+            </a>
+
+            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm whitespace-nowrap">
+                    Delete
+                </button>
+            </form>
+        @endif
+
+@endif
+</div>
+                        
                     </div>
                 </div>
             @empty

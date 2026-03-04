@@ -34,6 +34,7 @@ class AdminCreateController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'admin',
+            'created_by' => auth()->id(),
         ]);
 
         return redirect()->route('admin.dashboard')
@@ -47,6 +48,61 @@ class AdminCreateController extends Controller
                   ->get();
 
     return view('auth.admin-list', compact('admins'));
+}
+
+public function edit($id)
+{
+    $admin = User::where('id', $id)
+                 ->where('role', 'admin')
+                 ->firstOrFail();
+
+    return view('auth.edit-admin', compact('admin'));
+}
+
+public function update(Request $request, $id)
+{
+    $admin = User::where('id', $id)
+                 ->where('role', 'admin')
+                 ->firstOrFail();
+
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $admin->id,
+    ]);
+
+    $admin->update([
+        'name' => $request->name,
+        'email' => $request->email,
+    ]);
+
+    return redirect()->route('admin.created-admins')
+                     ->with('success', 'Admin updated successfully.');
+}
+
+public function destroy($id)
+{
+    $admin = User::where('id', $id)
+                 ->where('role', 'admin')
+                 ->firstOrFail();
+
+    // Prevent deleting yourself
+    if (auth()->id() === $admin->id) {
+        return back()->with('error', 'You cannot delete your own account.');
+    }
+
+    // Allow only FIRST admin to delete
+    $firstAdminId = User::where('role', 'admin')
+                        ->orderBy('id')
+                        ->first()
+                        ->id;
+
+    if (auth()->id() !== $firstAdminId) {
+        abort(403);
+    }
+
+    $admin->delete();
+
+    return back()->with('success', 'Admin deleted successfully.');
 }
 
 }

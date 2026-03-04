@@ -28,6 +28,15 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = Auth::user();
+        
+        // Block unapproved users
+        if ($user->role === 'user' && !$user->is_approved) {
+            Auth::logout();
+
+            return back()->withErrors([
+                'email' => 'Your account is pending admin approval.'
+            ])->onlyInput('email');
+        }
 
         if ($user->role === 'admin') {
             return redirect()->route('admin.dashboard');

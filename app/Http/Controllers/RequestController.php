@@ -61,7 +61,7 @@ public function userRequest(Request $request, $userId = null)
         ->orderBy('updated_at', 'desc')
         ->get();
 
-    return view('user-logs', compact('logs', 'user'));
+    return view('admin.user-logs', compact('logs', 'user'));
 }
 
 
@@ -232,7 +232,7 @@ public function myLogs()
         ->orderBy('updated_at', 'desc')
         ->get();
 
-    return view('user-logs', compact('logs', 'user'));
+    return view('admin.user-logs', compact('logs', 'user'));
 }
 
 public function myRequests(Request $request)

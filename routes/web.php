@@ -58,43 +58,76 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware([AdminMiddleware::class, 'auth'])->prefix('admin')->group(function () {
-    Route::get('create-admin', [AdminCreateController::class, 'create'])->name('admin.create');
-    Route::post('create-admin', [AdminCreateController::class, 'store'])->name('admin.create.store');
+Route::middleware([AdminMiddleware::class, 'auth'])
+    ->prefix('admin')
+    ->group(function () {
 
-    
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    // ==============================
+    // ADMIN CREATION
+    // ==============================
+    Route::get('create-admin', [AdminCreateController::class, 'create'])
+        ->name('admin.create');
 
-    Route::get('requests', [AdminRequestController::class, 'index'])->name('admin.requests');
-    Route::get('requests/{id}', [AdminRequestController::class, 'show'])->name('admin.request-details');
+    Route::post('create-admin', [AdminCreateController::class, 'store'])
+        ->name('admin.create.store');
 
-    Route::post('requests/accept/{id}', [AdminRequestController::class, 'accept'])->name('admin.requests.accept');
-    Route::post('requests/decline/{id}', [AdminRequestController::class, 'decline'])->name('admin.requests.decline');
-    Route::post('requests/complete/{id}', [AdminRequestController::class, 'complete'])->name('admin.requests.complete');
-});
+    Route::get('{id}/edit', [AdminCreateController::class, 'edit'])
+        ->name('admin.edit');
 
-Route::middleware([AdminMiddleware::class, 'auth'])->prefix('admin')->group(function () {
-    Route::get('users', [AdminController::class, 'listUsers'])->name('admin.users');
+    Route::put('{id}/update', [AdminCreateController::class, 'update'])
+        ->name('admin.update');
+
+    Route::delete('{id}', [AdminCreateController::class, 'destroy'])
+        ->name('admin.destroy');
+
+
+    // ==============================
+    // ADMIN DASHBOARD
+    // ==============================
+    Route::get('dashboard', [AdminDashboardController::class, 'index'])
+        ->name('admin.dashboard');
+
+
+    // ==============================
+    // ADMIN REQUESTS
+    // ==============================
+    Route::get('requests', [AdminRequestController::class, 'index'])
+        ->name('admin.requests');
+
+    Route::get('requests/{id}', [AdminRequestController::class, 'show'])
+        ->name('admin.request-details');
+
+    Route::post('requests/accept/{id}', [AdminRequestController::class, 'accept'])
+        ->name('admin.requests.accept');
+
+    Route::post('requests/decline/{id}', [AdminRequestController::class, 'decline'])
+        ->name('admin.requests.decline');
+
+    Route::post('requests/complete/{id}', [AdminRequestController::class, 'complete'])
+        ->name('admin.requests.complete');
+
+
+    // ==============================
+    // ADMIN USER MANAGEMENT
+    // ==============================
+    Route::get('users', [AdminController::class, 'listUsers'])
+        ->name('admin.users');
+
     Route::get('users/{user}/logs', [UserController::class, 'logs'])
-    ->name('admin.users.logs');
-});
+        ->name('admin.users.logs');
+        
+Route::get('users/{user}/edit', [UserController::class, 'edit'])
+    ->name('admin.users.edit');
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('user.requests');
-});
+Route::put('users/{user}', [UserController::class, 'update'])
+    ->name('admin.users.update');
 
-Route::get('/notifications', function () {
-    $user = Auth::user();
-    if (!$user) return response()->json([]);
-
-    $notifications = UserLog::with('request')
-        ->where('user_id', $user->id)
-        ->whereIn('action', ['request_accepted', 'request_declined'])
-        ->where('is_read', false)
-        ->orderBy('updated_at', 'desc')
-        ->get();
-
-    return response()->json($notifications);
+Route::delete('users/{user}', [UserController::class, 'destroy'])
+    ->name('admin.users.destroy');
+        
+        // Approve user
+Route::post('users/{user}/approve', [UserController::class, 'approve'])
+    ->name('admin.users.approve');
 });
 
 Route::post('/notifications/read', function () {
@@ -107,7 +140,6 @@ Route::post('/notifications/read', function () {
 
     return response()->json(['status' => 'ok']);
 });
-
 
 require __DIR__.'/auth.php';
 
