@@ -16,7 +16,7 @@ class IsAdmin
     public function handle($request, Closure $next)
     {
         if (!auth()->user() || auth()->user()->role !== 'admin') {
-            abort(403);
+            abort(403, 'Only the admin can access this page.');
         }
 
         return $next($request);

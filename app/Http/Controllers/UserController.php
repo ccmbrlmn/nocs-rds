@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Requests;
 use Illuminate\Http\Request;
+use PDF;
 
 class UserController extends Controller
 {
-    public function logs(User $user)
+    public function logs($id)
     {
+        $user = User::withTrashed()->findOrFail($id);
+
         $logs = Requests::where('requested_by', $user->id)
                     ->orWhere('handled_by', $user->id)
                     ->orderBy('created_at', 'desc')
@@ -19,68 +22,266 @@ class UserController extends Controller
     }
     
     public function edit(User $user)
-{
-    // Only allow the first admin to edit
-    $firstAdminId = User::where('role', 'admin')->orderBy('id')->first()->id ?? null;
+    {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
+ 
+        if ($user->deleted_at) {
+            return redirect()->route('admin.users')
+                ->with('error', 'Restore this user first before editing.');
+        }
 
-    if (auth()->user()->role !== 'admin') {
-        abort(403, 'Unauthorized action.');
+        return view('admin.user-edit', compact('user'));
     }
 
-    return view('admin.user-edit', compact('user'));
-}
+    public function update(Request $request, User $user)
+    {
+        $firstAdminId = User::where('role', 'admin')->orderBy('id')->first()->id ?? null;
 
-public function update(Request $request, User $user)
-{
-    $firstAdminId = User::where('role', 'admin')->orderBy('id')->first()->id ?? null;
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
 
-    if (auth()->user()->role !== 'admin') {
-        abort(403, 'Unauthorized action.');
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+        ]);
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        return redirect()->route('admin.users')->with('success', 'User updated successfully.');
     }
 
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email,' . $user->id,
-    ]);
+    public function destroy(User $user)
+    {
+        $firstAdminId = User::where('role', 'admin')->orderBy('id')->first()->id ?? null;
 
-    $user->update([
-        'name' => $request->name,
-        'email' => $request->email,
-    ]);
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
 
-    return redirect()->route('admin.users')->with('success', 'User updated successfully.');
-}
+        $user->delete();
 
-public function destroy(User $user)
-{
-    $firstAdminId = User::where('role', 'admin')->orderBy('id')->first()->id ?? null;
-
-    if (auth()->user()->role !== 'admin') {
-        abort(403, 'Unauthorized action.');
+        return redirect()->route('admin.users')->with('success', 'User deleted successfully.');
     }
 
-    $user->delete();
+    public function approve(User $user)
+    {
+        $firstAdminId = User::where('role', 'admin')
+                            ->orderBy('id')
+                            ->first()->id ?? null;
 
-    return redirect()->route('admin.users')->with('success', 'User deleted successfully.');
-}
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
 
-public function approve(User $user)
-{
-    $firstAdminId = User::where('role', 'admin')
-                        ->orderBy('id')
-                        ->first()->id ?? null;
+        $user->update([
+            'is_approved' => true
+        ]);
 
-    if (auth()->user()->role !== 'admin') {
-        abort(403, 'Unauthorized action.');
+        return redirect()->route('admin.users')
+            ->with('success', 'User approved successfully.');
     }
 
-    $user->update([
-        'is_approved' => true
-    ]);
+    public function exportPdf(Request $request)
+    {
+        $firstAdminId = User::where('role', 'admin')->orderBy('id')->first()->id ?? null;
 
-    return redirect()->route('admin.users')
-        ->with('success', 'User approved successfully.');
-}
+        $query = User::withTrashed()
+                     ->where('role', '!=', 'admin');
 
+        if ($firstAdminId) {
+            $query->where('id', '!=', $firstAdminId);
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                $query->whereNull('deleted_at');
+            } elseif ($request->status === 'deleted') {
+                $query->onlyTrashed();
+            }
+        }
+
+        if ($request->filled('date_filter')) {
+            switch ($request->date_filter) {
+                case '30_days': $query->where('created_at', '>=', now()->subDays(30)); break;
+                case '7_days':  $query->where('created_at', '>=', now()->subDays(7));  break;
+                case '24_hours': $query->where('created_at', '>=', now()->subHours(24)); break;
+            }
+        }
+
+        if ($request->filled('specific_date')) {
+            $query->whereDate('created_at', $request->specific_date);
+        }
+
+        $sort = $request->sort ?? 'desc';
+        $users = $query->orderBy('created_at', $sort)->get();
+
+        $statusLabel = match ($request->status) {
+            'pending' => 'Pending',
+            'active' => 'Active',
+            'deleted' => 'Deleted',
+            default => 'All'
+        };
+        
+        $dateLabel = $request->specific_date ?? ($request->date_filter ?? 'All Time');
+        $sortLabel = $sort === 'asc' ? 'Oldest First' : 'Newest First';
+        $exportedAt = now()->format('M d, Y - h:i A');
+
+        return Pdf::loadView('admin.user-pdf', compact(
+            'users',
+            'statusLabel',
+            'dateLabel',
+            'sortLabel',
+            'exportedAt'
+        ))
+        ->setPaper('a4', 'landscape')
+        ->download('users-report.pdf');
+    }
+
+    public function exportCsv(Request $request)
+    {
+        $firstAdminId = User::where('role', 'admin')->orderBy('id')->first()->id ?? null;
+
+        $query = User::withTrashed()
+                     ->where('role', '!=', 'admin');
+
+        if ($firstAdminId) {
+            $query->where('id', '!=', $firstAdminId);
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                $query->whereNull('deleted_at');
+            } elseif ($request->status === 'deleted') {
+                $query->onlyTrashed();
+            } elseif ($request->status === 'all' || $request->status === null || $request->status === '') {
+                $query->withTrashed();
+            }
+        } else {
+            $query->withTrashed();
+        }
+
+        if ($request->filled('specific_date')) {
+            $query->whereDate('created_at', $request->specific_date);
+        } elseif ($request->filled('date_filter')) {
+            switch ($request->date_filter) {
+                case '30_days':
+                    $query->where('created_at', '>=', now()->subDays(30));
+                    break;
+                case '7_days':
+                    $query->where('created_at', '>=', now()->subDays(7));
+                    break;
+                case '24_hours':
+                    $query->where('created_at', '>=', now()->subHours(24));
+                    break;
+            }
+        }
+
+        $sort = $request->sort ?? 'desc';
+        $users = $query->orderBy('created_at', $sort)->get();
+
+        $filename = "users_report.csv";
+
+        $headers = [
+            "Content-Type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+        ];
+
+        $callback = function () use ($users) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, ['ID', 'Name', 'Email', 'Created At', 'Status']);
+
+            foreach ($users as $user) {
+                fputcsv($handle, [
+                    $user->id,
+                    $user->name,
+                    $user->email,
+                    $user->created_at,
+                    $user->deleted_at ? 'Deleted' : 'Active'
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function restore($id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $user->restore();
+
+        return redirect()->route('admin.users')
+            ->with('success', 'User restored successfully.');
+    }
+
+    public function index(Request $request)
+    {
+        $query = User::withTrashed()
+                     ->where('role', '!=', 'admin');
+
+        if ($request->has('status')) {
+
+            switch ($request->status) {
+
+                case 'pending':
+                    $query->whereNull('deleted_at')
+                          ->where(function ($q) {
+                              $q->where('is_approved', false)
+                                ->orWhereNull('is_approved');
+                          });
+                    break;
+
+                case 'active':
+                    $query->whereNull('deleted_at')
+                          ->where('is_approved', true);
+                    break;
+
+                case 'deleted':
+                    $query->onlyTrashed();
+                    break;
+
+                case 'all':
+                default:
+                    $query->withTrashed();
+                    break;
+            }
+        }
+
+        if ($request->filled('date_filter')) {
+            switch ($request->date_filter) {
+                case '30_days':
+                    $query->where('created_at', '>=', now()->subDays(30));
+                    break;
+                case '7_days':
+                    $query->where('created_at', '>=', now()->subDays(7));
+                    break;
+                case '24_hours':
+                    $query->where('created_at', '>=', now()->subHours(24));
+                    break;
+            }
+        }
+
+        if ($request->filled('specific_date')) {
+            $query->whereDate('created_at', $request->specific_date);
+        }
+
+        $sort = $request->get('sort', 'desc');
+        $users = $query->orderBy('created_at', $sort)->get();
+
+        return view('admin.user-list', compact('users'));
+    }
 }
 

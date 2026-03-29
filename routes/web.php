@@ -15,7 +15,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Models\UserLog;
 
-Route::get('/admin/{admin}/logs', [AdminController::class, 'logs'])->name('admin.logs');
+Route::get('/admin/{id}/logs', [AdminController::class, 'logs'])->name('admin.logs');
 
 Route::get('/check-auth', function() {
     return [
@@ -45,7 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'showDashboard'])->name('dashboard');
     Route::get('/history', function () { return view('history'); })->name('history');
 
-    Route::get('/my-requests', [RequestController::class, 'userRequest'])->name('user.requests');
+Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('user.requests');
     Route::get('/requests', [RequestController::class, 'index'])->name('requests');
     Route::put('/requests/{request}', [RequestController::class, 'update'])->name('requests.update');
     Route::post('/requests/store', [RequestController::class, 'store'])->name('requests.store');
@@ -56,15 +56,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+
+Route::get('/my-requests/pdf', [RequestController::class, 'exportUserPdf'])->name('user.requests.pdf');
+
+Route::get('/my-requests/csv', [RequestController::class, 'exportUserCsv'])->name('user.requests.csv');
 });
 
-Route::middleware([AdminMiddleware::class, 'auth'])
-    ->prefix('admin')
-    ->group(function () {
+Route::middleware(['first.admin'])->group(function () {
 
-    // ==============================
-    // ADMIN CREATION
-    // ==============================
     Route::get('create-admin', [AdminCreateController::class, 'create'])
         ->name('admin.create');
 
@@ -79,20 +79,23 @@ Route::middleware([AdminMiddleware::class, 'auth'])
 
     Route::delete('{id}', [AdminCreateController::class, 'destroy'])
         ->name('admin.destroy');
+});
 
+Route::middleware(['auth', 'isAdmin'])
+    ->prefix('admin')
+    ->group(function () {
 
-    // ==============================
-    // ADMIN DASHBOARD
-    // ==============================
     Route::get('dashboard', [AdminDashboardController::class, 'index'])
         ->name('admin.dashboard');
 
-
-    // ==============================
-    // ADMIN REQUESTS
-    // ==============================
     Route::get('requests', [AdminRequestController::class, 'index'])
         ->name('admin.requests');
+        
+    Route::get('requests/pdf', [AdminRequestController::class, 'exportPdf'])
+        ->name('admin.requests.pdf');
+
+    Route::get('requests/csv', [AdminRequestController::class, 'exportCsv'])
+        ->name('admin.requests.csv');
 
     Route::get('requests/{id}', [AdminRequestController::class, 'show'])
         ->name('admin.request-details');
@@ -107,27 +110,45 @@ Route::middleware([AdminMiddleware::class, 'auth'])
         ->name('admin.requests.complete');
 
 
-    // ==============================
-    // ADMIN USER MANAGEMENT
-    // ==============================
-    Route::get('users', [AdminController::class, 'listUsers'])
-        ->name('admin.users');
+    Route::get('users', [UserController::class, 'index'])
+    ->name('admin.users');
 
     Route::get('users/{user}/logs', [UserController::class, 'logs'])
         ->name('admin.users.logs');
         
-Route::get('users/{user}/edit', [UserController::class, 'edit'])
-    ->name('admin.users.edit');
+    Route::get('users/{user}/edit', [UserController::class, 'edit'])
+        ->name('admin.users.edit');
 
-Route::put('users/{user}', [UserController::class, 'update'])
-    ->name('admin.users.update');
+    Route::put('users/{user}', [UserController::class, 'update'])
+        ->name('admin.users.update');
 
-Route::delete('users/{user}', [UserController::class, 'destroy'])
-    ->name('admin.users.destroy');
+    Route::delete('users/{user}', [UserController::class, 'destroy'])
+        ->name('admin.users.destroy');
+            
+    Route::post('users/{user}/approve', [UserController::class, 'approve'])
+        ->name('admin.users.approve');
+    
+    Route::get('/notifications', [RequestController::class, 'getAdminNotifications'])->middleware('auth');
+    Route::post('/notifications/read', [RequestController::class, 'markNotificationsRead'])->middleware('auth');
+
+    Route::get('created-admins/pdf', [AdminCreateController::class, 'exportPdf'])
+        ->name('admin.created-admins.pdf');
+
+    Route::get('created-admins/csv', [AdminCreateController::class, 'exportCsv'])
+        ->name('admin.created-admins.csv');
         
-        // Approve user
-Route::post('users/{user}/approve', [UserController::class, 'approve'])
-    ->name('admin.users.approve');
+    Route::get('users/pdf', [UserController::class, 'exportPdf'])
+        ->name('admin.users.pdf');
+
+    Route::get('users/csv', [UserController::class, 'exportCsv'])
+        ->name('admin.users.csv');
+
+    Route::post('/admin/{id}/restore', [AdminCreateController::class, 'restore'])
+        ->name('admin.restore');
+
+    Route::post('/admin/users/{id}/restore', [UserController::class, 'restore'])
+        ->name('admin.users.restore');
+     
 });
 
 Route::post('/notifications/read', function () {

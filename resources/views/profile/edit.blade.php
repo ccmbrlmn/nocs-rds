@@ -5,23 +5,24 @@
         </h2>
     </x-slot>
 
-    <div class="header-container flex items-center gap-4 py-6 px-6">
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-            <span class="material-symbols-outlined text-2xl text-blue-500 dark:text-blue-400">person</span>
+    <div class="header-container rounded-2xl mb-3 mx-3 mt-3">
+        <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
             @if(auth()->user()->role === 'admin')
                 Admin Profile Settings
             @else
                 User Profile Settings
             @endif
-        </h1>
+            </div>
+
+        @include('layouts.header')
+        </div>
     </div>
 
-    {{-- Tabs Wrapper --}}
     <div class="max-w-3xl mx-auto mt-8">
         <div x-data="{ tab: 'profile' }"
              class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 md:p-8">
 
-            <!-- Tabs -->
             <nav class="flex gap-4 border-b border-gray-200 dark:border-gray-700 mb-6">
                 <button
                     @click="tab = 'profile'"

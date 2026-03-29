@@ -1,99 +1,92 @@
 <x-app-layout>
     <div class="page-wrapper flex flex-col h-screen">
 
-        <div class="header-container flex items-center justify-between mt-8 mb-3 px-6">
-            <h1 class="flex items-center gap-2 text-3xl font-semibold text-gray-800">
-                <span class="material-symbols-outlined text-2xl">history</span>
-                {{ $admin->name }}'s Logs
-            </h1>
+<div class="header-container flex items-center justify-between p-3 mt-8 mb-6" 
+     style="margin-left:5rem; margin-right:5rem;">
 
-            <a href="{{ route('admin.created-admins') }}"
-               class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition">
-                Back
-            </a>
-        </div>
+    <a href="{{ route('admin.created-admins') }}"
+       class="px-4 py-2 rounded-xl text-sm font-medium transition 
+              bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 
+              hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm flex items-center gap-2">
 
-        <div class="request-history-list flex-1 mx-6 bg-white shadow rounded-lg overflow-y-auto">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        Back
+    </a>
 
-            <div class="head bg-blue-100 px-4 py-3 sticky top-0 z-10">
-                <div class="flex justify-between items-center">
-                    <div class="w-1/6 text-center font-semibold">Request No.</div>
-                    <div class="w-2/6 text-center font-semibold">Event</div>
-                    <div class="w-1/6 text-center font-semibold">Action</div>
-                    <div class="w-2/6 text-center font-semibold">Date</div>
-                </div>
+    <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
+            {{ $admin->name }}'s Logs
+        </h1>
+    </div>
+
+</div>
+        
+        <div class="request-history-list rounded-xl shadow overflow-hidden" 
+     style="margin-left:4.5rem; margin-right:5rem;">
+
+            <div class="head bg-blue-100 dark:bg-blue-900 px-4 py-2 flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-t-xl">
+                <div class="w-1/6 text-center">Request No.</div>
+                <div class="w-2/6 text-center">Event</div>
+                <div class="w-1/6 text-center">Action</div>
+                <div class="w-2/6 text-center">Date</div>
             </div>
 
-            @forelse($logs as $log)
-                <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-600 border-b border-gray-200 hover:bg-blue-50 cursor-pointer">
-                    <div class="w-1/6 text-center font-medium">#{{ $log->id }}</div>
-                    <div class="w-2/6 text-center">{{ $log->event_name ?? '-' }}</div>
-                    <div class="w-1/6 text-center font-medium">
-                        @if($log->handled_by === $admin->id)
-                            @if($log->status === 'Active')
-                                <span class="text-green-600">Accepted</span>
-                            @elseif($log->status === 'Declined')
-                                <span class="text-red-600">Declined</span>
-                            @else
-                                <span class="text-gray-400">Closed</span>
-                            @endif
-                        @elseif($log->created_by === $admin->id)
-                            <span class="text-blue-600">Created</span>
-                        @else
-                            <span class="text-gray-400">-</span>
-                        @endif
-                    </div>
-                    <div class="w-2/6 text-center">
-                        {{ \Carbon\Carbon::parse($log->updated_at)->format('M d, Y H:i') }}
-                    </div>
-                </div>
-            @empty
-                <div class="py-6 text-center text-gray-500">
-                    No logs available.
-                </div>
-            @endforelse
+            <div class="request-history-wrapper max-h-[60vh] overflow-y-auto">
 
+                @forelse($logs as $log)
+
+                    <div class="block hover:bg-blue-50 transition border-b border-gray-200">
+                        <div class="flex justify-between items-center px-4 py-3 text-sm dark:text-gray-200 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700">
+
+                            <div class="w-1/6 text-center">
+                                #{{ $log->id }}
+                            </div>
+
+                            <div class="w-2/6 text-center">
+                                {{ $log->event_name ?? '-' }}
+                            </div>
+
+                            <div class="w-1/6 text-center">
+                                @if($log->handled_by === $admin->id)
+                                    @if($log->status === 'Active' || $log->status === 'Closed')
+                                        <span class="text-green-600">Accepted</span>
+                                    @else($log->status === 'Declined')
+                                        <span class="text-red-600">Declined</span>
+                                
+                                    @endif
+                                @elseif($log->requested_by === $admin->id)
+                                    <span class="text-blue-600">Created</span>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                        </div>
+
+                            <div class="w-2/6 text-center">
+                                {{ \Carbon\Carbon::parse($log->updated_at)->timezone('Asia/Manila')->format('M d, Y H:i') }}
+                            </div>
+
+                        </div>
+                    </div>
+
+                @empty
+                    <div class="py-6 text-center text-gray-500 text-sm">
+                        No logs available.
+                    </div>
+                @endforelse
+
+            </div>
         </div>
+
     </div>
 </x-app-layout>
 
 <style>
-.material-symbols-outlined {
-    font-size: 28px;
-    vertical-align: middle;
-}
-
-.request-history-list {
-    margin-left: 1.5rem;
-    margin-right: 1.5rem;
-    height: calc(100vh - 6.5rem);
-    overflow-y: auto;
-}
-
-.head {
-    top: 0;
-    position: sticky;
-    z-index: 10;
-    background: #BFDBFE;
-}
-
-.request-history-list::-webkit-scrollbar {
-    width: 8px;
-}
-.request-history-list::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-.request-history-list::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-}
-.request-history-list::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-
-.request-history-list {
-    scrollbar-width: thin;
-    scrollbar-color: #888 #f1f1f1;
-}
+    .material-symbols-outlined { font-size: 22px; }
+    .request-history-wrapper::-webkit-scrollbar { width: 6px; }
+    .request-history-wrapper::-webkit-scrollbar-track { background: transparent; }
+    .request-history-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .request-history-wrapper::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .sort-select { appearance: none; }
+    
+    
 </style>
-

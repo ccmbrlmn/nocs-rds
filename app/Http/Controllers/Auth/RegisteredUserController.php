@@ -14,9 +14,6 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
     public function create(): View
     {
         return view('auth.register');
@@ -27,65 +24,65 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-public function store(Request $request): RedirectResponse
-{
-    $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'email' => [
-            'required',
-            'string',
-            'email',
-            'max:255',
-            'unique:'.User::class,
-            'regex:/^[\w\.\-]+@gbox\.adnu\.edu\.ph$/i', // Only gbox domain allowed
-        ],
-        'password' => ['required', 'confirmed', Rules\Password::defaults()],
-    ], [
-        'email.regex' => 'You can only register with your gbox.adnu.edu.ph email.',
-    ]);
+     
+    public function store(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                'unique:'.User::class,
+                'regex:/^[\w\.\-]+@gbox\.adnu\.edu\.ph$/i',
+            ],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ], [
+            'email.regex' => 'You can only register with your gbox.adnu.edu.ph email.',
+        ]);
 
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'is_approved' => false,
-        'role' => 'user', // ensure new accounts default to 'user'
-    ]);
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'is_approved' => false,
+            'role' => 'user', // ensure new accounts default to 'user'
+        ]);
 
-    event(new Registered($user));
+        event(new Registered($user));
 
-    return redirect(route('dashboard', absolute: false))
-           ->with('success', 'Account created successfully! Please wait for admin approval.');
-}
+        return redirect(route('dashboard', absolute: false))
+               ->with('success', 'Account created successfully! Please wait for admin approval.');
+    }
     
     public function storeAdmin(Request $request)
-{
-    // Validate input
-    $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-        'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        'admin_key' => ['required'],
-    ]);
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'department' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'admin_key' => ['required'],
+        ]);
 
-    // Validate admin secret key
-    if ($request->admin_key !== config('app.admin_register_key')) {
-        return back()->withErrors([
-            'admin_key' => 'Invalid admin registration key.'
-        ])->withInput();
+        if ($request->admin_key !== config('app.admin_register_key')) {
+            return back()->withErrors([
+                'admin_key' => 'Invalid admin registration key.'
+            ])->withInput();
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+                'department' => $request->department,
+            'password' => Hash::make($request->password),
+            'role' => 'admin',
+        ]);
+
+        Auth::login($user);
+
+        return redirect()->route('admin-dashboard')
+            ->with('success', 'Admin account created successfully.');
     }
-
-    // Create admin user
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'role' => 'admin',
-    ]);
-
-    Auth::login($user);
-
-    return redirect()->route('admin-dashboard')
-        ->with('success', 'Admin account created successfully.');
-}
 }

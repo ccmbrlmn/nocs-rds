@@ -1,4 +1,5 @@
-<section class="space-y-6">
+<section class="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+
     <header>
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
             @if(auth()->user()->role === 'admin')
@@ -30,31 +31,43 @@
 
         <div>
             <x-input-label for="name" :value="__('Name')" />
+
             <x-text-input
                 id="name"
                 name="name"
                 type="text"
-                class="mt-2 block w-full"
+                class="mt-2 block w-full
+                       bg-white dark:bg-gray-700
+                       text-gray-900 dark:text-gray-200
+                       border-gray-300 dark:border-gray-600
+                       focus:ring-indigo-500 focus:border-indigo-500"
                 :value="old('name', $user->name)"
                 required
                 autofocus
                 autocomplete="name"
             />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
+
+            <x-input-error class="mt-2 text-red-600 dark:text-red-400" :messages="$errors->get('name')" />
         </div>
 
         <div>
             <x-input-label for="email" :value="__('Email')" />
+
             <x-text-input
                 id="email"
                 name="email"
                 type="email"
-                class="mt-2 block w-full"
+                class="mt-2 block w-full
+                       bg-white dark:bg-gray-700
+                       text-gray-900 dark:text-gray-200
+                       border-gray-300 dark:border-gray-600
+                       focus:ring-indigo-500 focus:border-indigo-500"
                 :value="old('email', $user->email)"
                 required
                 autocomplete="username"
             />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+
+            <x-input-error class="mt-2 text-red-600 dark:text-red-400" :messages="$errors->get('email')" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                 <div class="mt-3 space-y-2">
@@ -78,7 +91,6 @@
             @endif
         </div>
 
-        <!-- Action Buttons -->
         <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
 
             <div>
@@ -97,13 +109,18 @@
 
             <button
                 type="submit"
-                class="inline-flex items-center px-6 py-2.5 bg-indigo-600 dark:bg-indigo-500 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 dark:hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                class="inline-flex items-center px-6 py-2.5
+                       bg-indigo-600 dark:bg-blue-500
+                       border border-transparent rounded-lg
+                       font-semibold text-xs text-white uppercase tracking-widest
+                       hover:bg-indigo-700 dark:hover:bg-blue-900
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+                       disabled:opacity-40 disabled:cursor-not-allowed transition"
                 x-bind:disabled="!dirty"
             >
                 {{ __('Save Changes') }}
             </button>
 
         </div>
-    </form>
-</section>
 
+    </form>

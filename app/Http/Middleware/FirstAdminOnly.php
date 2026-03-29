@@ -22,7 +22,7 @@ class FirstAdminOnly
         $firstAdminId = User::where('role', 'admin')->min('id');
 
         if (Auth::id() !== $firstAdminId) {
-            abort(403, 'Only the first admin can access this page.');
+            abort(403, 'Only the super admin can access this page.');
         }
 
         return $next($request);

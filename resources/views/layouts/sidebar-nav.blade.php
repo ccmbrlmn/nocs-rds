@@ -1,5 +1,8 @@
 <nav x-data="{ open: false }">
-    <aside class="sidebar">
+<aside class="sidebar flex flex-col h-screen relative
+              bg-white dark:bg-gray-900
+              border-r border-gray-800 dark:border-gray-800">
+              
         <div class="sidebar-header">
             <div class="row">
                 <div class="column">
@@ -12,114 +15,112 @@
         </div>
 
         <ul class="sidebar-links">
+
             @auth
                 @if(Auth::user()->role === 'admin')
+
                     <li>
-                        <a href="{{ route('admin.dashboard') }}" class="{{ Route::is('admin.dashboard') ? 'active' : '' }}">
+                        <a href="{{ route('admin.dashboard') }}"
+                           class="flex items-center gap-2
+                                  text-gray-700 dark:text-gray-300
+                                  {{ Route::is('admin.dashboard') ? 'active text-blue-600 dark:text-blue-400' : '' }}">
                             <span class="material-symbols-outlined">dashboard</span> Dashboard
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('admin.requests') }}" class="{{ request()->routeIs('admin.requests', 'admin.request-details') ? 'active' : '' }}">
+                        <a href="{{ route('admin.requests') }}"
+                           class="flex items-center gap-2
+                                  text-gray-700 dark:text-gray-300
+                                  {{ request()->routeIs('admin.requests','admin.request-details') ? 'active text-blue-600 dark:text-blue-400' : '' }}">
                             <span class="material-symbols-outlined">description</span> Requests
                         </a>
                     </li>
 
                     @php
-                        $firstAdminId = \App\Models\User::where('role', 'admin')->orderBy('id')->first()->id ?? null;
+                        $firstAdminId = \App\Models\User::where('role','admin')->orderBy('id')->first()->id ?? null;
                     @endphp
 
-@if(Auth::user()->role === 'admin')
-    @if(Auth::id() === $firstAdminId)
-        <li>
-            <a href="{{ route('admin.created-admins') }}" class="{{ Route::is('admin.created-admins') ? 'active' : '' }}">
-                <span class="material-symbols-outlined">admin_panel_settings</span> My Admins
-            </a>
-        </li>
-    @endif
+                    @if(Auth::id() === $firstAdminId)
+                    <li>
+                        <a href="{{ route('admin.created-admins') }}"
+                           class="flex items-center gap-2
+                                  text-gray-700 dark:text-gray-300
+                                  {{ Route::is('admin.created-admins') ? 'active text-blue-600 dark:text-blue-400' : '' }}">
+                            <span class="material-symbols-outlined">admin_panel_settings</span> My Admins
+                        </a>
+                    </li>
+                    @endif
 
-    <li>
-        <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users', 'admin.users.logs') ? 'active' : '' }}">
-            <span class="material-symbols-outlined">person</span> Users
-        </a>
-    </li>
-@endif
+                    <li>
+                        <a href="{{ route('admin.users') }}"
+                           class="flex items-center gap-2
+                                  text-gray-700 dark:text-gray-300
+                                  {{ request()->routeIs('admin.users','admin.users.logs') ? 'active text-blue-600 dark:text-blue-400' : '' }}">
+                            <span class="material-symbols-outlined">person</span> Users
+                        </a>
+                    </li>
 
                 @else
+
                     <li>
-                        <a href="{{ route('dashboard') }}" class="{{ Route::is('dashboard') ? 'active' : '' }}">
+                        <a href="{{ route('dashboard') }}"
+                           class="flex items-center gap-2
+                                  text-gray-700 dark:text-gray-300
+                                  {{ Route::is('dashboard') ? 'active text-blue-600 dark:text-blue-400' : '' }}">
                             <span class="material-symbols-outlined">dashboard</span> Dashboard
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('user.requests') }}" class="{{ request()->routeIs('user.requests', 'request-details.show') ? 'active' : '' }}">
+                        <a href="{{ route('user.requests') }}"
+                           class="flex items-center gap-2
+                                  text-gray-700 dark:text-gray-300
+                                  {{ request()->routeIs('user.requests','request-details.show') ? 'active text-blue-600 dark:text-blue-400' : '' }}">
                             <span class="material-symbols-outlined">description</span> Requests
                         </a>
                     </li>
 
                 @endif
+
             @else
+
                 <li>
-                    <a href="{{ route('dashboard') }}">
+                    <a href="{{ route('dashboard') }}"
+                       class="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
                         <span class="material-symbols-outlined">dashboard</span> Dashboard
                     </a>
                 </li>
+
                 <li>
-                    <a href="{{ route('login') }}">
+                    <a href="{{ route('login') }}"
+                       class="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
                         <span class="material-symbols-outlined">description</span> Requests
                     </a>
                 </li>
+
             @endauth
+
         </ul>
 
-        <div class="relative mt-6" x-data="{ open: false }">
-            <div class="user-account cursor-pointer" @click="open = !open">
-                <div class="user-profile flex items-center gap-3 p-2 hover:bg-transparent rounded-lg transition-colors">
-                    <img src="{{ asset('assets/images/user-pic.png') }}" alt="profile-img" class="w-12 h-12 rounded-full border-2 border-white">
-                    <div class="user-detail flex flex-col overflow-hidden">
-                        <h3 class="text-white text-lg font-semibold truncate">{{ Auth::check() ? Auth::user()->name : 'Guest' }}</h3>
-                        <span class="text-white text-sm truncate">{{ Auth::check() ? Auth::user()->email : 'Not Logged In' }}</span>
-                    </div>
-                    <span class="material-symbols-outlined text-white ml-auto">
-                        expand_more
-                    </span>
-                </div>
-            </div>
+@auth
+<div class="absolute bottom-6 left-0 w-full px-4 pt-4">
+    <ul class="sidebar-links">
+        <li>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <a href="#"
+                   onclick="event.preventDefault(); this.closest('form').submit();"
+                   class="flex items-center gap-2
+                          text-gray-700 dark:text-gray-300
+                        hover:text-red-600 dark:hover:text-red-400">
+                    <span class="material-symbols-outlined">logout</span> Log Out
+                </a>
+            </form>
+        </li>
+    </ul>
+</div>
+@endauth
 
-            <div x-show="open" x-transition
-                 @click.away="open = false"
-                 class="dropup-menu absolute bottom-full left-0 w-full bg-white shadow-lg rounded-lg p-2 border border-gray-200 mt-2 z-50">
-                 
-                <ul class="flex flex-col gap-2">
-                    @guest
-                        <li>
-                            <a href="{{ route('login') }}" class="flex items-center gap-2 text-gray-800 hover:bg-gray-100 p-2 rounded">
-                                <span class="material-symbols-outlined text-gray-600">login</span> Log In
-                            </a>
-                        </li>
-                    @endguest
-                    
-                    @auth
-                        <li>
-                            <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 text-gray-800 hover:bg-gray-100 p-2 rounded">
-                                <span class="material-symbols-outlined text-gray-600">person</span> Profile
-                            </a>
-                        </li>
-                        <li>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="flex items-center gap-2 w-full text-gray-800 hover:bg-gray-100 p-2 rounded">
-                                    <span class="material-symbols-outlined text-gray-600">logout</span> Log Out
-                                </button>
-                            </form>
-                        </li>
-                    @endauth
-                    
-                </ul>
-            </div>
-        </div>
-    </aside>
+</aside>
 </nav>
-

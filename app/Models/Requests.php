@@ -44,7 +44,7 @@ class Requests extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'requested_by');
+        return $this->belongsTo(User::class, 'requested_by')->withTrashed();
     }
 
     public function handler()
@@ -54,7 +54,7 @@ class Requests extends Model
 
     public function handledByAdmin()
     {
-        return $this->belongsTo(User::class, 'handled_by');
+        return $this->belongsTo(User::class, 'handled_by')->withTrashed();
     }
 
     /**
@@ -69,15 +69,14 @@ class Requests extends Model
 
         $now = Carbon::now();
 
-if ($this->status === 'Active' && $this->setup_date && $this->setup_time) {
-    $setupDate = $this->setup_date->format('Y-m-d'); 
-    $setupDateTime = Carbon::parse("$setupDate {$this->setup_time}");
+        if ($this->status === 'Active' && $this->setup_date && $this->setup_time) {
+            $setupDate = $this->setup_date->format('Y-m-d'); 
+            $setupDateTime = Carbon::parse("$setupDate {$this->setup_time}");
 
-    if ($now->greaterThan($setupDateTime)) {
-        return 'Closed';
-    }
-}
-
+            if ($now->greaterThan($setupDateTime)) {
+                return 'Closed';
+            }
+        }
         return $this->status ?: 'Open';
     }
 }

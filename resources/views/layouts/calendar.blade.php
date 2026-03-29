@@ -1,3 +1,7 @@
+<script>
+const userRole = @json(auth()->user()->role ?? null);
+</script>
+
 <section class="relative">
   <div class="w-full relative z-10">
     <div class="w-full max-w-full mx-0 px-0">
@@ -5,11 +9,11 @@
 
         <script src="//unpkg.com/alpinejs" defer></script>
 
-        <div class="col-span-full xl:col-span-7 px-3 py-3 sm:p-4 bg-gradient-to-b from-white/25 to-white xl:bg-white rounded-2xl max-xl:row-start-1 w-full h-full">
+        <div class="col-span-full xl:col-span-7 px-3 py-3 sm:p-4 bg-white dark:bg-gray-800 rounded-2xl max-xl:row-start-1 w-full h-full">
           <div class="flex flex-col md:flex-row gap-4 items-start justify-between mb-4">
 
             <div class="flex items-center gap-3">
-              <h5 id="calendar-title" class="text-2xl leading-8 font-semibold text-gray-900"></h5>
+              <h5 id="calendar-title" class="text-2xl leading-8 font-semibold text-gray-900 dark:text-gray-200"></h5>
               <div class="flex items-center">
                 <button id="prev-month" class="text-indigo-600 p-2 rounded transition-all duration-300 hover:text-white hover:bg-indigo-600">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16" fill="none">
@@ -36,18 +40,18 @@
 
           </div>
 
-          <div class="border border-indigo-200 rounded-xl w-full flex flex-col">
-            <div class="grid grid-cols-7 rounded-t-xl border-b border-indigo-200 bg-indigo-50 text-indigo-600 text-base font-semibold">
-              <div class="py-3 border-r border-indigo-200 flex items-center justify-center">Sun</div>
-              <div class="py-3 border-r border-indigo-200 flex items-center justify-center">Mon</div>
-              <div class="py-3 border-r border-indigo-200 flex items-center justify-center">Tue</div>
-              <div class="py-3 border-r border-indigo-200 flex items-center justify-center">Wed</div>
-              <div class="py-3 border-r border-indigo-200 flex items-center justify-center">Thu</div>
-              <div class="py-3 border-r border-indigo-200 flex items-center justify-center">Fri</div>
+          <div class="border border-indigo-200 dark:border-gray-600 rounded-xl w-full flex flex-col">
+            <div class="grid grid-cols-7 rounded-t-xl border-b border-indigo-200 bg-indigo-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-base font-semibold">
+              <div class="py-3 border-r border-indigo-200 dark:border-gray-600 flex items-center justify-center">Sun</div>
+              <div class="py-3 border-r border-indigo-200 dark:border-gray-600 flex items-center justify-center">Mon</div>
+              <div class="py-3 border-r border-indigo-200 dark:border-gray-600 flex items-center justify-center">Tue</div>
+              <div class="py-3 border-r border-indigo-200 dark:border-gray-600 flex items-center justify-center">Wed</div>
+              <div class="py-3 border-r border-indigo-200 dark:border-gray-600 flex items-center justify-center">Thu</div>
+              <div class="py-3 border-r border-indigo-200 dark:border-gray-600 flex items-center justify-center">Fri</div>
               <div class="py-3 flex items-center justify-center">Sat</div>
             </div>
 
-            <div id="calendar-days" class="grid grid-cols-7 rounded-b-xl"></div>
+            <div id="calendar-days" class="grid grid-cols-7 rounded-b-xl text-gray-900 dark:text-gray-200"></div>
           </div>
         </div>
       </div>
@@ -82,12 +86,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
     const lastDayOfPrevMonth = new Date(year, month, 0).getDate();
 
-    // Previous month days
     for (let i = firstDayOfMonth; i > 0; i--) {
-      calendarDays.innerHTML += `<div class="flex p-3 bg-gray-50 border-r border-b border-indigo-200 text-xs font-semibold text-gray-400">${lastDayOfPrevMonth - i + 1}</div>`;
+      calendarDays.innerHTML += `<div class="flex p-3 bg-gray-50 border-r border-b border-indigo-200 text-xs font-semibold text-gray-400 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600">${lastDayOfPrevMonth - i + 1}</div>`;
     }
 
-    // Current month days
     for (let day = 1; day <= lastDateOfMonth; day++) {
       const isToday = isCurrentMonth && day === today.getDate();
       const displayDate = `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
@@ -97,40 +99,45 @@ document.addEventListener('DOMContentLoaded', () => {
       const visibleEvents = eventsToday.slice(0, MAX_VISIBLE);
       const hiddenCount = eventsToday.length - MAX_VISIBLE;
 
-      let eventsHtml = '';
-      visibleEvents.forEach(ev => {
+    let eventsHtml = '';
+
+    visibleEvents.forEach(ev => {
         const statusLabel = ev.computed_status;
         const colorClass = statusColors[statusLabel]?.text || 'text-indigo-600';
-        eventsHtml += `<div class="text-xs font-medium truncate ${colorClass}">${ev.event_name} (${statusLabel})</div>`;
-      });
+        eventsHtml += `<div class="text-xs text-gray-900 dark:text-gray-200 font-medium truncate ${colorClass}">
+                        ${ev.event_name} (${statusLabel})
+                       </div>`;
+    });
 
-      // Day cell
       const dayCell = document.createElement('div');
-      dayCell.className = 'relative border-r border-b border-indigo-200 text-xs font-semibold flex flex-col items-start justify-start p-2 pt-7 cursor-pointer hover:bg-indigo-50';
+      dayCell.className = 'relative border-r border-b border-indigo-200 text-xs font-semibold flex flex-col items-start justify-start p-2 pt-7 cursor-pointer hover:bg-indigo-50 dark:border-gray-600 dark:hover:bg-gray-600';
       dayCell.innerHTML = `
         <span class="absolute top-1 left-2 ${isToday ? 'bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center' : ''}">${day}</span>
         <div class="calendar-events">${eventsHtml}</div>
-        ${hiddenCount > 0 ? `<div class="mt-1 text-xs text-indigo-600 font-semibold">+${hiddenCount} more</div>` : ''}`;
+        ${hiddenCount > 0 ? `<div class="mt-1 text-xs text-indigo-600 font-semibold dark:text-indigo-400">+${hiddenCount} more</div>` : ''}`;
 
-      // Clickable modal
       dayCell.addEventListener('click', () => {
         const modal = document.createElement('div');
         modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center';
+        
         modal.innerHTML = `
-          <div class="bg-white rounded-xl w-[400px] p-5">
+            <div class="bg-white dark:bg-gray-800 dark:text-gray-200 rounded-xl w-[400px] p-5">
             <div class="flex justify-between mb-3">
               <h3 class="font-semibold text-lg">${monthNames[month]} ${day}, ${year}</h3>
-              <button id="close-modal" class="text-gray-500">✕</button>
+              <button id="close-modal" class="text-gray-900 dark:text-gray-200">✕</button>
             </div>
+            
             ${eventsToday.map(ev => {
-              const statusLabel = ev.computed_status;
-              const colorClass = statusColors[statusLabel]?.text || 'text-indigo-600';
-              return `<div class="py-2 border-b text-sm">
-                        <strong>${ev.event_name}</strong>
-                        <div class="${colorClass} text-xs">${statusLabel}</div>
-                      </div>`;
-            }).join('')}
+  const statusLabel = ev.computed_status;
+  const colorClass = statusColors[statusLabel]?.text || 'text-gray-900 dark:text-gray-200';
+  
+  return `<a href="${userRole === 'admin' ? '/admin/requests/' + ev.id : '/request-details/' + ev.id}" class="block py-2 border-b text-gray-900 dark:text-gray-200 text-sm ${colorClass} hover:bg-indigo-50 dark:hover:bg-gray-600 rounded px-2">
+            <strong>${ev.event_name}</strong>
+            <div class="text-xs">${statusLabel}</div>
+          </a>`;
+}).join('')}
           </div>`;
+          
         document.body.appendChild(modal);
         modal.querySelector('#close-modal').addEventListener('click', () => modal.remove());
       });
@@ -138,13 +145,12 @@ document.addEventListener('DOMContentLoaded', () => {
       calendarDays.appendChild(dayCell);
     }
 
-    // Next month days
     const totalCells = firstDayOfMonth + lastDateOfMonth;
     const nextDays = totalCells <= 35 ? 35 - totalCells : 42 - totalCells;
 
     for (let i = 1; i <= nextDays; i++) {
       const emptyCell = document.createElement('div');
-      emptyCell.className = 'relative border-r border-b border-indigo-200 text-xs font-semibold flex flex-col items-start justify-start p-2 pt-7 hover:bg-indigo-50';
+      emptyCell.className = 'relative border-r border-b border-indigo-200 text-xs font-semibold flex flex-col items-start justify-start p-2 pt-7 hover:bg-indigo-50 dark:border-gray-600 dark:hover:bg-gray-600 dark:bg-gray-800';
       calendarDays.appendChild(emptyCell);
     }
   }
@@ -188,6 +194,15 @@ document.addEventListener('DOMContentLoaded', () => {
     max-height: 65px;
     overflow-y: auto;
     width: 100%;
+    overflow-x: hidden;
+    word-break: break-word;
+}
+
+.calendar-events > a {
+    display: block;
+    white-space: nowrap; 
+    overflow: hidden;  
+    text-overflow: ellipsis;
 }
 
 .calendar-events > div {

@@ -1,3 +1,13 @@
+@if ($errors->any())
+    <div class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>• {{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <div class="bg-white rounded-lg w-full max-w-5xl p-6">
     {{-- Close button --}}
     <div class="flex justify-end">
@@ -14,8 +24,6 @@
         @method('PUT')
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <!-- LEFT COLUMN -->
                 <div>
                     <div class="mb-4">
                         <x-input-label for="representative_name" value="Name of Representative" />
@@ -51,7 +59,6 @@
                                value="{{ $request->other_purpose }}">
                     </div>
 
-                    {{-- Requested Items --}}
                     <div x-data="{
                         maxItems: 5,
                         items: {{ json_encode(is_array($request->items) ? $request->items : json_decode($request->items, true) ?? [['name'=>'','quantity'=>1]]) }}
@@ -73,7 +80,6 @@
                             </div>
                         </template>
 
-                        {{-- Add item button --}}
                         <button type="button" @click="if(items.length < maxItems) items.push({name:'',quantity:1})"
                                 x-show="items.length < maxItems"
                                 class="text-sm text-blue-600 hover:underline mt-2">+ Add item
@@ -85,7 +91,6 @@
                     </div>
                 </div>
 
-                <!-- RIGHT COLUMN -->
                 <div>
                     <div class="mb-4 flex gap-4">
                         <div class="w-full">
@@ -131,7 +136,6 @@
                 </div>
             </div>
 
-            {{-- Submit --}}
             <div class="mt-4">
                 <x-primary-button class="w-full bg-blue-600 text-white">
                     Update Request

@@ -1,171 +1,90 @@
 <x-app-layout>
     <div class="page-wrapper flex flex-col h-screen">
-        <div class="header-container flex items-center gap-5 text-white font-medium p-2 mt-8 mb-3">
-            <div class="header">
-                <h1 class="flex items-center gap-2 text-3xl">
-                    <span class="material-symbols-outlined text-2xl">description</span> 
-                    Requests
-                </h1>
+
+    <div class="header-container rounded-2xl mb-3 mx-3 mt-3">
+        <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <!-- Page Title -->
+            <div class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
+                User Requests
             </div>
+        @include('layouts.header')
         </div>
-        
+    </div>
+
         @php
             $statusColors = config('status');
         @endphp
+        
+        @include('layouts.filter', [
+        'routeName' => 'user.requests',
 
-        <div class="filter-container flex items-center space-x-4 mb-2">
-            <div class="filter-tab">
-                <ul class="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:text-gray-400 bg-white px-1 py-1 rounded-md">
-                    <li class="me-2">
-                        <a href="{{ route('user.requests') }}" 
-                           class="inline-block px-3 py-2 rounded-lg {{ request('status') ? 'hover:bg-gray-100' : 'bg-blue-600 text-white' }}">
-                           All
-                        </a>
-                    </li>
-                    <li class="me-2">
-                        <a href="{{ route('user.requests', ['status' => 'Open']) }}" 
-                           class="inline-block px-3 py-2 rounded-lg {{ request('status') == 'Open' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                           Open
-                        </a>
-                    </li>
-                    <li class="me-2">
-                        <a href="{{ route('user.requests', ['status' => 'Active']) }}" 
-                           class="inline-block px-3 py-2 rounded-lg {{ request('status') == 'Active' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                           Active
-                        </a>
-                    </li>
-                    <li class="me-2">
-                        <a href="{{ route('user.requests', ['status' => 'Closed']) }}" 
-                           class="inline-block px-3 py-2 rounded-lg {{ request('status') == 'Closed' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                           Closed
-                        </a>
-                    </li>
-                    <li class="me-2">
-                        <a href="{{ route('user.requests', ['status' => 'Declined']) }}" 
-                           class="inline-block px-3 py-2 rounded-lg {{ request('status') == 'Declined' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                           Declined
-                        </a>
-                    </li>
-                </ul>
+        'statuses' => [
+            'All' => null,
+            'Open' => 'Open',
+            'Active' => 'Active',
+            'Closed' => 'Closed',
+            'Declined' => 'Declined'
+        ],
+
+        'dateFilters' => [
+            null => 'All Time',
+            '30_days' => '30 Days',
+            '7_days' => '7 Days',
+            '24_hours' => '24 Hours'
+        ],
+
+        'exportPdf' => 'user.requests.pdf',
+        'exportCsv' => 'user.requests.csv'
+])
+
+<div class="request-history-list rounded-xl shadow overflow-hidden mx-10">
+    <div class="head bg-blue-100 dark:bg-blue-900 px-4 py-2 flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-t-xl">
+        <div class="w-2/6 text-center">Event</div>
+        <div class="w-1/6 text-center">Date</div>
+        <div class="w-1/6 text-center">Request</div>
+        <div class="w-1/6 text-center">Status</div>
+    </div>
+
+    <div class="request-history-wrapper max-h-[60vh] overflow-y-auto">
+
+        @foreach ($requests as $request)
+        <a href="{{ route('request-details.show', $request->id) }}" 
+           class="block bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700">
+
+            <div class="flex justify-between items-center px-4 py-3 text-sm">
+                <div class="w-2/6 text-center text-gray-600 dark:text-gray-300">
+                    {{ $request->event_name }}
+                </div>
+
+                <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
+                    {{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}
+                </div>
+
+                <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
+                    {{ $request->purpose }}
+                </div>
+
+                <div class="w-1/6 flex justify-center">
+                    @php
+                        $status = $request->computed_status;
+                        $statusClasses = [
+                            'Open' => 'bg-amber-100 text-amber-700 dark:bg-amber-700 dark:text-amber-200',
+                            'Active' => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-700 dark:text-indigo-200',
+                            'Closed' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-700 dark:text-emerald-200',
+                            'Declined' => 'bg-rose-100 text-rose-700 dark:bg-rose-700 dark:text-rose-200',
+                        ];
+                    @endphp
+
+                    <span class="px-3 py-1 rounded-xl text-sm font-medium {{ $statusClasses[$status] ?? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200' }}">
+                        {{ $status }}
+                    </span>
+                </div>
             </div>
-
-            <div class="filter-tab">
-                <ul class="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:text-gray-400 bg-white px-1 py-1 rounded-md">
-                    <li class="me-2">
-                        <a href="{{ route('user.requests', array_merge(request()->query(), ['date_filter' => null])) }}" 
-                           class="inline-block px-3 py-2 rounded-lg {{ request('date_filter') ? 'hover:bg-gray-100' : 'bg-blue-600 text-white' }}">
-                           All Time
-                        </a>
-                    </li>
-                    <li class="me-2">
-                        <a href="{{ route('user.requests', array_merge(request()->query(), ['date_filter' => '30_days'])) }}" 
-                           class="inline-block px-3 py-2 rounded-lg {{ request('date_filter') == '30_days' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                           30 Days
-                        </a>
-                    </li>
-                    <li class="me-2">
-                        <a href="{{ route('user.requests', array_merge(request()->query(), ['date_filter' => '7_days'])) }}" 
-                           class="inline-block px-3 py-2 rounded-lg {{ request('date_filter') == '7_days' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                           7 Days
-                        </a>
-                    </li>
-                    <li class="me-2">
-                        <a href="{{ route('user.requests', array_merge(request()->query(), ['date_filter' => '24_hours'])) }}" 
-                           class="inline-block px-3 py-2 rounded-lg {{ request('date_filter') == '24_hours' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100' }}">
-                           24 Hours
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="calendar-tab bg-white px-3 py-2 flex items-center space-x-3 rounded-md">
-                <form action="{{ route('user.requests') }}" method="GET">
-                    <input type="date" name="specific_date" value="{{ request('specific_date') }}" 
-       class="px-2 py-1 text-sm text-gray-600 bg-transparent focus:outline-none focus:ring-0 border-0"
-       onchange="this.form.submit()">
-                    @foreach(request()->except('specific_date') as $key => $value)
-                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                    @endforeach
-                </form>
-            </div>
-            
-<div class="sort-tab relative">
-    <form action="{{ route('user.requests') }}" method="GET">
-        <div class="relative inline-block w-auto">
-            <select name="sort"
-                    onchange="this.form.submit()"
-                    class="sort-select">
-                <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}>
-                    Newest First
-                </option>
-                <option value="asc" {{ request('sort') == 'asc' ? 'selected' : '' }}>
-                    Oldest First
-                </option>
-            </select>
-        </div>
-
-        @foreach(request()->except('sort') as $key => $value)
-            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-        @endforeach
-    </form>
-</div>    
-        </div>
-
-        <div class="request-history-list p-3 rounded-tr-lg rounded-tl-lg flex-1 relative">
-            <div class="head bg-blue-100 p-3 rounded-tr-lg rounded-tl-lg">
-                <div class="text">
-                    <div class="row flex justify-between items-center space-x-4">
-                        <div class="col w-1/6"><p class="pt-2 font-semibold text-center">Request No.</p></div>
-                        <div class="col w-2/6"><p class="pt-2 font-semibold text-center">Event</p></div>
-                        <div class="col w-1/6"><p class="pt-2 font-semibold text-center">Date</p></div>
-                        <div class="col w-1/6"><p class="pt-2 font-semibold text-center">Request</p></div>
-                        <div class="col w-1/6"><p class="pt-2 font-semibold text-center">Status</p></div>
-                    </div>
-                </div>      
-            </div>
-
-
-<div class="request-history-wrapper absolute top-0 right-0 bottom-0 left-0 overflow-y-auto">
-    @foreach ($requests as $request)
-    <a href="{{ route('request-details.show', $request->id) }}" class="request-row block bg-white hover:bg-blue-50 border border-gray-200 transition duration-200">
-        <div class="row flex justify-between items-center space-x-4 p-2 cursor-pointer">
-           <div class="col w-1/6">
-    <p class="text-gray-600 text-center">
-        @if(request('sort', 'desc') === 'desc')
-            #{{ $totalRequests - $loop->index }}
-        @else
-            #{{ $loop->iteration }}
-        @endif
-    </p>
-</div>
-            <div class="col w-2/6 justify-center flex">
-                <p class="text-gray-600 text-center">{{ $request->event_name }}</p>
-            </div>
-            <div class="col w-1/6"><p class="text-gray-600 text-center">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</p></div>
-            <div class="col w-1/6"><p class="text-gray-600 text-center">{{ $request->purpose }}</p></div>
-
-            <div class="col w-1/6 flex justify-center">
-                @php
-                    $status = $request->computed_status;
-                    $statusClasses = [
-                        'Open' => 'bg-yellow-200 text-yellow-800',
-                        'Active' => 'bg-blue-200 text-blue-800',
-                        'Closed' => 'bg-green-200 text-green-800',
-                        'Declined' => 'bg-red-200 text-red-800',
-                    ];
-                @endphp
-
-                <span class="px-2 py-1 rounded-full text-xs {{ $statusClasses[$status] ?? 'bg-gray-200 text-gray-600' }}">
-                    {{ $status }}
-                </span>
-            </div>
-        </div>
-    </a>
+        </a>
     @endforeach
 </div>
-
-        </div>
-    </div>
+</div>
+</div>
 </x-app-layout>
 
 <style>
@@ -269,9 +188,6 @@
     color: #6B7280;
     font-size: 0.875rem;
 }
-
-
-
 
 </style>
 
