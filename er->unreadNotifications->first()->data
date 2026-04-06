@@ -1,0 +1,25 @@
+[90m= [39m[34;4mIlluminate\Notifications\DatabaseNotificationCollection[39;24m {#5275
+    [34mall[39m: [
+      [34;4mIlluminate\Notifications\DatabaseNotification[39;24m {#5274
+        [34mid[39m: "[32ma77971ab-f3b4-4aca-b239-85a91827ae9d[39m",
+        [34mtype[39m: "[32mApp\Notifications\RequestAcceptedNotification[39m",
+        [34mnotifiable_type[39m: "[32mApp\Models\User[39m",
+        [34mnotifiable_id[39m: [35m1[39m,
+        [34mdata[39m: "[32m{"user_id":1,"user_name":"Nic Castillo","request_id":5,"request_name":"Deploying New Router","type":"accepted","message":"Your request \"Deploying New Router\" has been accepted."}[39m",
+        [34mread_at[39m: [36mnull[39m,
+        [34mcreated_at[39m: "[32m2026-04-05 01:34:09[39m",
+        [34mupdated_at[39m: "[32m2026-04-05 01:34:09[39m",
+      },
+      [34;4mIlluminate\Notifications\DatabaseNotification[39;24m {#5273
+        [34mid[39m: "[32m82892065-14c1-4357-a170-012093a68058[39m",
+        [34mtype[39m: "[32mApp\Notifications\RequestAcceptedNotification[39m",
+        [34mnotifiable_type[39m: "[32mApp\Models\User[39m",
+        [34mnotifiable_id[39m: [35m1[39m,
+        [34mdata[39m: "[32m{"request_id":6,"message":"Your request 'Firewal Setup in Kali Linux OS' has been accepted.","type":"request_accepted"}[39m",
+        [34mread_at[39m: [36mnull[39m,
+        [34mcreated_at[39m: "[32m2026-04-05 01:19:33[39m",
+        [34mupdated_at[39m: "[32m2026-04-05 01:19:33[39m",
+      },
+    ],
+  }
+

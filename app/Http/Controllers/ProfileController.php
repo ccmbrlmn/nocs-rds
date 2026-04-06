@@ -40,21 +40,35 @@ class ProfileController extends Controller
     /**
      * Delete the user's account.
      */
-    public function destroy(Request $request): RedirectResponse
-    {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
-        ]);
+public function destroy(Request $request): RedirectResponse
+{
+    $request->validateWithBag('userDeletion', [
+        'password' => ['required', 'current_password'],
+    ]);
 
-        $user = $request->user();
+    $user = $request->user();
 
-        Auth::logout();
+    // Set pending deletion
+    $user->deletion_status = 'pending';
+    $user->save();
 
-        $user->delete();
+    if ($user->role !== 'first_admin') {
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
+        \App\Models\User::whereIn('role', ['admin', 'first_admin'])
+            ->where('id', '!=', $user->id) // don't notify self
+            ->get()
+            ->each(function ($admin) use ($user) {
+                $admin->notify(new \App\Notifications\UserDeletionRequest($user));
+            });
     }
+
+    $request->session()->flash('status', 'Your account deletion request has been sent. Wait for admin approval.');
+
+    Auth::logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/');
+}
 }

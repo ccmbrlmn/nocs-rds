@@ -57,7 +57,7 @@
         @if(isset($routeName))
         <div x-data="{ open: false, selected: '{{ request('sort', 'desc') }}' }" class="relative inline-block">
             <button @click="open = !open"
-                class="px-5 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-gray-600 rounded-xl text-sm font-medium flex items-center gap-2">
+                class="px-5 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 hover:bg-blue-100 dark:hover:bg-gray-600 dark:text-gray-200 rounded-xl text-sm font-medium flex items-center gap-2">
                 
                 <span x-text="selected === 'desc' ? 'Newest' : 'Oldest'"></span>
 
@@ -69,17 +69,17 @@
             </button>
 
             <div x-show="open" x-cloak @click.away="open = false" x-transition
-                 class="absolute right-0 mt-2 w-28 bg-white dark:bg-gray-800 border rounded-lg shadow-lg overflow-hidden">
+                 class="absolute right-0 mt-2 w-28 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
 
                 <a href="{{ route($routeName, array_merge(request()->except('sort'), ['sort' => 'desc'])) }}"
                    @click="selected='desc'; open=false;"
-                   class="block px-3 py-2 text-sm hover:bg-blue-100 dark:hover:bg-gray-600">
+                   class="block px-3 py-2 text-sm hover:bg-blue-100 dark:hover:bg-gray-600 dark:text-gray-200">
                     Newest
                 </a>
 
                 <a href="{{ route($routeName, array_merge(request()->except('sort'), ['sort' => 'asc'])) }}"
                    @click="selected='asc'; open=false;"
-                   class="block px-3 py-2 text-sm hover:bg-blue-100 dark:hover:bg-gray-600">
+                   class="block px-3 py-2 text-sm hover:bg-blue-100 dark:hover:bg-gray-600 dark:text-gray-200">
                     Oldest
                 </a>
 
@@ -112,7 +112,7 @@
     <div x-show="open" x-cloak
          @click.away="open=false"
          x-transition
-         class="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
+         class="absolute right-0 mt-2 w-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
 
         <a href="{{ route($exportPdf, request()->query()) }}"
            target="_blank"

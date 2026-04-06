@@ -47,7 +47,7 @@
         $statusColor = $statusClasses[$status] ?? 'bg-gray-100 text-gray-700';
     @endphp
 
-    <div class="request-header flex flex-wrap items-start justify-between border-b border-gray-200 dark:border-gray-500 pb-5 mb-6">
+    <div class="request-header flex items-center justify-between border-b border-gray-200 dark:border-gray-500 pb-5 mb-6">
 
         <div class="flex items-center gap-3 flex-wrap">
             <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
@@ -62,32 +62,82 @@
 
 
 @auth
-<div x-data="{ openEdit: false }"
-:class="{ 'overflow-hidden': openEdit }"
-     class="w-full">
+<div x-data="{ openEdit: false, confirmEdit: false }"
+     @close-edit.window="openEdit = false"
+     class="flex items-center ml-auto">
 
-    <div class="flex gap-3 items-center mt-3 sm:mt-0">
-        @if(strtolower($request->status) === 'open' && auth()->id() === $request->requested_by)
+    <div class="flex gap-3 items-center mt-3 sm:mt-0 ml-auto">
+    @if($request->is_edited)
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+        You have already edited this request.
+    </p>
+@endif
+
+        @if(
+    strtolower($request->status) === 'open' &&
+    auth()->id() === $request->requested_by &&
+    !$request->is_edited
+)
             <x-primary-button 
                 class="bg-blue-500 hover:bg-blue-600 text-white"
-                @click="openEdit = true">
+                @click="confirmEdit = true">
                 Edit
             </x-primary-button>
         @endif
     </div>
+    
+    <!-- CONFIRM EDIT MODAL -->
+<div x-show="confirmEdit" x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
 
-    @if(strtolower($request->status) === 'open' && auth()->id() === $request->requested_by)
+    <div @click.away="confirmEdit = false"
+         class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 mx-4">
+
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
+            Confirm Edit
+        </h2>
+
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-6">
+            Are you sure you want to edit this request? <br>
+            <span class="font-semibold text-red-500">
+                You can only edit this once.
+            </span>
+        </p>
+
+        <div class="flex justify-end gap-3">
+            <button @click="confirmEdit = false"
+                    class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300">
+                Cancel
+            </button>
+
+            <button @click="confirmEdit = false; openEdit = true"
+                    class="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">
+                Yes, Edit
+            </button>
+        </div>
+
+    </div>
+</div>
+
+    @if(
+    strtolower($request->status) === 'open' &&
+    auth()->id() === $request->requested_by &&
+    !$request->is_edited
+)
+    
     <div x-show="openEdit" x-cloak
          x-transition
          class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
 
-        <div class="bg-white dark:bg-gray-800 w-full max-w-5xl rounded-2xl shadow-xl
-            max-h-[90vh] overflow-y-auto p-6 mx-4"
-     @click.away="openEdit = false">
+<div class="bg-white dark:bg-gray-800 w-full max-w-5xl rounded-2xl shadow-xl
+    max-h-[90vh] overflow-y-auto p-6 mx-4"
+@click.away="openEdit = false">
 
-            @include('form.edit-request-form', ['request' => $request])
-        </div>
+    @include('form.edit-request-form', ['request' => $request])
+</div>
     </div>
+    
+    
     @endif
 
 </div>
@@ -132,7 +182,7 @@
                             $items = is_array($request->items) ? $request->items : json_decode($request->items, true) ?? [];
                         @endphp
 
-                        <ul class="detail-text">
+                        <ul class="dark:text-gray-300 detail-text">
                             @if(count($items))
                                 @foreach($items as $item)
                                     <li>{{ $item['quantity'] }} {{ $item['name'] }}</li>
@@ -199,7 +249,7 @@
 
                 @if($request->handledByAdmin)
                     <div class="flex items-start gap-4 p-3 rounded-lg transition">
-                        <span class="material-symbols-outlined bg-blue-600 text-white p-2 rounded-lg">manage_accounts</span>
+                        <span class="material-symbols-outlined bg-blue-100 text-blue-600 p-2 rounded-lg">manage_accounts</span>
                         <div>
                             <p class="header-text font-semibold dark:text-gray-300">Name of Personnel</p>
                             <p class="dark:text-gray-300 detail-text">{{ $request->handledByAdmin->name }}</p>
@@ -227,7 +277,7 @@
                 @endphp
 
                 <div class="flex items-start gap-4 p-3 rounded-lg transition">
-                    <span class="material-symbols-outlined {{ $iconBg }} text-white p-2 rounded-lg">{{ $icon }}</span>
+                <span class="material-symbols-outlined bg-blue-100 text-blue-600 p-2 rounded-lg">{{ $icon }}</span>
                     <div>
                         <p class="header-text font-semibold dark:text-gray-300">Personnel Action</p>
                         <p class="detail-text dark:text-gray-300">
@@ -242,7 +292,7 @@
 
                 @if($request->status === 'Declined' && $request->decline_reason)
                     <div class="flex items-start gap-4 p-3 rounded-lg transition">
-                        <span class="material-symbols-outlined bg-red-600 text-white p-2 rounded-lg">info</span>
+                        <span class="material-symbols-outlined bg-blue-100 text-blue-600 p-2 rounded-lg">info</span>
                         <div>
                             <p class="header-text font-semibold dark:text-gray-300">Decline Reason</p>
                             <p class="detail-text dark:text-gray-300">{{ $request->decline_reason }}</p>
@@ -272,6 +322,7 @@
 .request-details{
     margin-left:4.5rem;
     margin-right:5rem;
+    margin-top: 1.5rem;
 }
 
 .header-container{

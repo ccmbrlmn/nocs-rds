@@ -41,7 +41,7 @@
     <div class="head bg-blue-100 dark:bg-blue-900 px-4 py-2 flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-t-xl">
         <div class="w-2/6 text-center">Event</div>
         <div class="w-1/6 text-center">Date</div>
-        <div class="w-1/6 text-center">Request</div>
+        <div class="w-1/6 text-center">Purpose</div>
         <div class="w-1/6 text-center">Status</div>
     </div>
 
@@ -53,7 +53,12 @@
 
             <div class="flex justify-between items-center px-4 py-3 text-sm">
                 <div class="w-2/6 text-center text-gray-600 dark:text-gray-300">
-                    {{ $request->event_name }}
+                    <div class="font-medium">
+                        {{ $request->event_name }}
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ $request->representative_name }}
+                    </div>
                 </div>
 
                 <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
@@ -61,7 +66,11 @@
                 </div>
 
                 <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
-                    {{ $request->purpose }}
+                    @if($request->purpose === 'Others' && $request->other_purpose)
+                        {{ $request->other_purpose }}
+                    @else
+                        {{ $request->purpose }}
+                    @endif
                 </div>
 
                 <div class="w-1/6 flex justify-center">

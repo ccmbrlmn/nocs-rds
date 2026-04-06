@@ -38,6 +38,13 @@
                 <x-text-input id="email" class="block mt-1 w-full"
                     type="email" name="email" required />
             </div>
+            
+            <div class="mt-4">
+                <x-input-label for="office" value="Office" />
+                <x-text-input id="office" class="block mt-1 w-full"
+                    type="text" name="office" 
+                    value="{{ old('office') }}" />
+            </div>
 
             <div class="mt-4">
                 <x-input-label for="password" value="Password" />

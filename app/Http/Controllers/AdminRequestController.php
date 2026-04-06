@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PDF;
 use Carbon\Carbon;
+use App\Notifications\RequestAcceptedNotification;
+use App\Notifications\RequestRejectedNotification;
 
 class AdminRequestController extends Controller
 {
@@ -57,29 +59,6 @@ class AdminRequestController extends Controller
     {
         $request = RequestModel::with(['user', 'handler'])->findOrFail($id);
         return view('admin.admin-request-details', compact('request'));
-    }
-
-    public function accept($id)
-    {
-        $req = RequestModel::findOrFail($id);
-        $req->status = 'Active';
-        $req->handled_by = Auth::id();
-        $req->handled_at = now();
-        $req->save();
-
-        return redirect()->back()->with('success', 'Request accepted.');
-    }
-
-    public function decline(Request $request, $id)
-    {
-        $req = RequestModel::findOrFail($id);
-        $req->status = 'Declined';
-        $req->decline_reason = $request->input('decline_reason');
-        $req->handled_by = Auth::id();
-        $req->handled_at = now();
-        $req->save();
-
-        return redirect()->back()->with('success', 'Request has been declined.');
     }
 
     public function exportPdf(Request $request)
@@ -188,6 +167,42 @@ class AdminRequestController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+    
+public function accept($id)
+{
+    $req = RequestModel::findOrFail($id);
+    $req->status = 'Active';
+    $req->handled_by = Auth::id();
+    $req->handled_at = now();
+    $req->save();
+
+    // Notify the user
+    $req->user->notify(new RequestAcceptedNotification($req));
+
+    return redirect()->back()->with('success', 'Request accepted.');
+}
+
+public function decline(Request $request, $id)
+{
+    $req = RequestModel::findOrFail($id);
+    $req->status = 'Declined';
+    $req->decline_reason = $request->input('decline_reason');
+    $req->handled_by = Auth::id();
+    $req->handled_at = now();
+    $req->save();
+
+    // Notify the user
+    $req->user->notify(new RequestRejectedNotification($req));
+
+    return redirect()->back()->with('success', 'Request has been declined.');
+}
+
+    public function getUserNotifications()
+{
+    $user = auth()->user();
+    return $user->notifications()->orderBy('created_at', 'desc')->get();
+}
+
 
 }
 

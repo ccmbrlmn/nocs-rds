@@ -11,6 +11,10 @@ use App\Models\UserLog;
 use App\Models\Notification;
 use PDF;
 use Carbon\Carbon;
+use App\Notifications\RequestCreatedNotification;
+use App\Notifications\RequestAcceptedNotification;
+
+
 
 class RequestController extends Controller
 {
@@ -129,15 +133,14 @@ class RequestController extends Controller
         $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
 
         foreach ($admins as $admin) {
-            Notification::create([
-                'user_id' => $admin->id,
-                'sender_id' => auth()->id(),
-                'type' => 'request_cancelled',
-                'message' => $userName . ' cancelled the request: ' . $requestRecord->event_name,
-                'data' => json_encode(['request_id' => $requestRecord->id]),
-                'is_read' => false,
-            ]);
-        }
+    $admin->notify(
+        new \App\Notifications\RequestEditedNotification(
+            auth()->user(),
+            $requestRecord->id,
+            $validated['event_name']
+        )
+    );
+}
 
         return redirect()->back()->with('success', 'Request cancelled with reason.');
     }
@@ -186,15 +189,15 @@ class RequestController extends Controller
         $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
 
         foreach ($admins as $admin) {
-            Notification::create([
-                'user_id' => $admin->id,
-                'sender_id' => auth()->id(),
-                'type' => 'request_created',
-                'message' => $userName . ' created a new request: ' . $validated['event_name'],
-                'data' => json_encode(['request_id' => $req->id]),
-                'is_read' => false,
-            ]);
-        }
+    $admin->notify(
+        new RequestCreatedNotification(
+            auth()->user(),
+            $req->id,
+            $validated['event_name'],
+            'created'
+        )
+    );
+}
 
         $requestData = $validated;
         $requestData['requested_by'] = $userName;
@@ -211,6 +214,10 @@ class RequestController extends Controller
         $req = Requests::where('id', $id)
             ->where('requested_by', auth()->id())
             ->firstOrFail();
+            
+        if ($req->is_edited) {
+            return redirect()->back()->with('error', 'You can only edit this request once.');
+        }
 
         $validated = $request->validate([
             'representative_name' => 'required|string',
@@ -240,7 +247,25 @@ class RequestController extends Controller
         $req->users = $validated['users'];
         $req->items = json_encode($validated['items']);
 
+        $req->is_edited = true;
         $req->save();
+        
+        $user = auth()->user();
+        $userName = $user ? $user->name : 'Unknown User';
+
+        $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
+
+        // Notify each admin about the edit
+        foreach ($admins as $admin) {
+            $admin->notify(
+                new \App\Notifications\RequestEditedNotification(
+                    auth()->user(),      // The user who edited
+                    $req->id,            // Request ID
+                    $validated['event_name'], // Request name
+                    'edited'             // Explicit type (optional, default is 'edited')
+                )
+            );
+        }
 
         return redirect()->back()->with('success', 'Request updated successfully!');
     }
@@ -318,6 +343,10 @@ class RequestController extends Controller
         $deploymentRequest->handled_by = auth()->id();
         $deploymentRequest->handled_at = now();
         $deploymentRequest->save();
+        
+        $deploymentRequest->user->notify(
+            new RequestAcceptedNotification($deploymentRequest)
+        );
 
         UserLog::create([
             'user_id' => $deploymentRequest->requested_by,
@@ -334,26 +363,26 @@ class RequestController extends Controller
     {
         $userId = auth()->id();
 
-        $notifications = Notification::with('sender')
-            ->where('user_id', $userId)
-            ->orderBy('created_at', 'desc')
-            ->limit(20)
-            ->get()
-            ->map(function ($notif) {
-                $data = json_decode($notif->data, true);
+    $notifications = auth()->user()->notifications()
+        ->latest()
+        ->take(20)
+        ->get()
+        ->map(function ($notif) {
+            $data = $notif->data;
 
-                return [
-                    'id' => $notif->id,
-                    'message' => $notif->message,
-                    'type' => $notif->type,
-                    'is_read' => $notif->is_read,
-                    'request_id' => $data['request_id'] ?? null,
-
-                    'created_at' => $notif->created_at
-                        ? $notif->created_at->format('M d, Y h:i A')
-                        : null,
-                ];
-            });
+            return [
+                'id' => $notif->id,
+                'message' => $data['message'] ?? '',
+                'type' => $notif->type,
+                'type_label' => $data['type_label'] ?? $data['action'] ?? '',
+                'data' => $data,
+                'is_read' => $notif->read_at ? true : false,
+                'request_id' => $data['request_id'] ?? null,
+                'created_at' => $notif->created_at
+                    ? $notif->created_at->format('M d, Y h:i A')
+                    : null,
+            ];
+        });
 
         return response()->json($notifications);
     }
@@ -361,7 +390,7 @@ class RequestController extends Controller
     public function markNotificationsRead()
     {
         $userId = auth()->id();
-        Notification::where('user_id', $userId)->update(['is_read' => true]);
+        auth()->user()->unreadNotifications->markAsRead();
 
         return response()->json(['success' => true]);
     }
@@ -463,5 +492,31 @@ class RequestController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+    
+public function getUserNotifications()
+{
+    return auth()->user()->notifications()
+        ->whereIn('type', [
+            \App\Notifications\RequestAcceptedNotification::class,
+            \App\Notifications\RequestRejectedNotification::class,
+        ])
+        ->latest()
+        ->take(20)
+        ->get()
+        ->map(function ($notif) {
+            $data = $notif->data;
+
+            return [
+                'id' => $notif->id,
+                'message' => $data['message'] ?? '',
+                'type' => $notif->type,
+                'type_label' => $data['type_label'] ?? $data['action'] ?? '',
+                'data' => $data,
+                'is_read' => $notif->read_at ? true : false,
+                'request_id' => $data['request_id'] ?? null,
+                'created_at' => optional($notif->created_at)->format('M d, Y h:i A'),
+            ];
+        });
+}
 }
 

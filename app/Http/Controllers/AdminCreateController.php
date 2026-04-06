@@ -37,6 +37,7 @@ class AdminCreateController extends Controller
                 'regex:/[0-9]/',
                 'regex:/[@$!%*#?&]/'
             ],
+            'office' => 'nullable|string|max:255',
         ]);
 
         User::create([
@@ -44,6 +45,7 @@ class AdminCreateController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'admin',
+            'office' => $request->office,
             'created_by' => auth()->id(),
         ]);
 
@@ -119,11 +121,13 @@ class AdminCreateController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $admin->id,
+            'office' => 'nullable|string|max:255',
         ]);
 
         $admin->update([
             'name' => $request->name,
             'email' => $request->email,
+            'office' => $request->office
         ]);
 
         return redirect()->route('admin.created-admins')

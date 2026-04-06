@@ -46,11 +46,13 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
+            'office' => 'required|string|max:255', 
         ]);
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
+            'office' => $request->office,
         ]);
 
         return redirect()->route('admin.users')->with('success', 'User updated successfully.');

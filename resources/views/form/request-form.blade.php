@@ -30,7 +30,6 @@
                     <select id="purpose" name="purpose"
                             class="block mt-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
                             onchange="toggleOtherInput()">
-                        <option value=""></option>
                         <option value="Conference">Conference</option>
                         <option value="VideoCon">Video Con</option>
                         <option value="Training">Training</option>
@@ -41,7 +40,7 @@
                 <div id="other_purpose" class="mb-4 hidden">
                     <x-input-label for="other_purpose" value="Specify Purpose" />
                     <input type="text" id="other_purpose" name="other_purpose"
-                           class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                           class="block mt-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
                 </div>
                 
                 <div 
@@ -61,7 +60,6 @@
                         <input type="text"
                                :name="`items[${index}][name]`"
                                x-model="item.name"
-                               placeholder="Item name"
                                class="w-full h-10 px-3 rounded-md border-gray-300 shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
                                required>
 
@@ -177,7 +175,7 @@
 
 
             <div class="mt-4">
-                <x-primary-button id="submit_button" class="w-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200" disabled>
+                <x-primary-button id="submit_button" class="w-full bg-indigo-600 text-white hover:bg-indigo-700" disabled>
                     {{ __('Submit') }}
                 </x-primary-button>
             </div>

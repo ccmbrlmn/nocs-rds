@@ -13,9 +13,12 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminCreateController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DateNoteController;
 use App\Models\UserLog;
 
-Route::get('/admin/{id}/logs', [AdminController::class, 'logs'])->name('admin.logs');
+Route::middleware(['auth','isAdmin'])->group(function () {
+    Route::get('/admin/{id}/logs', [AdminController::class, 'logs'])->name('admin.logs');
+});
 
 Route::get('/check-auth', function() {
     return [
@@ -35,7 +38,13 @@ Route::get('/admin/register', function () {
     return view('auth.admin-register');
 })->middleware('guest');
 
-Route::post('/admin/register', [RegisteredUserController::class, 'storeAdmin'])
+Route::get('/date-notes', [DateNoteController::class, 'index'])->middleware('auth');
+
+Route::post('/date-notes', [DateNoteController::class, 'store'])
+    ->middleware('auth');
+    
+    
+Route::post('/admin/register', [RegisteredUserController::class, 'storeFirstAdmin'])
     ->middleware('guest');
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -151,6 +160,16 @@ Route::middleware(['auth', 'isAdmin'])
      
 });
 
+Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
+    // Approve user deletion
+    Route::post('users/{user}/approve-deletion', [AdminController::class, 'approveDeletion'])
+        ->name('admin.users.approve-deletion');
+
+    // Decline user deletion
+    Route::post('users/{user}/decline-deletion', [AdminController::class, 'declineDeletion'])
+        ->name('admin.users.decline-deletion');
+});
+
 Route::post('/notifications/read', function () {
     $user = Auth::user();
     if (!$user) return response()->json([]);
@@ -160,6 +179,20 @@ Route::post('/notifications/read', function () {
         ->update(['is_read' => true]);
 
     return response()->json(['status' => 'ok']);
+});
+
+Route::middleware(['auth','admin'])->group(function () {
+    Route::get('/admin/user-deletion-notifications', [AdminController::class, 'getAdminUserDeletionNotifications']);
+    Route::post('/admin/users/{user}/approve-deletion', [AdminController::class, 'approveDeletion']);
+    Route::post('/admin/users/{user}/decline-deletion', [AdminController::class, 'declineDeletion']);
+});
+
+Route::middleware(['auth'])->group(function () {
+    // User notifications
+    Route::get('/notifications', [RequestController::class, 'getUserNotifications']);
+    
+    // Mark notifications read
+    Route::post('/notifications/read', [RequestController::class, 'markNotificationsRead']);
 });
 
 require __DIR__.'/auth.php';

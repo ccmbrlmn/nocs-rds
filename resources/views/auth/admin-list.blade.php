@@ -7,7 +7,7 @@
 
     <div class="flex items-center gap-2">
         <a href="{{ route('admin.create') }}"
-           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow">
+           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold shadow">
             Add Admin
         </a>
         @include('layouts.header')
@@ -38,6 +38,10 @@
             'exportPdf' => 'admin.created-admins.pdf',
             'exportCsv' => 'admin.created-admins.csv'
         ])
+        
+        @php
+    $highlightAdminId = request()->query('highlight');
+@endphp
 
 
 <div class="request-history-list rounded-xl shadow overflow-hidden mx-10">
@@ -45,6 +49,7 @@
             <div class="w-1/6 text-center">ID</div>
             <div class="w-2/6 text-center">Name</div>
             <div class="w-2/6 text-center">Email</div>
+             <div class="w-2/12 text-center">Office</div> 
             <div class="w-1/6 text-center">Created</div>
             <div class="w-1/6 text-center">Status</div>
             <div class="w-1/6 text-center">Actions</div>
@@ -53,9 +58,14 @@
     <div class="request-history-wrapper divide-y divide-gray-200 dark:divide-gray-700">
 
         @forelse($admins as $admin)
+        
+        @php
+    $isHighlighted = $highlightAdminId == $admin->id;
+@endphp
 
-        <div class="request-row bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition cursor-pointer"
-             onclick="window.location='{{ route('admin.logs', $admin->id) }}'">
+        <div class="request-row {{ $isHighlighted ? 'highlighted-admin' : '' }} 
+            bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition cursor-pointer"
+     onclick="window.location='{{ route('admin.logs', $admin->id) }}'">
 
             <div class="row flex items-center px-6 py-3 text-sm">
 
@@ -70,6 +80,8 @@
                 <div class="w-2/6 text-center text-gray-600 dark:text-gray-300">
                     {{ $admin->email }}
                 </div>
+                
+                <div class="w-2/12 text-center text-gray-600 dark:text-gray-300">{{ $admin->office ?? '-' }}</div>
 
                 <div class="w-1/6 text-center text-gray-500 dark:text-gray-400">
                     {{ \Carbon\Carbon::parse($admin->created_at)->format('M d, Y') }}
@@ -90,7 +102,7 @@
 @if($admin->deleted_at)
     <a href="#"
        onclick="if(confirm('This admin account is deleted. You must restore it before editing. Do you want to restore this admin now?')) { this.nextElementSibling.submit(); } return false;"
-       class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-md text-xs font-medium shadow">
+       class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-md font-semibold shadow">
         Edit
     </a>
 
@@ -105,13 +117,13 @@
           onsubmit="return confirm('Restore this admin account?');">
         @csrf
         <button type="submit"
-                class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs font-medium shadow">
+                class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md font-semibold shadow">
             Restore
         </button>
     </form>
 @else
     <a href="{{ route('admin.edit', $admin->id) }}"
-       class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-md text-xs font-medium shadow">
+       class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-md font-semibold shadow">
         Edit
     </a>
 
@@ -122,7 +134,7 @@
         @method('DELETE')
 
         <button type="submit"
-                class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-md text-xs font-medium shadow">
+                class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-md font-semibold shadow">
             Delete
         </button>
     </form>
@@ -154,6 +166,11 @@
     .request-history-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     .request-history-wrapper::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .sort-select { appearance: none; }
+    
+    .highlighted-admin {
+        background-color: #ffe58f;
+        transition: background-color 0.3s;
+    }
 
 </style>
 

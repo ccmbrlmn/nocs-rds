@@ -37,6 +37,7 @@ class RegisteredUserController extends Controller
                 'unique:'.User::class,
                 'regex:/^[\w\.\-]+@gbox\.adnu\.edu\.ph$/i',
             ],
+            'office' => ['required', 'string', 'max:255'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ], [
             'email.regex' => 'You can only register with your gbox.adnu.edu.ph email.',
@@ -45,6 +46,7 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'office' => $request->office,
             'password' => Hash::make($request->password),
             'is_approved' => false,
             'role' => 'user', // ensure new accounts default to 'user'
@@ -61,7 +63,7 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                'department' => ['required', 'string', 'max:255'],
+            'department' => ['required', 'string', 'max:255'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'admin_key' => ['required'],
         ]);
@@ -75,7 +77,7 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-                'department' => $request->department,
+            'department' => $request->department,
             'password' => Hash::make($request->password),
             'role' => 'admin',
         ]);
@@ -85,4 +87,31 @@ class RegisteredUserController extends Controller
         return redirect()->route('admin-dashboard')
             ->with('success', 'Admin account created successfully.');
     }
+    
+    public function storeFirstAdmin(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users',
+        'password' => 'required|confirmed|min:8',
+        'admin_key' => 'required|string',
+    ]);
+
+    if ($request->admin_key !== config('app.admin_register_key')) {
+        return back()->withErrors([
+            'admin_key' => 'Invalid admin registration key.',
+        ]);
+    }
+
+    User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'role' => 'admin',
+        'is_approved' => 1,
+        'created_by' => null,
+    ]);
+
+    return redirect('/login')->with('success', 'First admin account created successfully.');
+}
 }

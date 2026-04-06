@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-    Schema::table('request', function (Blueprint $table) {
-        $table->foreignId('handled_by')->nullable()->constrained('users')->nullOnDelete();
-    });
-
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('office')->nullable()->after('department'); // new office column
+        });
     }
 
     /**
@@ -22,9 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('request', function (Blueprint $table) {
-            $table->dropForeign(['handled_by']);
-            $table->dropColumn('handled_by');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('office');
         });
     }
 };

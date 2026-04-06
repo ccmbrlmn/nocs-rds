@@ -69,5 +69,62 @@ class AdminController extends Controller
 
         return view('admin.user-list', compact('users'));
     }
+    
+public function approveDeletion(User $user)
+{
+    if (auth()->user()->role !== 'admin') {
+        return response()->json(['status' => 'error', 'message' => 'Unauthorized action.'], 403);
+    }
+
+    if (!$user->trashed()) {
+        $user->delete(); // soft delete
+    }
+
+    $user->notify(new \App\Notifications\DeletionApproved($user->name));
+
+    return response()->json([
+        'status' => 'success',
+        'message' => "User {$user->name}'s account deletion approved."
+    ]);
+}
+
+public function declineDeletion(User $user)
+{
+    if (auth()->user()->role !== 'admin') {
+        return response()->json(['status' => 'error', 'message' => 'Unauthorized action.'], 403);
+    }
+
+    $user->notify(new \App\Notifications\DeletionDeclined($user->name));
+
+    return response()->json([
+        'status' => 'success',
+        'message' => "User {$user->name}'s account deletion declined."
+    ]);
+}
+
+public function getAdminUserDeletionNotifications()
+{
+    $notifications = auth()->user()->notifications()
+        ->where('type', 'user_deletion_request')
+        ->latest()
+        ->take(20)
+        ->get()
+        ->map(function ($notif) {
+            $data = $notif->data;
+
+            return [
+                'id' => $notif->id,
+                'message' => $data['message'] ?? 'User requested deletion',
+                'type' => $data['type'] ?? '',
+                'is_read' => $notif->read_at ? true : false,
+                'user_id' => $data['user_id'] ?? null,
+                'created_at' => $notif->created_at
+                    ? $notif->created_at->format('M d, Y h:i A')
+                    : null,
+            ];
+        });
+
+    return response()->json($notifications);
+}
 }
 

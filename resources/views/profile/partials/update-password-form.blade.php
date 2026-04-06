@@ -142,16 +142,9 @@
 
             <button
                 type="submit"
-                class="inline-flex items-center px-6 py-2.5
-                       bg-indigo-600 dark:bg-blue-900
-                       border border-transparent rounded-lg
-                       font-semibold text-xs text-white uppercase tracking-widest
-                       hover:bg-indigo-700 dark:hover:bg-indigo-400
-                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-                       disabled:opacity-40 disabled:cursor-not-allowed transition"
-                :disabled="!dirty || !valid"
+                class="mt-5 whitespace-nowrap inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow font-semibold"
             >
-                {{ __('Save Changes') }}
+                {{ __('Save') }}
             </button>
 
         </div>

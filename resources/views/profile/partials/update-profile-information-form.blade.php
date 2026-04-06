@@ -41,7 +41,7 @@
                        text-gray-900 dark:text-gray-200
                        border-gray-300 dark:border-gray-600
                        focus:ring-indigo-500 focus:border-indigo-500"
-                :value="old('name', $user->name)"
+                       :value="old('name', auth()->user()->name)"
                 required
                 autofocus
                 autocomplete="name"
@@ -62,7 +62,7 @@
                        text-gray-900 dark:text-gray-200
                        border-gray-300 dark:border-gray-600
                        focus:ring-indigo-500 focus:border-indigo-500"
-                :value="old('email', $user->email)"
+                :value="old('email', auth()->user()->email)"
                 required
                 autocomplete="username"
             />
@@ -90,6 +90,24 @@
                 </div>
             @endif
         </div>
+        
+<div>
+    <x-input-label for="office" :value="__('Office')" />
+
+    <x-text-input
+        id="office"
+        name="office"
+        type="text"
+        class="mt-2 block w-full
+               bg-white dark:bg-gray-700
+               text-gray-900 dark:text-gray-200
+               border-gray-300 dark:border-gray-600
+               focus:ring-indigo-500 focus:border-indigo-500"
+        :value="old('office', auth()->user()->office)"
+    />
+
+    <x-input-error class="mt-2 text-red-600 dark:text-red-400" :messages="$errors->get('office')" />
+</div>
 
         <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
 
@@ -109,16 +127,9 @@
 
             <button
                 type="submit"
-                class="inline-flex items-center px-6 py-2.5
-                       bg-indigo-600 dark:bg-blue-500
-                       border border-transparent rounded-lg
-                       font-semibold text-xs text-white uppercase tracking-widest
-                       hover:bg-indigo-700 dark:hover:bg-blue-900
-                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-                       disabled:opacity-40 disabled:cursor-not-allowed transition"
-                x-bind:disabled="!dirty"
+                class="mt-5 whitespace-nowrap inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow font-semibold"
             >
-                {{ __('Save Changes') }}
+                {{ __('Save') }}
             </button>
 
         </div>

@@ -1,8 +1,17 @@
+@php
+$firstAdmin = \App\Models\User::where('role', 'admin')->orderBy('created_at')->first();
+@endphp
+
+<script>
+const userRole = '{{ auth()->user()->role ?? 'user' }}'; // 'admin' or 'user'
+const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === $firstAdmin->id ? 'true' : 'false') : 'false' }};
+</script>
+
 <div class="flex items-center gap-4"
      x-data="notificationsModal()"
-     x-init="openModal = false;
-     fetchNotifications(); setInterval(fetchNotifications, 30000)">
+     x-init="openModal = false; fetchNotifications(); setInterval(fetchNotifications, 30000)">
 
+    <!-- Dark Mode Toggle -->
     <button @click="
         document.documentElement.classList.toggle('dark');
         localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
@@ -13,6 +22,7 @@
         </span>
     </button>
 
+    <!-- Notification Bell -->
     <div class="relative">
         <button @click="openNotificationsModal()"
                 class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-blue-100 dark:hover:bg-gray-600 transition shadow-sm relative">
@@ -29,6 +39,7 @@
                   class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
         </button>
 
+        <!-- Notifications Modal -->
         <div x-show="openModal" x-cloak
              class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4">
 
@@ -53,18 +64,76 @@
 
                 <div class="overflow-y-auto max-h-[60vh]">
                     <template x-for="(notif, index) in notifications.slice(0, visibleCount)" :key="notif.id">
-                        <a :href="`{{ url('/admin/requests') }}/${notif.request_id}`"
-                           @click="openModal = false"
-                           :class="notif.is_read
-                                ? 'block p-3 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
-                                : 'block p-3 mb-3 border rounded-lg font-semibold'">
+                        <div @click="
+                            let data = notif.data;
+                            if(typeof data === 'string') { try { data = JSON.parse(data); notif.data = data; } catch(e){ data={}; } }
+
+                            // User/Admin deletion
+                            if(data?.type === 'user_deletion_request' || notif.type?.includes('UserDeletionRequest')){
+                                const userId = data?.user_id;
+                                if(userId){
+                                    openModal = false;
+                                    setTimeout(() => {
+                                        if(data?.is_admin){
+                                            window.location.href = `{{ url('/created-admins') }}?highlight=${userId}`;
+                                        } else {
+                                            window.location.href = `{{ route('admin.users') }}?highlight=${userId}`;
+                                        }
+                                    }, 150);
+                                }
+                                return;
+                            }
+
+                            // Request notifications
+                            const requestId = data?.request_id || notif.request_id;
+                            if(requestId){
+                                openModal = false;
+                                setTimeout(() => {
+                                    window.location.href = userRole === 'admin'
+                                        ? `{{ url('/admin/requests') }}/${requestId}`
+                                        : `{{ url('/request-details') }}/${requestId}`;
+                                }, 150);
+                                return;
+                            }
+
+                            console.warn('No action for notification:', notif);
+                        "
+                             :class="notif.is_read
+                                ? 'block p-3 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 cursor-pointer'
+                                : 'block p-3 mb-3 border rounded-lg font-semibold cursor-pointer'">
+
                             <div class="flex justify-between items-start gap-4">
+
                                 <p class="text-sm leading-relaxed break-words max-w-[70%] line-clamp-2"
-                                   x-text="notif.message"></p>
+                                   
+                                   x-text="(() => {
+                                    const d = notif.data || {};
+
+                                    // User/Admin deletion
+                                    if(d.type === 'user_deletion_request'){
+                                        return (d.is_admin ? '[Admin Deletion Request] ' : '[User Deletion Request] ') + (d.message || '');
+                                    }
+
+                                    // Requests
+                                    let label = '';
+                                    if(d.type_label){
+                                        label = '[' + d.type_label + ' Request] ';
+                                    } else if(d.type === 'request_accepted'){
+                                        label = '[Accepted Request] ';
+                                    } else if(d.type === 'request_declined'){
+                                        label = '[Declined Request] ';
+                                    }
+
+                                    return (d.user_name ? d.user_name + ': ' : '') + label + (d.request_name || d.message || '');
+                                })()"
+                                   
+                                   >
+                                </p>
+
                                 <span class="text-xs text-gray-400 whitespace-nowrap text-right"
                                       x-text="notif.created_at"></span>
                             </div>
-                        </a>
+                        </div>
                     </template>
 
                     <button x-show="visibleCount < notifications.length"
@@ -73,18 +142,16 @@
                         See more
                     </button>
                 </div>
-
             </div>
         </div>
     </div>
 
+    <!-- Profile -->
     <a href="{{ url('/profile') }}"
        class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-blue-100 dark:hover:bg-gray-600 transition shadow-sm">
         <img src="{{ asset('assets/images/user-pic.png') }}"
-             alt="profile-img"
              class="w-10 h-10 rounded-full border-2 border-gray-300 dark:border-gray-600">
     </a>
-
 </div>
 
 <script>
@@ -96,25 +163,23 @@ function notificationsModal() {
         visibleCount: 3,
 
         fetchNotifications() {
-            fetch('/admin/notifications')
+            fetch(userRole === 'admin' ? '/admin/notifications' : '/notifications')
                 .then(res => res.json())
                 .then(data => {
-                    const now = new Date();
-
                     this.notifications = data
-                        .filter(n => {
-                            const notifDate = new Date(n.created_at);
-                            const diffHours = (now - notifDate) / (1000 * 60 * 60);
-                            return diffHours <= 24;
+                        .map(n => {
+                            if(typeof n.data === 'string') {
+                                try { n.data = JSON.parse(n.data); } catch(e){ n.data = {}; }
+                            }
+                            return n;
                         })
-                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
+                        .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
                     this.hasNotifications = this.notifications.some(n => !n.is_read);
                 });
         },
 
         markNotificationsRead() {
-            fetch('/admin/notifications/read', {
+            fetch(userRole === 'admin' ? '/admin/notifications/read' : '/notifications/read', {
                 method: 'POST',
                 headers: { 
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -135,13 +200,10 @@ function notificationsModal() {
 </script>
 
 <style>
-
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
-    word-break: break-word;
 }
 </style>

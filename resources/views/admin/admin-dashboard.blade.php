@@ -27,7 +27,7 @@
             openRequestForm: false, 
             openCancelForm: false, 
             loading: false,
-            showEventModal: false, // NEW: only controls calendar modal
+            showEventModal: false,
             selectedEvent: null,
             loadPage(url) {
                 if (!url || this.loading) return;
@@ -39,11 +39,11 @@
                         this.loading = false;
                     });
             },
-            openEvent(event) { // NEW function to open modal
+            openEvent(event) {
                 this.selectedEvent = event;
                 this.showEventModal = true;
             },
-            closeEvent() { // NEW function to close modal
+            closeEvent() {
                 this.selectedEvent = null;
                 this.showEventModal = false;
             }
@@ -82,11 +82,10 @@
         </div>
    
         @if($todayRequests->isNotEmpty())
-            <button
-                @click="openRequestForm = true"
-                class="whitespace-nowrap inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow">
-                Create Request
-            </button>
+            <a href="{{ route('admin.requests') }}"
+               class="whitespace-nowrap inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow">
+                View Requests
+            </a>
         @endif
     </div>
     
@@ -127,6 +126,7 @@
                             <p class="text-sm text-gray-600 dark:text-gray-200 line-clamp-2">
                                 {{ $sched->purpose }}
                             </p>
+                            
                         </div>
 
                     </a>
@@ -140,12 +140,11 @@
                             </svg>
                         </div>
                         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">No scheduled requests yet</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-300 max-w-sm mt-1">You're all caught up. Start by creating your first request.</p>
-                        <button
-                            @click="openRequestForm = true"
-                            class="mt-5 whitespace-nowrap inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow">
-                            Create Request
-                        </button>
+                        <p class="text-sm text-gray-500 dark:text-gray-300 max-w-sm mt-1">You're all caught up. View other requests.</p>
+                        <a href="{{ route('admin.requests') }}"
+                           class="mt-5 whitespace-nowrap inline-flex items-center gap-2 bg-indigo-600 font-semibold text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow">
+                            View Requests
+                        </a>
                     </div>
                 @endforelse
             </div>
