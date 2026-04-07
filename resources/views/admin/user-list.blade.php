@@ -62,7 +62,9 @@
         $isHighlighted = $highlightUserId == $user->id;
     @endphp
             <div class="request-row {{ $isHighlighted ? 'highlighted-user' : '' }} bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition cursor-pointer"
-                 onclick="{{ $isHighlighted ? 'void(0)' : "window.location='".route('admin.users.logs',$user->id)."'" }}'">
+     @if(!$isHighlighted)
+         onclick="window.location='{{ route('admin.users.logs', $user->id) }}'"
+     @endif>
 
                 <div class="row flex px-6 py-3 text-sm">
 
@@ -87,13 +89,25 @@
                     </div>
 
                     <div class="w-1/12 flex justify-center items-center">
-                        @if($user->deleted_at)
-                            <span class="text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium">Deleted</span>
-                        @elseif(!$user->is_approved)
-                            <span class="text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium">Pending</span>
-                        @else
-                            <span class="text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium">Active</span>
-                        @endif
+                        @php
+                            if ($user->deleted_at) {
+                                $status = 'Deleted';
+                            } elseif (!$user->is_approved) {
+                                $status = 'Pending';
+                            } else {
+                                $status = 'Active';
+                            }
+
+                            $statusConfig = config('status')[$status] ?? null;
+
+                            $statusClass = $statusConfig
+                                ? $statusConfig['bg'] . ' ' . $statusConfig['text']
+                                : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200';
+                        @endphp
+
+                        <span class="px-3 py-1 rounded-xl text-sm font-semibold {{ $statusClass }}">
+                            {{ $status }}
+                        </span>
                     </div>
 
                     <div class="w-2/12 flex justify-center items-center gap-2" onclick="event.stopPropagation();">

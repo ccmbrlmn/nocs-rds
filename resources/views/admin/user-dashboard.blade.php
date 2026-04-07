@@ -60,20 +60,6 @@
             @include('layouts.calendar', ['calendarEvents' => $calendarEvents])
         </div>
 
-        <!-- SCHEDULED REQUESTS -->
-        <div class="card-sched xl:col-span-4 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 px-3 sm:px-4 py-4 flex flex-col text-gray-900 dark:text-gray-200">
-
-            <div class="flex items-start justify-between gap-4 mb-4 pt-4 px-2 sm:px-3">
-                <div>
-                    <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-200 tracking-tight">
-                        Scheduled Requests
-                    </h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-300 mt-1">
-                        Your upcoming activities
-                    </p>
-                </div>
-            </div>
-
             @php
                 $todayRequests = $scheduledRequests
                     ->filter(function($sched) {
@@ -86,6 +72,25 @@
                     })
                     ->values();
             @endphp
+            
+        <div class="card-sched xl:col-span-4 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 px-3 sm:px-4 py-4 flex flex-col text-gray-900 dark:text-gray-200">
+
+            <div class="flex items-start justify-between gap-4 mb-4 pt-4 px-2 sm:px-3">
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-200 tracking-tight">
+                        Scheduled Requests
+                    </h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-300 mt-1">
+                        Your upcoming activities
+                    </p>
+                </div>
+                    @if($todayRequests->isNotEmpty())
+                        <a href="{{ route('user.requests') }}"
+                           class="whitespace-nowrap inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow">
+                            View Requests
+                        </a>
+                    @endif
+            </div>
 
             <div class="sched-scroll flex flex-col gap-3 pr-1" id="sched-container">
                 @forelse ($todayRequests as $sched)

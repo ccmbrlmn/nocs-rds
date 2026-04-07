@@ -23,7 +23,8 @@
                 'Open' => 'Open',
                 'Active' => 'Active',
                 'Closed' => 'Closed',
-                'Declined' => 'Declined'
+                'Declined' => 'Declined',
+                'Deleted' => 'Deleted'
             ],
 
             'dateFilters' => [
@@ -55,12 +56,6 @@
                         $user = $request->user;
                         $userClass = ($user && $user->trashed()) ? 'text-red-600 italic' : 'text-gray-800 dark:text-gray-200';
                         $status = $request->computed_status;
-                        $statusClasses = [
-                            'Open' => 'text-gray-600 dark:text-gray-300',
-                            'Active' => 'text-gray-600 dark:text-gray-300 ',
-                            'Closed' => 'text-gray-600 dark:text-gray-300 ',
-                            'Declined' => 'text-gray-600 dark:text-gray-300 ',
-                        ];
                     @endphp
                     <a href="{{ route('admin.request-details', $request->id) }}" 
                        class="block text-gray-200 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700">
@@ -69,9 +64,23 @@
                             <div class="w-1/6 flex justify-center"><span class="{{ $userClass }}">{{ $user->name ?? '—' }} @if($user && $user->trashed()) (Deleted) @endif</span></div>
                             <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">{{ $request->event_name ?? '-' }}</div>
                             <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">{{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}</div>
-                            <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">{{ $request->purpose }}</div>
+                            <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
+                                @if($request->purpose === 'Others' && $request->other_purpose)
+                                    Others ({{ $request->other_purpose }})
+                                @else
+                                    {{ $request->purpose }}
+                                @endif
+                            </div>
                             <div class="w-1/6 flex justify-center">
-                                <span class="px-3 py-1 rounded-xl text-sm font-medium {{ $statusClasses[$status] ?? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200' }}">
+                                @php
+                                    $statusConfig = config('status')[$status] ?? null;
+
+                                    $statusClass = $statusConfig
+                                        ? $statusConfig['bg'] . ' ' . $statusConfig['text']
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200';
+                                @endphp
+
+                                <span class="px-3 py-1 rounded-xl text-sm font-medium {{ $statusClass }}">
                                     {{ $status }}
                                 </span>
                             </div>

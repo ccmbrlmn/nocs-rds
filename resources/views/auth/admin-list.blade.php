@@ -87,13 +87,19 @@
                     {{ \Carbon\Carbon::parse($admin->created_at)->format('M d, Y') }}
                 </div>
                 
-                <div class="w-1/6 text-center">
-                    @if($admin->deleted_at)
-                        <span class="text-gray-600 dark:text-gray-300 font-semibold">Deleted</span>
+                <div class="w-1/6 flex justify-center">
+                    @php
+                        $status = $admin->deleted_at ? 'Deleted' : 'Active';
+                        $statusConfig = config('status')[$status] ?? null;
 
-                    @else
-                        <span class="text-gray-600 dark:text-gray-300 font-semibold">Active</span>
-                    @endif
+                        $statusClass = $statusConfig
+                            ? $statusConfig['bg'] . ' ' . $statusConfig['text']
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200';
+                    @endphp
+
+                    <span class="px-3 py-1 rounded-xl text-sm font-semibold {{ $statusClass }}">
+                        {{ $status }}
+                    </span>
                 </div>
 
                 <div class="w-1/6 flex justify-center gap-2"

@@ -137,7 +137,13 @@
                         <span class="material-symbols-outlined bg-blue-100 text-blue-600 p-2 rounded-lg">event_available</span>
                         <div>
                             <p class="dark:text-gray-300 header-text font-semibold">Purpose of the Event</p>
-                            <p class="dark:text-gray-300 detail-text">{{ $request->purpose }}</p>
+                            <p class="dark:text-gray-300 detail-text">
+                                @if($request->purpose === 'Others' && $request->other_purpose)
+                                    {{ $request->other_purpose }}
+                                @else
+                                    {{ $request->purpose }}
+                                @endif
+                            </p>
                         </div>
                     </div>
 

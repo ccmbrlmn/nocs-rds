@@ -1,5 +1,6 @@
 <script>
 const userRole = @json(auth()->user()->role ?? null);
+const isGuest = userRole === null;
 </script>
 
 <section class="relative">
@@ -70,7 +71,7 @@ const userRole = @json(auth()->user()->role ?? null);
 </section>
 
 <script>
-const calendarEvents = @json($calendarEvents);
+const calendarEvents = @json($calendarEvents ?? []);
 const statusColors = @json(config('status'));
 let dateNotes = {};
 
@@ -79,12 +80,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   const calendarDays = document.getElementById('calendar-days');
   const prevMonthBtn = document.getElementById('prev-month');
   const nextMonthBtn = document.getElementById('next-month');
-    const response = await fetch('/date-notes');
-    dateNotes = await response.json();
+    try {
+      const response = await fetch('/date-notes');
+      if (response.ok) {
+        dateNotes = await response.json();
+      }
+    } catch (e) {
+      dateNotes = {};
+    }
 
   let currentDate = new Date();
   let currentView = 'month';
-let selectedWeekdayHeader = null;
+  let selectedWeekdayHeader = null;
 
   function renderCalendar(date) {
     calendarDays.innerHTML = '';
@@ -204,6 +211,7 @@ let selectedWeekdayHeader = null;
 
 prevMonthBtn.onclick = () => {
     if (currentView === 'weekday') {
+        // Go back to month view first
         currentView = 'month';
         calendarDays.style.display = 'grid';
         calendarDays.style.gridTemplateColumns = 'repeat(7, 1fr)';
@@ -213,7 +221,11 @@ prevMonthBtn.onclick = () => {
             selectedWeekdayHeader = null;
         }
         renderCalendar(currentDate);
+
+        // Reload only for weekday view
+        location.reload();
     } else {
+        // Simply go to previous month without reload
         currentDate.setMonth(currentDate.getMonth() - 1);
         renderCalendar(currentDate);
     }
@@ -221,6 +233,7 @@ prevMonthBtn.onclick = () => {
 
 nextMonthBtn.onclick = () => {
     if (currentView === 'weekday') {
+        // Go back to month view first
         currentView = 'month';
         calendarDays.style.display = 'grid';
         calendarDays.style.gridTemplateColumns = 'repeat(7, 1fr)';
@@ -230,7 +243,11 @@ nextMonthBtn.onclick = () => {
             selectedWeekdayHeader = null;
         }
         renderCalendar(currentDate);
+
+        // Reload only for weekday view
+        location.reload();
     } else {
+        // Simply go to next month without reload
         currentDate.setMonth(currentDate.getMonth() + 1);
         renderCalendar(currentDate);
     }
@@ -291,28 +308,26 @@ calendarTitle.textContent = `${weekdayNames[weekday]}s of ${monthNames[month]} $
         const visibleEvents = events.slice(0, MAX_VISIBLE);
         const hiddenCount = events.length - MAX_VISIBLE;
 
-let eventsHtml = '';
+        let eventsHtml = '';
 
         const cell = document.createElement('div');
         cell.className = 'relative rounded-xl p-4 flex flex-col items-start justify-start';
 
         cell.innerHTML = `
            <span class="absolute top-2 left-2 text-sm font-semibold">${new Date(displayDate).getDate()}</span>
-<div class="calendar-events w-full mb-2">${eventsHtml}</div>
-${hiddenCount > 0 ? `<div class="mt-1 text-xs text-indigo-600 font-semibold">+${hiddenCount} more</div>` : ''}
-<textarea class="
-  w-full 
-  border border-indigo-100 dark:border-gray-600 
-  bg-indigo-50 dark:bg-gray-700 
-  text-gray-900 dark:text-gray-100 
-  placeholder-indigo-400 dark:placeholder-gray-400 
-  rounded-lg p-2 text-sm 
-  auto-save-note
-"
-maxlength="150"
-placeholder="Add note (max of 150 characters only)..."
-data-date="${displayDate}">${dateNotes[displayDate]?.latest || ''}</textarea>
 
+           <textarea class="
+              w-full 
+              border border-indigo-100 dark:border-gray-600 
+              bg-indigo-50 dark:bg-gray-700 
+              text-gray-900 dark:text-gray-100 
+              placeholder-indigo-400 dark:placeholder-gray-400 
+              rounded-lg p-2 text-sm 
+              auto-save-note
+           "
+           maxlength="150"
+           placeholder="Add note (max of 150 characters only)..."
+           data-date="${displayDate}">${dateNotes[displayDate]?.latest || ''}</textarea>
         `;
 
         calendarDays.appendChild(cell);
@@ -320,6 +335,8 @@ data-date="${displayDate}">${dateNotes[displayDate]?.latest || ''}</textarea>
 
 document.querySelectorAll('.auto-save-note').forEach(textarea => {
     textarea.addEventListener('input', () => {
+        if (isGuest) return;
+
         const date = textarea.dataset.date;
         const note = textarea.value;
 
