@@ -145,9 +145,20 @@
 
                 </div>
             </div>
-        @empty
-            <div class="px-6 py-6 text-center text-gray-500">No registered users yet.</div>
-        @endforelse
+@empty
+    @php
+        $statusFilter = request()->query('status', 'all');
+    @endphp
+    <div class="px-6 py-6 text-center text-gray-500">
+        @if($statusFilter === 'deleted')
+            No deleted user yet.
+        @elseif($statusFilter === 'pending')
+            No pending users yet.
+        @else
+            No registered users yet.
+        @endif
+    </div>
+@endforelse
     </div>
 </div>
 

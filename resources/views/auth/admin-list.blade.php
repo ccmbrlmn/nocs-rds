@@ -152,13 +152,15 @@
 
         </div>
 
-        @empty
-
+    @empty
         <div class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
-            No admins created yet.
+            @if(request()->query('status') === 'deleted')
+                No deleted admins yet.
+            @else
+                No admins created yet.
+            @endif
         </div>
-
-        @endforelse
+    @endforelse
 
     </div>
 

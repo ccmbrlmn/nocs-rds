@@ -140,7 +140,6 @@
     overflow: visible;
     overflow-y: auto;       
     max-height: 60vh;      
-}
 
 .request-history-wrapper::-webkit-scrollbar {
     width: 8px;
