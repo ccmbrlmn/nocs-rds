@@ -25,5 +25,7 @@ class UserLog extends Model
     return $this->belongsTo(Requests::class, 'request_id', 'id')->withDefault();
 }
 
+
+
 }
 

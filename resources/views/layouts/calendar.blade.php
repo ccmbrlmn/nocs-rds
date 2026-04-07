@@ -160,36 +160,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         ${hiddenCount > 0 ? `<div class="mt-1 text-xs text-indigo-600 font-semibold">+${hiddenCount} more</div>` : ''}
       `;
 
-      dayCell.addEventListener('click', () => {
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center';
+dayCell.addEventListener('click', () => {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center';
 
-        modal.innerHTML = `
-          <div class="bg-white rounded-xl w-[400px] p-5">
-            <div class="flex justify-between mb-3">
-              <h3 class="font-semibold text-lg">${monthNames[month]} ${day}, ${year}</h3>
-              <button id="close-modal">✕</button>
-            </div>
+    modal.innerHTML = `
+      <div class="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-xl w-[400px] p-5 shadow-lg">
+        <div class="flex justify-between mb-3">
+          <h3 class="font-semibold text-lg">${monthNames[month]} ${day}, ${year}</h3>
+          <button id="close-modal" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">✕</button>
+        </div>
 
-            ${
-              eventsToday.map(ev => {
-                const statusLabel = ev.computed_status;
-                const colorClass = statusColors[statusLabel]?.text || '';
+        <div class="divide-y divide-gray-200 dark:divide-gray-700">
+          ${
+            eventsToday.map(ev => {
+              const statusLabel = ev.computed_status;
+              const colorClass = statusColors[statusLabel]?.text || 'text-indigo-600';
 
-                return `
-                  <a href="${userRole === 'admin' ? '/admin/requests/' + ev.id : '/request-details/' + ev.id}"
-                     class="block py-2 border-b text-sm ${colorClass}">
-                    <strong>${ev.event_name}</strong>
-                    <div class="text-xs">${statusLabel}</div>
-                  </a>`;
-              }).join('')
-            }
-          </div>
-        `;
+              return `
+                <a href="${userRole === 'admin' ? '/admin/requests/' + ev.id : '/request-details/' + ev.id}"
+                   class="block py-2 text-sm hover:bg-indigo-50 dark:hover:bg-gray-700 ${colorClass} rounded px-2">
+                  <strong>${ev.event_name}</strong>
+                  <div class="text-xs">${statusLabel}</div>
+                </a>`;
+            }).join('')
+          }
+        </div>
+      </div>
+    `;
 
-        document.body.appendChild(modal);
-        modal.querySelector('#close-modal').onclick = () => modal.remove();
-      });
+    document.body.appendChild(modal);
+    modal.querySelector('#close-modal').onclick = () => modal.remove();
+});
 
       calendarDays.appendChild(dayCell);
     }

@@ -6,20 +6,42 @@ use App\Models\User;
 use App\Models\Requests;
 use Illuminate\Http\Request;
 use PDF;
+use App\Models\UserLog;
 
 class UserController extends Controller
 {
-    public function logs($id)
-    {
-        $user = User::withTrashed()->findOrFail($id);
 
-        $logs = Requests::where('requested_by', $user->id)
-                    ->orWhere('handled_by', $user->id)
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+public function logs($id)
+{
+    $user = User::withTrashed()->findOrFail($id);
 
-        return view('admin.user-logs', compact('user', 'logs'));
-    }
+    $logs = UserLog::where('user_id', $user->id)
+        ->orderBy('created_at', 'desc')
+        ->get()
+        ->map(function ($log) {
+            $log->event_name = match($log->action) {
+                'request_created' => 'Created',
+                'request_edited'  => 'Edited',
+                'request_accepted'=> 'Accepted',
+                'request_declined'=> 'Declined',
+                'request_cancelled'=> 'Cancelled',
+                default => '-',
+            };
+
+            if ($log->request_id) {
+                $request = Requests::find($log->request_id);
+                $log->request_name = $request->title ?? 'Unnamed Request';
+            } else {
+                $log->request_name = '-';
+            }
+
+            return $log;
+        });
+
+    return view('admin.user-logs', compact('user', 'logs'));
+}
+    
+    
     
     public function edit(User $user)
     {
@@ -286,4 +308,5 @@ class UserController extends Controller
         return view('admin.user-list', compact('users'));
     }
 }
+
 

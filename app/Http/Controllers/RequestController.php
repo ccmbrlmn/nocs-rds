@@ -14,8 +14,6 @@ use Carbon\Carbon;
 use App\Notifications\RequestCreatedNotification;
 use App\Notifications\RequestAcceptedNotification;
 
-
-
 class RequestController extends Controller
 {
     public function index(){
@@ -64,9 +62,12 @@ class RequestController extends Controller
         $user = User::findOrFail($userId);
 
         $logs = UserLog::with('request')
-            ->where('user_id', $userId)
-            ->orderBy('updated_at', 'desc')
-            ->get();
+    ->where('user_id', $userId) // logs created by this user
+    ->orWhereHas('request', function ($query) use ($userId) {
+        $query->where('requested_by', $userId); // logs related to user's requests
+    })
+    ->orderBy('updated_at', 'desc')
+    ->get();
 
         return view('admin.user-logs', compact('logs', 'user'));
     }
@@ -186,6 +187,13 @@ class RequestController extends Controller
             'cancel_reason' => $validated['cancel_reason'] ?? null,
         ]);
         
+        UserLog::create([
+            'user_id' => $requestedBy,
+            'request_id' => $req->id,
+            'action' => 'request_created',
+            'description' => 'Created request: ' . $validated['event_name'],
+        ]);
+        
         $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
 
         foreach ($admins as $admin) {
@@ -249,6 +257,13 @@ class RequestController extends Controller
 
         $req->is_edited = true;
         $req->save();
+        
+        UserLog::create([
+            'user_id' => auth()->id(),
+            'request_id' => $req->id,
+            'action' => 'request_edited',
+            'description' => 'Edited request: ' . $validated['event_name'],
+        ]);
         
         $user = auth()->user();
         $userName = $user ? $user->name : 'Unknown User';

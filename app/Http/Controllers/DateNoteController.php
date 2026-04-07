@@ -7,23 +7,28 @@ use App\Models\DateNote;
 
 class DateNoteController extends Controller
 {
-    public function store(Request $request)
-    {
-        $request->validate([
-            'date' => 'required|date',
-            'note' => 'nullable|string'
-        ]);
 
-        DateNote::create([
-            'user_id' => auth()->id(),
+public function store(Request $request)
+{
+    $request->validate([
+        'date' => 'required|date',
+        'note' => 'nullable|string|max:150',
+    ]);
+
+    $userId = $request->user()->id;
+
+    DateNote::updateOrCreate(
+        [
+            'user_id' => $userId,
             'date' => $request->date,
+        ],
+        [
             'note' => $request->note
-        ]);
+        ]
+    );
 
-        return response()->json([
-            'success' => true
-        ]);
-    }
+    return response()->json(['status' => 'success']);
+}
     
     public function index()
 {
