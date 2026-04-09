@@ -3,7 +3,7 @@ $firstAdmin = \App\Models\User::where('role', 'admin')->orderBy('created_at')->f
 @endphp
 
 <script>
-const userRole = '{{ auth()->user()->role ?? 'user' }}'; // 'admin' or 'user'
+const userRole = '{{ auth()->user()->role ?? 'user' }}';
 const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === $firstAdmin->id ? 'true' : 'false') : 'false' }};
 </script>
 
@@ -11,7 +11,6 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
      x-data="notificationsModal()"
      x-init="openModal = false; fetchNotifications(); setInterval(fetchNotifications, 30000)">
 
-    <!-- Dark Mode Toggle -->
     <button @click="
         document.documentElement.classList.toggle('dark');
         localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
@@ -22,7 +21,6 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
         </span>
     </button>
 
-    <!-- Notification Bell -->
     <div class="relative">
         <button @click="openNotificationsModal()"
                 class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-blue-100 dark:hover:bg-gray-600 transition shadow-sm relative">
@@ -39,7 +37,6 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
                   class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
         </button>
 
-        <!-- Notifications Modal -->
         <div x-show="openModal" x-cloak
              class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4">
 
@@ -65,11 +62,10 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
                 <div class="overflow-y-auto max-h-[60vh]">
                     <template x-for="(notif, index) in notifications.slice(0, visibleCount)" :key="notif.id">
                         <div @click="
-                            let data = notif.data;
-                            if(typeof data === 'string') { try { data = JSON.parse(data); notif.data = data; } catch(e){ data={}; } }
+                            const data = notif.data;
 
-                            // User/Admin deletion
-                            if(data?.type === 'user_deletion_request' || notif.type?.includes('UserDeletionRequest')){
+                            // User/Admin deletion or registration
+                            if(['user_deletion_request', 'user_registration'].includes(data?.type)){
                                 const userId = data?.user_id;
                                 if(userId){
                                     openModal = false;
@@ -85,7 +81,7 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
                             }
 
                             // Request notifications
-                            const requestId = data?.request_id || notif.request_id;
+                            const requestId = data?.request_id;
                             if(requestId){
                                 openModal = false;
                                 setTimeout(() => {
@@ -95,41 +91,38 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
                                 }, 150);
                                 return;
                             }
-
-                            console.warn('No action for notification:', notif);
                         "
                              :class="notif.is_read
                                 ? 'block p-3 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 cursor-pointer'
                                 : 'block p-3 mb-3 border rounded-lg font-semibold cursor-pointer'">
 
                             <div class="flex justify-between items-start gap-4">
-
                                 <p class="text-sm leading-relaxed break-words max-w-[70%] line-clamp-2"
-                                   
-                                   x-text="(() => {
-                                    const d = notif.data || {};
+                                    x-text="(() => {
+                                        const d = notif.data;
 
-                                    // User/Admin deletion
-                                    if(d.type === 'user_deletion_request'){
-                                        return (d.is_admin ? '[Admin Deletion Request] ' : '[User Deletion Request] ') + (d.message || '');
-                                    }
+                                        // Helper to get the actor name
+                                        const actor = d?.user_name || d?.requester_name || 'User';
 
-                                    // Requests
-                                    let label = '';
-                                    if(d.type_label){
-                                        label = '[' + d.type_label + ' Request] ';
-                                    } else if(d.type === 'request_accepted'){
-                                        label = '[Accepted Request] ';
-                                    } else if(d.type === 'request_declined'){
-                                        label = '[Declined Request] ';
-                                    }
-
-                                    return (d.user_name ? d.user_name + ': ' : '') + label + (d.request_name || d.message || '');
-                                })()"
-                                   
-                                   >
-                                </p>
-
+                                        switch(d?.type){
+                                            case 'user_deletion_request':
+                                                return `[${d.is_admin ? 'Admin' : 'User'} Deletion Request] ${actor} requested account deletion.`;
+                                            case 'created':
+                                            case 'edited':
+                                                return `[${d.type_label || 'Request'}] ${actor} ${d.type === 'created' ? 'submitted' : 'updated'} ${d.request_name || d.eventName}.`;
+                                            case 'request_accepted':
+                                                return `[Accepted Request] ${actor} had their request accepted.`;
+                                            case 'request_declined':
+                                                return `[Declined Request] ${actor} had their request declined.`;
+                                            case 'user_registration':
+                                                return `[User Registration] ${actor} recently created an account.`;
+                                            case 'user_approved':
+                                                return `[Account Approved] ${actor}'s account was approved.`;
+                                            default:
+                                                return `[Notification] ${d.message || 'No details available.'}`;
+                                        }
+                                    })()"
+                                ></p>
                                 <span class="text-xs text-gray-400 whitespace-nowrap text-right"
                                       x-text="notif.created_at"></span>
                             </div>
@@ -146,7 +139,6 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
         </div>
     </div>
 
-    <!-- Profile -->
     <a href="{{ url('/profile') }}"
        class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-blue-100 dark:hover:bg-gray-600 transition shadow-sm">
         <img src="{{ asset('assets/images/user-pic.png') }}"
@@ -166,14 +158,13 @@ function notificationsModal() {
             fetch(userRole === 'admin' ? '/admin/notifications' : '/notifications')
                 .then(res => res.json())
                 .then(data => {
-                    this.notifications = data
-                        .map(n => {
-                            if(typeof n.data === 'string') {
-                                try { n.data = JSON.parse(n.data); } catch(e){ n.data = {}; }
-                            }
-                            return n;
-                        })
-                        .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                    this.notifications = data.map(n => {
+                        if(typeof n.data === 'string'){
+                            try { n.data = JSON.parse(n.data); } catch(e){ n.data = {}; }
+                        }
+                        return n;
+                    }).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+
                     this.hasNotifications = this.notifications.some(n => !n.is_read);
                 });
         },

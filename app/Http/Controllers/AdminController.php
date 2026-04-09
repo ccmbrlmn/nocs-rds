@@ -9,22 +9,45 @@ use App\Models\UserLog;
 
 class AdminController extends Controller
 {
-    public function logs($id)
-    {
-        $admin = User::withTrashed()
-            ->where('id', $id)
-            ->where('role', 'admin')
-            ->firstOrFail();
+public function logs($id)
+{
+    $admin = User::withTrashed()
+        ->where('id', $id)
+        ->where('role', 'admin')
+        ->firstOrFail();
 
-        $logs = UserRequest::where(function ($query) use ($admin) {
-                $query->where('handled_by', $admin->id)
-                      ->orWhere('requested_by', $admin->id);
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
+    $userLogs = UserLog::where('user_id', $admin->id)->get();
 
-        return view('auth.admin-logs', compact('admin', 'logs'));
-    }
+    $handledRequests = UserRequest::with(['user'])
+        ->where('handled_by', $admin->id)
+        ->get();
+
+    $combinedLogs = $userLogs->map(function($log){
+        return [
+            'type' => 'user_log',
+            'id' => $log->id,
+            'action' => $log->action,
+            'updated_at' => $log->updated_at,
+            'log' => $log
+        ];
+    })->merge(
+        $handledRequests->map(function($req){
+            return [
+                'type' => 'handled_request',
+                'id' => $req->id,
+                'status' => $req->status,
+                'handled_at' => $req->handled_at ?? $req->created_at,
+                'event_name' => $req->event_name,
+                'user_name' => $req->user->name ?? 'N/A',
+                'log' => $req
+            ];
+        })
+    )->sortByDesc(function($item){
+        return $item['type'] === 'user_log' ? $item['updated_at'] : $item['handled_at'];
+    });
+
+    return view('auth.admin-logs', compact('admin', 'combinedLogs'));
+}
 
     public function listUsers(Request $request)
     {
@@ -127,4 +150,5 @@ public function getAdminUserDeletionNotifications()
     return response()->json($notifications);
 }
 }
+
 

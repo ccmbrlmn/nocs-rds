@@ -23,25 +23,17 @@ class DashboardController extends Controller
                 ->get();
 
 
-$calendarEvents = Requests::whereNotNull('setup_date')
+$calendarEvents = Requests::with('user')
+    ->whereNotNull('setup_date')
     ->where('requested_by', auth()->id())
-    ->get([
-        'id',
-        'event_name',
-        'setup_date',
-        'status',
-        'location',
-        'setup_time'
-    ])
+    ->get()
     ->map(function($ev) {
-
         $now = now();
-        
         $setupDateTime = Carbon::parse(
             Carbon::parse($ev->setup_date)->toDateString() . ' ' . ($ev->setup_time ?? '00:00')
         );
 
-        // Compute status
+
         if ($ev->status === 'Declined') {
             $computed = 'Declined';
         } elseif ($ev->status === 'Active') {
@@ -58,19 +50,15 @@ $calendarEvents = Requests::whereNotNull('setup_date')
             'setup_date' => Carbon::parse($ev->setup_date)->format('Y-m-d'),
             'location' => $ev->location,
             'setup_time' => $ev->setup_time,
-            'computed_status' => $computed
+            'computed_status' => $computed,
+            'requester_name' => $ev->user->name ?? 'Unknown',
         ];
     });
-
-
-
 
         }
 
         return view('admin.user-dashboard', compact('scheduledRequests', 'calendarEvents'));
     }
-
-    
 
 }
 

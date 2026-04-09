@@ -1,6 +1,6 @@
 <script>
-const userRole = @json(auth()->user()->role ?? null);
-const isGuest = userRole === null;
+window.userRole = @json(auth()->user()->role ?? null);
+window.isGuest = window.userRole === null;
 </script>
 
 <section class="relative">
@@ -160,38 +160,70 @@ document.addEventListener('DOMContentLoaded', async () => {
         ${hiddenCount > 0 ? `<div class="mt-1 text-xs text-indigo-600 font-semibold">+${hiddenCount} more</div>` : ''}
       `;
 
-dayCell.addEventListener('click', () => {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center';
+      dayCell.addEventListener('click', () => {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center';
 
-    modal.innerHTML = `
-      <div class="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 rounded-xl w-[400px] p-5 shadow-lg">
-        <div class="flex justify-between mb-3">
-          <h3 class="font-semibold text-lg">${monthNames[month]} ${day}, ${year}</h3>
-          <button id="close-modal" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">✕</button>
-        </div>
+modal.innerHTML = `
+  <div class="bg-white dark:bg-gray-800 rounded-2xl w-[420px] shadow-xl overflow-hidden">
 
-        <div class="divide-y divide-gray-200 dark:divide-gray-700">
-          ${
-            eventsToday.map(ev => {
-              const statusLabel = ev.computed_status;
-              const colorClass = statusColors[statusLabel]?.text || 'text-indigo-600';
+    <!-- HEADER -->
+    <div class="bg-blue-100 dark:bg-blue-900 px-4 py-3 flex justify-between items-center">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+        ${monthNames[month]} ${day}, ${year}
+      </h3>
+      <button id="close-modal" class="text-gray-600 dark:text-gray-300 hover:text-red-500 text-lg">✕</button>
+    </div>
 
-              return `
-                <a href="${userRole === 'admin' ? '/admin/requests/' + ev.id : '/request-details/' + ev.id}"
-                   class="block py-2 text-sm hover:bg-indigo-50 dark:hover:bg-gray-700 ${colorClass} rounded px-2">
-                  <strong>${ev.event_name}</strong>
-                  <div class="text-xs">${statusLabel}</div>
-                </a>`;
-            }).join('')
-          }
-        </div>
-      </div>
-    `;
+    <!-- CONTENT -->
+    <div class="max-h-[300px] overflow-y-auto">
 
-    document.body.appendChild(modal);
-    modal.querySelector('#close-modal').onclick = () => modal.remove();
-});
+      ${
+        eventsToday.length > 0
+        ? eventsToday.map(ev => {
+            const statusLabel = ev.computed_status;
+
+            const statusConfig = statusColors[statusLabel] || {};
+            const statusClass = (statusConfig.bg || 'bg-gray-200 dark:bg-gray-700') + ' ' +
+                                (statusConfig.text || 'text-gray-600 dark:text-gray-200');
+
+            return `
+              <a href="${window.userRole === 'admin' ? '/admin/requests/' + ev.id : '/request-details/' + ev.id}"
+                 class="block bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition border-b border-gray-200 dark:border-gray-700">
+
+                <div class="flex justify-between items-center px-4 py-3 text-sm">
+                  
+                  <div class="flex flex-col">
+                    <span class="text-gray-800 dark:text-gray-200 font-medium">
+                      ${ev.event_name}
+                    </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">
+                        ${ev.requester_name}  <!-- show requester instead of status -->
+                      </span>
+                  </div>
+
+                  <span class="px-3 py-1 rounded-xl text-xs font-medium ${statusClass}">
+                    ${statusLabel}
+                  </span>
+
+                </div>
+              </a>
+            `;
+        }).join('')
+        : `
+          <div class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+            No events for this day.
+          </div>
+        `
+      }
+
+    </div>
+  </div>
+`;
+
+        document.body.appendChild(modal);
+        modal.querySelector('#close-modal').onclick = () => modal.remove();
+      });
 
       calendarDays.appendChild(dayCell);
     }
@@ -342,19 +374,37 @@ document.querySelectorAll('.auto-save-note').forEach(textarea => {
         const date = textarea.dataset.date;
         const note = textarea.value;
 
-        fetch('/date-notes', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({ date, note })
-        }).then(() => {
-            dateNotes[date] = {
-                latest: note,
-                history: dateNotes[date]?.history || []
-            };
-        });
+fetch('/date-notes', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+    },
+    body: JSON.stringify({ date, note })
+})
+.then(async res => {
+    const text = await res.text();
+    console.log('RAW RESPONSE:', text);
+
+    try {
+        const data = JSON.parse(text);
+        console.log('PARSED:', data);
+    } catch (e) {
+        console.error('NOT JSON RESPONSE');
+    }
+
+    if (!res.ok) {
+        console.error('SAVE FAILED STATUS:', res.status);
+        return;
+    }
+
+    dateNotes[date] = {
+        latest: note,
+        history: dateNotes[date]?.history || []
+    };
+})
+.catch(err => console.error('FETCH ERROR:', err));
     });
 });
 }

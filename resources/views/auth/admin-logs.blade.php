@@ -1,28 +1,28 @@
 <x-app-layout>
     <div class="page-wrapper flex flex-col h-screen">
 
-<div class="header-container flex items-center justify-between p-3 mt-8 mb-6" 
-     style="margin-left:5rem; margin-right:5rem;">
+        <div class="header-container flex items-center justify-between p-3 mt-8 mb-6" 
+             style="margin-left:5rem; margin-right:5rem;">
 
-    <a href="{{ route('admin.created-admins') }}"
-       class="px-4 py-2 rounded-xl text-sm font-medium transition 
-              bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 
-              hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm flex items-center gap-2">
+            <a href="{{ route('admin.created-admins') }}"
+               class="px-4 py-2 rounded-xl text-sm font-medium transition 
+                      bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 
+                      hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm flex items-center gap-2">
 
-        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-        Back
-    </a>
+                <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                Back
+            </a>
 
-    <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
-            {{ $admin->name }}'s Logs
-        </h1>
-    </div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
+                    {{ $admin->name }}'s Logs
+                </h1>
+            </div>
 
-</div>
-        
+        </div>
+            
         <div class="request-history-list rounded-xl shadow overflow-hidden" 
-     style="margin-left:4.5rem; margin-right:5rem;">
+             style="margin-left:4.5rem; margin-right:5rem;">
 
             <div class="head bg-blue-100 dark:bg-blue-900 px-4 py-2 flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-t-xl">
                 <div class="w-1/6 text-center">Request No.</div>
@@ -31,48 +31,63 @@
                 <div class="w-2/6 text-center">Date</div>
             </div>
 
-            <div class="request-history-wrapper max-h-[60vh] overflow-y-auto">
+ <div class="request-history-wrapper max-h-[60vh] overflow-y-auto">
 
-                @forelse($logs as $log)
+    @forelse($combinedLogs as $item)
+        <div class="block hover:bg-blue-50 transition border-b border-gray-200">
+            <div class="flex justify-between items-center px-4 py-3 text-sm dark:text-gray-200 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700">
 
-                    <div class="block hover:bg-blue-50 transition border-b border-gray-200">
-                        <div class="flex justify-between items-center px-4 py-3 text-sm dark:text-gray-200 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700">
+                <div class="w-1/6 text-center">#{{ $item['id'] }}</div>
 
-                            <div class="w-1/6 text-center">
-                                #{{ $log->id }}
-                            </div>
+                <div class="w-2/6 text-center">
+                    @if($item['type'] === 'user_log')
+                        @if($item['action'] === 'profile_updated')
+                            Profile Updated
+                        @elseif($item['action'] === 'user_delete_requested')
+                            Requested Account Deletion
+                        @else
+                            {{ ucfirst(str_replace('_', ' ', $item['action'])) }}
+                        @endif
+                    @else
+                        {{ $item['event_name'] }}
+                    @endif
+                </div>
 
-                            <div class="w-2/6 text-center">
-                                {{ $log->event_name ?? '-' }}
-                            </div>
+                <div class="w-1/6 text-center">
+                    @if($item['type'] === 'user_log')
+                        @if($item['action'] === 'profile_updated')
+                            <span class="text-blue-600">Profile Updated</span>
+                        @elseif($item['action'] === 'user_delete_requested')
+                            <span class="text-red-600">Requested Account Deletion</span>
+                        @else
+                            <span class="text-indigo-600">Performed</span>
+                        @endif
+                    @else
+                        @if($item['status'] === 'Active' || $item['status'] === 'Closed')
+                            <span class="text-green-600">Accepted Request</span>
+                        @elseif($item['status'] === 'Declined')
+                            <span class="text-red-600">Declined Request</span>
+                        @endif
+                    @endif
+                </div>
 
-                            <div class="w-1/6 text-center">
-                                @if($log->handled_by === $admin->id)
-                                    @if($log->status === 'Active' || $log->status === 'Closed')
-                                        <span class="text-green-600">Accepted</span>
-                                    @else($log->status === 'Declined')
-                                        <span class="text-red-600">Declined</span>
-                                
-                                    @endif
-                                @elseif($log->requested_by === $admin->id)
-                                    <span class="text-blue-600">Created</span>
-                                @else
-                                    <span class="text-gray-400">-</span>
-                                @endif
-                        </div>
+                <div class="w-2/6 text-center">
+                    {{ \Carbon\Carbon::parse(
+                        $item['type'] === 'user_log' 
+                            ? $item['updated_at'] 
+                            : $item['handled_at']
+                    )->timezone('Asia/Manila')->format('M d, Y H:i') }}
+                </div>
 
-                            <div class="w-2/6 text-center">
-                                {{ \Carbon\Carbon::parse($log->updated_at)->timezone('Asia/Manila')->format('M d, Y H:i') }}
-                            </div>
+            </div>
+        </div>
+    @empty
+        <div class="py-6 text-center text-gray-500 text-sm">
+            No logs available.
+        </div>
+    @endforelse
 
-                        </div>
-                    </div>
-
-                @empty
-                    <div class="py-6 text-center text-gray-500 text-sm">
-                        No logs available.
-                    </div>
-                @endforelse
+</div>
 
             </div>
         </div>
@@ -87,7 +102,4 @@
     .request-history-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     .request-history-wrapper::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .sort-select { appearance: none; }
-    
-    
 </style>
-

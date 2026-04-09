@@ -7,6 +7,7 @@ use App\Models\Requests;
 use Illuminate\Http\Request;
 use PDF;
 use App\Models\UserLog;
+use App\Notifications\UserApprovedNotification;
 
 class UserController extends Controller
 {
@@ -20,8 +21,10 @@ public function logs($id)
         ->get()
         ->map(function ($log) {
             $log->event_name = match($log->action) {
-                'request_created' => 'Created',
-                'request_edited'  => 'Edited',
+                'user_registered' => 'Account Created',
+                'user_delete_requested' => 'Requested Account Deletion',
+                'request_created' => 'Created Request',
+                'request_edited'  => 'Edited Request',
                 'request_accepted'=> 'Accepted',
                 'request_declined'=> 'Declined',
                 'request_cancelled'=> 'Cancelled',
@@ -40,7 +43,6 @@ public function logs($id)
 
     return view('admin.user-logs', compact('user', 'logs'));
 }
-    
     
     
     public function edit(User $user)
@@ -106,9 +108,11 @@ public function logs($id)
         $user->update([
             'is_approved' => true
         ]);
+        
+        $user->notify(new \App\Notifications\UserApprovedNotification($user));
 
-        return redirect()->route('admin.users')
-            ->with('success', 'User approved successfully.');
+            return redirect()->route('admin.users', ['highlight' => $user->id])
+                     ->with('success', 'User approved successfully.');
     }
 
     public function exportPdf(Request $request)
@@ -308,5 +312,4 @@ public function logs($id)
         return view('admin.user-list', compact('users'));
     }
 }
-
 
