@@ -18,14 +18,8 @@ class AdminDashboardController extends Controller
 
             $scheduledRequests = Requests::all();
 
-            $calendarEvents = Requests::select(
-                    'id',
-                    'event_name',
-                    'setup_date',
-                    'status',
-                    'location',
-                    'setup_time'
-                )
+            $calendarEvents = Requests::with('user')
+                ->whereNotNull('setup_date')
                 ->get()
                 ->map(function($ev) {
                     $now = now();
@@ -50,10 +44,10 @@ class AdminDashboardController extends Controller
                         'setup_date' => $ev->setup_date ? $ev->setup_date->format('Y-m-d') : null,
                         'location' => $ev->location,
                         'setup_time' => $ev->setup_time,
-                        'computed_status' => $computed
+                        'computed_status' => $computed,
+                        'requester_name' => $ev->user->name ?? 'Unknown',
                     ];
                 });
-
 
 
         }

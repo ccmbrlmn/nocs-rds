@@ -16,9 +16,14 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DateNoteController;
 use App\Models\UserLog;
 
+use App\Http\Controllers\AdminLogsController;
+
+
+
 Route::middleware(['auth','isAdmin'])->group(function () {
     Route::get('/admin/{id}/logs', [AdminController::class, 'logs'])->name('admin.logs');
 });
+
 
 Route::get('/check-auth', function() {
     return [

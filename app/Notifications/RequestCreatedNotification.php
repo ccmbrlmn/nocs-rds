@@ -20,7 +20,7 @@ class RequestCreatedNotification extends Notification
         $this->user = $user;
         $this->requestId = $requestId;
         $this->eventName = $eventName;
-        $this->type = $type; // <-- assign it properly
+        $this->type = $type;
     }
 
     public function via($notifiable)
@@ -33,11 +33,12 @@ class RequestCreatedNotification extends Notification
         return [
             'user_id' => $this->user->id,
             'user_name' => $this->user->name,
+            'requester_name' => $this->user->name,
             'request_id' => $this->requestId,
             'request_name' => $this->eventName,
             'type' => $this->type,
             'type_label' => ucfirst($this->type),
-            'message' => $this->user->name . ' ' . $this->type . ' a request: ' . $this->eventName,
+            'message' => $this->user->name . ' ' . $this->type . ' a request: ' . $this->requestName,
         ];
     }
 }

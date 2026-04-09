@@ -26,7 +26,7 @@
 
             <div class="head bg-blue-100 dark:bg-blue-900 px-4 py-2 flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-t-xl">
                 <div class="w-1/6 text-center">Request No.</div>
-                <div class="w-2/6 text-center">Request Name</div>
+                <div class="w-2/6 text-center">Event</div>
                 <div class="w-1/6 text-center">Action</div>
                 <div class="w-2/6 text-center">Date</div>
             </div>
@@ -42,7 +42,10 @@
                             </div>
                             
                             <div class="w-2/6 text-center">
-                                {{ $log->request->event_name ?? '-' }}
+                                {{ $log->request->event_name 
+                                    ?? ($log->action == 'user_registered' ? 'User Registration' 
+                                    : ($log->action == 'profile_updated' ? 'Profile Updated' 
+                                    : ($log->action == 'user_delete_requested' ? 'Account Deletion Requested' : '-'))) }}
                             </div>
 
                             <div class="w-1/6 text-center">
@@ -53,23 +56,23 @@
                                 @if($action)
                                     @switch($action)
                                         @case('request_created')
-                                            <span class="text-blue-600">Created</span>
+                                            <span class="text-blue-600">Created Request</span>
                                         @break
 
                                         @case('request_edited')
-                                            <span class="text-yellow-600">Edited</span>
+                                            <span class="text-yellow-600">Edited Request</span>
+                                        @break
+                                        
+                                        @case('user_registered')
+                                            <span class="text-green-600">Account Created</span>
+                                        @break
+                                        
+                                        @case('profile_updated')
+                                            <span class="text-indigo-600">Profile Updated</span>
                                         @break
 
-                                        @case('request_accepted')
-                                            <span class="text-green-600">Accepted</span>
-                                        @break
-
-                                        @case('request_declined')
-                                            <span class="text-red-600">Declined</span>
-                                        @break
-
-                                        @case('request_cancelled')
-                                            <span class="text-gray-600">Cancelled</span>
+                                        @case('user_delete_requested')
+                                            <span class="text-red-600">Requested Account Deletion</span>
                                         @break
 
                                         @default
