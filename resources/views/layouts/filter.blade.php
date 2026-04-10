@@ -1,7 +1,7 @@
 <div class="mx-6 mb-4">
 
-<div class="px-4 py-3 flex flex-wrap items-center justify-start gap-4">
-    <div class="flex flex-wrap items-center gap-3">
+<div class="px-4 py-3 flex items-center w-full gap-4">
+    <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
 
         @if(isset($statuses))
         <div class="flex flex-wrap gap-1">
@@ -129,5 +129,11 @@
 </div>
 @endif
 
+@if(isset($rightSlot))
+<div class="flex items-center gap-2 ml-auto flex-nowrap">
+    {!! $rightSlot ?? '' !!}
 </div>
+@endif
+</div>
+
 </div>

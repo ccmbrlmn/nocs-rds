@@ -1,170 +1,181 @@
 <x-app-layout>
     <div class="header-container rounded-2xl mb-3 mx-3 mt-3">
-<div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    <div class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
-        Admins Created
+        <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
+                Admins Created
+            </div>
+        </div>
     </div>
 
-    <div class="flex items-center gap-2">
-        <a href="{{ route('admin.create') }}"
-           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold shadow">
-            Add Admin
-        </a>
-        @include('layouts.header')
-    </div>
-</div>
-</div>
+    @php
+        $statusColors = config('status');
+    @endphp
 
-        @php
-            $statusColors = config('status');
-        @endphp
+    @include('layouts.filter', [
+        'routeName' => 'admin.created-admins',
 
-        @include('layouts.filter', [
-            'routeName' => 'admin.created-admins',
+        'statuses' => [
+            'All' => null,
+            'Active' => 'active',
+            'Deleted' => 'deleted',
+        ],
 
-            'statuses' => [
-                'All' => null,
-                'Active' => 'active',
-                'Deleted' => 'deleted',
-            ],
+        'dateFilters' => [
+            null => 'All Time',
+            '30_days' => '30 Days',
+            '7_days' => '7 Days',
+            '24_hours' => '24 Hours'
+        ],
 
-            'dateFilters' => [
-                null => 'All Time',
-                '30_days' => '30 Days',
-                '7_days' => '7 Days',
-                '24_hours' => '24 Hours'
-            ],
+        'exportPdf' => 'admin.created-admins.pdf',
+        'exportCsv' => 'admin.created-admins.csv',
 
-            'exportPdf' => 'admin.created-admins.pdf',
-            'exportCsv' => 'admin.created-admins.csv'
-        ])
-        
-        @php
-    $highlightAdminId = request()->query('highlight');
-@endphp
+        'rightSlot' => '
+            <a href="'.route('admin.create').'"
+               class="px-4 py-2 rounded-xl text-sm font-medium transition
+                      bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
+                      hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm
+                      flex items-center justify-center gap-2 whitespace-nowrap">
 
 
-<div class="request-history-list rounded-xl shadow overflow-hidden mx-10">
-    <div class="head bg-blue-100 dark:bg-blue-900 px-4 py-2 flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-t-xl">
+                <!-- THIS WILL BE CONTROLLED BY ALPINE -->
+                <span x-show="$root.sidebarExpanded"
+                      x-transition
+                      class="transition-all duration-200">
+                    Add Admin
+                </span>
+
+            </a>
+        '
+    ])
+
+    @php
+        $highlightAdminId = request()->query('highlight');
+    @endphp
+
+
+    <div class="request-history-list rounded-xl shadow overflow-hidden mx-10">
+        <div class="head bg-blue-100 dark:bg-blue-900 px-4 py-2 flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-t-xl">
             <div class="w-1/6 text-center">ID</div>
             <div class="w-2/6 text-center">Name</div>
             <div class="w-2/6 text-center">Email</div>
-             <div class="w-2/12 text-center">Office</div> 
+            <div class="w-2/12 text-center">Office</div>
             <div class="w-1/6 text-center">Created</div>
             <div class="w-1/6 text-center">Status</div>
             <div class="w-1/6 text-center">Actions</div>
-    </div>
+        </div>
 
-    <div class="request-history-wrapper divide-y divide-gray-200 dark:divide-gray-700">
+        <div class="request-history-wrapper divide-y divide-gray-200 dark:divide-gray-700">
 
-        @forelse($admins as $admin)
-        
-        @php
-    $isHighlighted = $highlightAdminId == $admin->id;
-@endphp
+            @forelse($admins as $admin)
 
-        <div class="request-row {{ $isHighlighted ? 'highlighted-admin' : '' }} 
-            bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition cursor-pointer"
-     onclick="window.location='{{ route('admin.logs', $admin->id) }}'">
+            @php
+                $isHighlighted = $highlightAdminId == $admin->id;
+            @endphp
 
-            <div class="row flex items-center px-6 py-3 text-sm">
+            <div class="request-row {{ $isHighlighted ? 'highlighted-admin' : '' }} 
+                bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition cursor-pointer"
+                onclick="window.location='{{ route('admin.logs', $admin->id) }}'">
 
-                <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
-                    {{ $admin->id }}
-                </div>
+                <div class="row flex items-center px-6 py-3 text-sm">
 
-                <div class="w-2/6 text-center text-gray-700 dark:text-gray-200 font-medium">
-                    {{ $admin->name }}
-                </div>
+                    <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
+                        {{ $admin->id }}
+                    </div>
 
-                <div class="w-2/6 text-center text-gray-600 dark:text-gray-300">
-                    {{ $admin->email }}
-                </div>
-                
-                <div class="w-2/12 text-center text-gray-600 dark:text-gray-300">{{ $admin->office ?? '-' }}</div>
+                    <div class="w-2/6 text-center text-gray-700 dark:text-gray-200 font-medium">
+                        {{ $admin->name }}
+                    </div>
 
-                <div class="w-1/6 text-center text-gray-500 dark:text-gray-400">
-                    {{ \Carbon\Carbon::parse($admin->created_at)->format('M d, Y') }}
-                </div>
-                
-                <div class="w-1/6 flex justify-center">
-                    @php
-                        $status = $admin->deleted_at ? 'Deleted' : 'Active';
-                        $statusConfig = config('status')[$status] ?? null;
+                    <div class="w-2/6 text-center text-gray-600 dark:text-gray-300">
+                        {{ $admin->email }}
+                    </div>
 
-                        $statusClass = $statusConfig
-                            ? $statusConfig['bg'] . ' ' . $statusConfig['text']
-                            : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200';
-                    @endphp
+                    <div class="w-2/12 text-center text-gray-600 dark:text-gray-300">
+                        {{ $admin->office ?? '-' }}
+                    </div>
 
-                    <span class="px-3 py-1 rounded-xl text-sm font-semibold {{ $statusClass }}">
-                        {{ $status }}
-                    </span>
-                </div>
+                    <div class="w-1/6 text-center text-gray-500 dark:text-gray-400">
+                        {{ \Carbon\Carbon::parse($admin->created_at)->format('M d, Y') }}
+                    </div>
 
-                <div class="w-1/6 flex justify-center gap-2"
-                     onclick="event.stopPropagation();">
+                    <div class="w-1/6 flex justify-center">
+                        @php
+                            $status = $admin->deleted_at ? 'Deleted' : 'Active';
+                            $statusConfig = config('status')[$status] ?? null;
 
-@if($admin->deleted_at)
-    <a href="#"
-       onclick="if(confirm('This admin account is deleted. You must restore it before editing. Do you want to restore this admin now?')) { this.nextElementSibling.submit(); } return false;"
-       class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-md font-semibold shadow">
-        Edit
-    </a>
+                            $statusClass = $statusConfig
+                                ? $statusConfig['bg'] . ' ' . $statusConfig['text']
+                                : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200';
+                        @endphp
 
-    <form action="{{ route('admin.restore', $admin->id) }}"
-          method="POST"
-          class="hidden">
-        @csrf
-    </form>
-    
-    <form action="{{ route('admin.restore', $admin->id) }}"
-          method="POST"
-          onsubmit="return confirm('Restore this admin account?');">
-        @csrf
-        <button type="submit"
-                class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md font-semibold shadow">
-            Restore
-        </button>
-    </form>
-@else
-    <a href="{{ route('admin.edit', $admin->id) }}"
-       class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-md font-semibold shadow">
-        Edit
-    </a>
+                        <span class="px-3 py-1 rounded-xl text-sm font-semibold {{ $statusClass }}">
+                            {{ $status }}
+                        </span>
+                    </div>
 
-    <form action="{{ route('admin.destroy', $admin->id) }}"
-          method="POST"
-          onsubmit="return confirm('Are you sure you want to delete this admin?');">
-        @csrf
-        @method('DELETE')
+                    <div class="w-1/6 flex justify-center gap-2"
+                         onclick="event.stopPropagation();">
 
-        <button type="submit"
-                class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-md font-semibold shadow">
-            Delete
-        </button>
-    </form>
-@endif
+                        @if($admin->deleted_at)
+                            <a href="#"
+                               onclick="if(confirm('This admin account is deleted. You must restore it before editing. Do you want to restore this admin now?')) { this.nextElementSibling.submit(); } return false;"
+                               class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-md font-semibold shadow">
+                                Edit
+                            </a>
+
+                            <form action="{{ route('admin.restore', $admin->id) }}"
+                                  method="POST"
+                                  class="hidden">
+                                @csrf
+                            </form>
+
+                            <form action="{{ route('admin.restore', $admin->id) }}"
+                                  method="POST"
+                                  onsubmit="return confirm('Restore this admin account?');">
+                                @csrf
+                                <button type="submit"
+                                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md font-semibold shadow">
+                                    Restore
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ route('admin.edit', $admin->id) }}"
+                               class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-md font-semibold shadow">
+                                Edit
+                            </a>
+
+                            <form action="{{ route('admin.destroy', $admin->id) }}"
+                                  method="POST"
+                                  onsubmit="return confirm('Are you sure you want to delete this admin?');">
+                                @csrf
+                                @method('DELETE')
+
+                                <button type="submit"
+                                        class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-md font-semibold shadow">
+                                    Delete
+                                </button>
+                            </form>
+                        @endif
+
+                    </div>
 
                 </div>
 
             </div>
 
-        </div>
+            @empty
+                <div class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
+                    @if(request()->query('status') === 'deleted')
+                        No deleted admins yet.
+                    @else
+                        No admins created yet.
+                    @endif
+                </div>
+            @endforelse
 
-    @empty
-        <div class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
-            @if(request()->query('status') === 'deleted')
-                No deleted admins yet.
-            @else
-                No admins created yet.
-            @endif
         </div>
-    @endforelse
-
     </div>
-
-</div>
 </x-app-layout>
 
 <style>
@@ -174,11 +185,9 @@
     .request-history-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     .request-history-wrapper::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .sort-select { appearance: none; }
-    
+
     .highlighted-admin {
         background-color: #ffe58f;
         transition: background-color 0.3s;
     }
-
 </style>
-

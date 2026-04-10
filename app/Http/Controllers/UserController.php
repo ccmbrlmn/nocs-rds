@@ -78,7 +78,13 @@ public function logs($id)
             'email' => $request->email,
             'office' => $request->office,
         ]);
-
+        
+        UserLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'user_updated',
+            'updated_at' => now(),
+        ]);
+        
         return redirect()->route('admin.users')->with('success', 'User updated successfully.');
     }
 
@@ -91,6 +97,12 @@ public function logs($id)
         }
 
         $user->delete();
+        
+        UserLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'user_deleted',
+            'updated_at' => now(),
+        ]);
 
         return redirect()->route('admin.users')->with('success', 'User deleted successfully.');
     }
@@ -107,6 +119,12 @@ public function logs($id)
 
         $user->update([
             'is_approved' => true
+        ]);
+        
+        UserLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'user_approved',
+            'updated_at' => now(),
         ]);
         
         $user->notify(new \App\Notifications\UserApprovedNotification($user));
@@ -250,6 +268,12 @@ public function logs($id)
         }
 
         $user->restore();
+        
+        UserLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'user_restored',
+            'updated_at' => now(),
+        ]);
 
         return redirect()->route('admin.users')
             ->with('success', 'User restored successfully.');

@@ -47,7 +47,7 @@
 
     <div class="request-history-wrapper max-h-[60vh] overflow-y-auto">
 
-        @foreach ($requests as $request)
+        @forelse ($requests as $request)
         <a href="{{ route('request-details.show', $request->id) }}" 
            class="block bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700">
 
@@ -55,9 +55,6 @@
                 <div class="w-2/6 text-center text-gray-600 dark:text-gray-300">
                     <div class="font-medium">
                         {{ $request->event_name }}
-                    </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                        {{ $request->representative_name }}
                     </div>
                 </div>
 
@@ -90,7 +87,22 @@
                 </div>
             </div>
         </a>
-    @endforeach
+    
+    @empty
+    <div class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
+        @php
+            $messages = [
+                'Open' => 'No open request yet.',
+                'Active' => 'No active request yet.',
+                'Closed' => 'No closed request yet.',
+                'Declined' => 'No declined request yet.',
+            ];
+        @endphp
+
+        {{ $messages[request('status')] ?? 'No requests found.' }}
+    </div>
+@endforelse
+    
 </div>
 </div>
 </div>
