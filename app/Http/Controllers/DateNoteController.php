@@ -7,47 +7,44 @@ use App\Models\DateNote;
 
 class DateNoteController extends Controller
 {
+    public function store(Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'note' => 'nullable|string'
+        ]);
+        
+        DateNote::updateOrCreate(
+            [
+                'user_id' => auth()->id(),
+                'date' => $request->date,
+            ],
+            [
+                'note' => $request->note
+            ]
+        );
 
-public function store(Request $request)
-{
-    $request->validate([
-        'date' => 'required|date',
-        'note' => 'nullable|string|max:150',
-    ]);
-
-    $userId = $request->user()->id;
-
-    DateNote::updateOrCreate(
-        [
-            'user_id' => $userId,
-            'date' => $request->date,
-        ],
-        [
-            'note' => $request->note
-        ]
-    );
-
-    return response()->json(['status' => 'success']);
-}
+        return response()->json(['status' => 'success']);
+    }
     
     public function index()
-{
-    $notes = DateNote::where('user_id', auth()->id())
-    ->orderBy('created_at', 'desc')
-    ->get()
-    ->groupBy('date')
-    ->map(function ($items) {
-        return [
-            'latest' => $items->first()->note,
-            'history' => $items->map(function ($item) {
+    {
+        $notes = DateNote::where('user_id', auth()->id())
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('date')
+            ->map(function ($items) {
                 return [
-                    'note' => $item->note,
-                    'created_at' => $item->created_at
+                    'latest' => $items->first()->note,
+                    'history' => $items->map(function ($item) {
+                        return [
+                            'note' => $item->note,
+                            'created_at' => $item->created_at
+                        ];
+                    })
                 ];
-            })
-        ];
-    });
+            });
 
-return response()->json($notes);
-}
+        return response()->json($notes);
+    }
 }
