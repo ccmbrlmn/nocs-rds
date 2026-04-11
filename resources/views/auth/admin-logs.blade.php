@@ -20,7 +20,7 @@
             </div>
 
         </div>
-            
+        
         <div class="request-history-list rounded-xl shadow overflow-hidden" 
              style="margin-left:4.5rem; margin-right:5rem;">
 
@@ -38,7 +38,9 @@
                         <div class="flex justify-between items-center px-4 py-3 text-sm dark:text-gray-200 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700">
 
                             <!-- ID -->
-                            <div class="w-1/6 text-center">#{{ $item['id'] }}</div>
+                            <div class="w-1/6 text-center">
+                                #{{ $item['id'] }}
+                            </div>
 
                             <!-- EVENT -->
                             <div class="w-2/6 text-center">
@@ -65,8 +67,10 @@
                                 @endif
                             </div>
 
+                            <!-- ACTION -->
                             <div class="w-1/6 text-center">
                                 @if($item['type'] === 'user_log')
+
                                     @if($item['action'] === 'profile_updated')
                                         <span class="text-blue-600">Profile Updated</span>
                                     @elseif($item['action'] === 'user_delete_requested')
@@ -84,7 +88,8 @@
                                     @else
                                         <span class="text-indigo-600">Performed</span>
                                     @endif
-                                    @else
+
+                                @else
                                     @if($item['status'] === 'Active' || $item['status'] === 'Closed')
                                         <span class="text-green-600">Accepted Request</span>
                                     @elseif($item['status'] === 'Declined')
@@ -126,4 +131,16 @@
     .request-history-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     .request-history-wrapper::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .sort-select { appearance: none; }
+    
+    .highlighted-user {
+        background-color: #dbeafe;
+        border-left: 4px solid #3b82f6;
+        transition: all 0.3s ease;
+    }
+
+    .dark .highlighted-user {
+        background-color: #1e3a8a33;
+        border-left: 4px solid #60a5fa;
+    }
+
 </style>

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Requests;
-use App\Models\User;
 
 class UserLog extends Model
 {
@@ -13,12 +12,13 @@ class UserLog extends Model
         'request_id',
         'action',
         'description',
-        'is_read', 
+        'is_read'
     ];
 
-public function user() {
-    return $this->belongsTo(User::class, 'requested_by');
-}
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     
     public function request()
 {

@@ -13,16 +13,12 @@ class DateNoteController extends Controller
             'date' => 'required|date',
             'note' => 'nullable|string'
         ]);
-        
-        DateNote::updateOrCreate(
-            [
-                'user_id' => auth()->id(),
-                'date' => $request->date,
-            ],
-            [
-                'note' => $request->note
-            ]
-        );
+
+        DateNote::create([
+            'user_id' => auth()->id(),
+            'date' => $request->date,
+            'note' => $request->note
+        ]);
 
         return response()->json([
             'success' => true

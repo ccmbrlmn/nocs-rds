@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
-use App\Notifications\UserRegisteredNotification;
 use App\Models\UserLog;
+use App\Notifications\UserRegisteredNotification;
 
 class RegisteredUserController extends Controller
 {
@@ -57,17 +57,17 @@ class RegisteredUserController extends Controller
         UserLog::create([
             'user_id' => $user->id,
             'action' => 'user_registered',
-            'handled_by' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         
-
-        event(new Registered($user));
-        
-        $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
+        $admins = \App\Models\User::where('role', 'admin')->get();
 
         foreach ($admins as $admin) {
             $admin->notify(new UserRegisteredNotification($user));
         }
+
+        event(new Registered($user));
 
         return redirect(route('dashboard', absolute: false))
                ->with('success', 'Account created successfully! Please wait for admin approval.');

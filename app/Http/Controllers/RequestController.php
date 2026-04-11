@@ -13,7 +13,9 @@ use PDF;
 use Carbon\Carbon;
 use App\Notifications\RequestCreatedNotification;
 use App\Notifications\RequestAcceptedNotification;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\RequestAcceptedMail;
+        
 class RequestController extends Controller
 {
     public function index(){
@@ -62,12 +64,12 @@ class RequestController extends Controller
         $user = User::findOrFail($userId);
 
         $logs = UserLog::with('request')
-    ->where('user_id', $userId) // logs created by this user
-    ->orWhereHas('request', function ($query) use ($userId) {
-        $query->where('requested_by', $userId); // logs related to user's requests
-    })
-    ->orderBy('updated_at', 'desc')
-    ->get();
+        ->where('user_id', $userId) // logs created by this user
+        ->orWhereHas('request', function ($query) use ($userId) {
+            $query->where('requested_by', $userId);
+        })
+        ->orderBy('updated_at', 'desc')
+        ->get();
 
         return view('admin.user-logs', compact('logs', 'user'));
     }
@@ -359,9 +361,24 @@ class RequestController extends Controller
         $deploymentRequest->handled_at = now();
         $deploymentRequest->save();
         
+            $user = $deploymentRequest->user; // must exist relation
+    $userName = $user ? $user->name : 'User';
+
+    Mail::to($user->email)->send(
+        new \App\Mail\RequestAcceptedMail([
+            'requested_by' => $userName,
+            'event_name' => $deploymentRequest->event_name,
+            'representative_name' => $deploymentRequest->representative_name,
+            'purpose' => $deploymentRequest->purpose,
+            'start_date' => $deploymentRequest->start_date,
+            'end_date' => $deploymentRequest->end_date,
+        ])
+    );
+        
         $deploymentRequest->user->notify(
             new RequestAcceptedNotification($deploymentRequest)
         );
+    
 
         UserLog::create([
             'user_id' => $deploymentRequest->requested_by,
@@ -511,10 +528,6 @@ class RequestController extends Controller
 public function getUserNotifications()
 {
     return auth()->user()->notifications()
-        ->whereIn('type', [
-            \App\Notifications\RequestAcceptedNotification::class,
-            \App\Notifications\RequestRejectedNotification::class,
-        ])
         ->latest()
         ->take(20)
         ->get()
@@ -534,4 +547,3 @@ public function getUserNotifications()
         });
 }
 }
-

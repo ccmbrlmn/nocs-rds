@@ -7,7 +7,6 @@ use App\Models\Requests;
 use Illuminate\Http\Request;
 use PDF;
 use App\Models\UserLog;
-use App\Notifications\UserApprovedNotification;
 
 class UserController extends Controller
 {
@@ -21,13 +20,16 @@ public function logs($id)
         ->get()
         ->map(function ($log) {
             $log->event_name = match($log->action) {
-                'user_registered' => 'Account Created',
-                'user_delete_requested' => 'Requested Account Deletion',
-                'request_created' => 'Created Request',
-                'request_edited'  => 'Edited Request',
+                'request_created' => 'Created',
+                'request_edited'  => 'Edited',
                 'request_accepted'=> 'Accepted',
                 'request_declined'=> 'Declined',
                 'request_cancelled'=> 'Cancelled',
+
+                'user_registered' => 'User Registration',
+                'profile_updated' => 'Profile Updated',
+                'user_delete_requested' => 'Account Deletion Requested',
+
                 default => '-',
             };
 
@@ -43,6 +45,7 @@ public function logs($id)
 
     return view('admin.user-logs', compact('user', 'logs'));
 }
+    
     
     
     public function edit(User $user)
@@ -61,7 +64,31 @@ public function logs($id)
 
     public function update(Request $request, User $user)
     {
-        $firstAdminId = User::where('role', 'admin')->orderBy('id')->first()->id ?? null;
+        $firstAdmin = User::where('role', 'admin')->orderBy('id')->first();
+
+        if ($firstAdmin && $firstAdmin->id !== auth()->id()) {
+            $firstAdmin->notify(new class($user) extends \Illuminate\Notifications\Notification {
+            protected $user;
+
+            public function __construct($user) {
+                $this->user = $user;
+            }
+
+            public function via($notifiable) {
+                return ['database'];
+            }
+
+            public function toDatabase($notifiable) {
+                return [
+                    'type' => 'user_management',
+                    'action' => 'updated',
+                    'user_id' => $this->user->id,
+                    'user_name' => $this->user->name,
+                    'actor_name' => auth()->user()->name,
+                ];
+            }
+        });
+        }
 
         if (auth()->user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
@@ -90,7 +117,31 @@ public function logs($id)
 
     public function destroy(User $user)
     {
-        $firstAdminId = User::where('role', 'admin')->orderBy('id')->first()->id ?? null;
+        $firstAdmin = User::where('role', 'admin')->orderBy('id')->first();
+
+        if ($firstAdmin && $firstAdmin->id !== auth()->id()) {
+            $firstAdmin->notify(new class($user) extends \Illuminate\Notifications\Notification {
+            protected $user;
+
+            public function __construct($user) {
+                $this->user = $user;
+            }
+
+            public function via($notifiable) {
+                return ['database'];
+            }
+
+            public function toDatabase($notifiable) {
+                return [
+                    'type' => 'user_management',
+                    'action' => 'deleted',
+                    'user_id' => $this->user->id,
+                    'user_name' => $this->user->name,
+                    'actor_name' => auth()->user()->name,
+                ];
+            }
+        });
+        }
 
         if (auth()->user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
@@ -107,31 +158,32 @@ public function logs($id)
         return redirect()->route('admin.users')->with('success', 'User deleted successfully.');
     }
 
-    public function approve(User $user)
-    {
-        $firstAdminId = User::where('role', 'admin')
-                            ->orderBy('id')
-                            ->first()->id ?? null;
+public function approve(User $user)
+{
 
-        if (auth()->user()->role !== 'admin') {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $user->update([
-            'is_approved' => true
-        ]);
-        
-        UserLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'user_approved',
-            'updated_at' => now(),
-        ]);
-        
-        $user->notify(new \App\Notifications\UserApprovedNotification($user));
-
-            return redirect()->route('admin.users', ['highlight' => $user->id])
-                     ->with('success', 'User approved successfully.');
+    if (auth()->user()->role !== 'admin') {
+        abort(403);
     }
+
+    $user->update([
+        'is_approved' => true
+    ]);
+
+    UserLog::create([
+        'user_id' => auth()->id(),
+        'action' => 'user_approved',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $user->notify(new \App\Notifications\UserApprovedNotification(
+        $user,
+        auth()->user()
+    ));
+
+    return redirect()->route('admin.users')
+        ->with('success', 'User approved successfully.');
+}
 
     public function exportPdf(Request $request)
     {
@@ -262,6 +314,32 @@ public function logs($id)
     public function restore($id)
     {
         $user = User::withTrashed()->findOrFail($id);
+        
+        $firstAdmin = User::where('role', 'admin')->orderBy('id')->first();
+
+        if ($firstAdmin && $firstAdmin->id !== auth()->id()) {
+            $firstAdmin->notify(new class($user) extends \Illuminate\Notifications\Notification {
+            protected $user;
+
+            public function __construct($user) {
+                $this->user = $user;
+            }
+
+            public function via($notifiable) {
+                return ['database'];
+            }
+
+            public function toDatabase($notifiable) {
+                return [
+                    'type' => 'user_management',
+                    'action' => 'restored',
+                    'user_id' => $this->user->id,
+                    'user_name' => $this->user->name,
+                    'actor_name' => auth()->user()->name,
+                ];
+            }
+        });
+        }
 
         if (auth()->user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
@@ -336,4 +414,5 @@ public function logs($id)
         return view('admin.user-list', compact('users'));
     }
 }
+
 

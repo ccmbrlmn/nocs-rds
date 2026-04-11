@@ -61,4 +61,3 @@ $calendarEvents = Requests::with('user')
     }
 
 }
-

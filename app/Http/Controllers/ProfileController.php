@@ -37,6 +37,12 @@ class ProfileController extends Controller
 
         $request->user()->save();
         
+        $admins = \App\Models\User::whereIn('role', ['admin', 'first_admin'])->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new \App\Notifications\UserProfileUpdatedNotification($user));
+        }
+        
         UserLog::create([
             'user_id' => $user->id,
             'action' => 'profile_updated',

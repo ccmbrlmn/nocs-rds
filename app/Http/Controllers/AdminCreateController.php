@@ -266,4 +266,3 @@ class AdminCreateController extends Controller
         return back()->with('success', 'Admin restored successfully.');
     }
 }
-
