@@ -131,4 +131,16 @@
     .request-history-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     .request-history-wrapper::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .sort-select { appearance: none; }
+    
+    .highlighted-user {
+        background-color: #dbeafe;
+        border-left: 4px solid #3b82f6;
+        transition: all 0.3s ease;
+    }
+
+    .dark .highlighted-user {
+        background-color: #1e3a8a33;
+        border-left: 4px solid #60a5fa;
+    }
+
 </style>

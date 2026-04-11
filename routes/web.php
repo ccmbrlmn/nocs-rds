@@ -16,14 +16,9 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DateNoteController;
 use App\Models\UserLog;
 
-use App\Http\Controllers\AdminLogsController;
-
-
-
 Route::middleware(['auth','isAdmin'])->group(function () {
     Route::get('/admin/{id}/logs', [AdminController::class, 'logs'])->name('admin.logs');
 });
-
 
 Route::get('/check-auth', function() {
     return [
@@ -98,6 +93,9 @@ Route::middleware(['first.admin'])->group(function () {
 Route::middleware(['auth', 'isAdmin'])
     ->prefix('admin')
     ->group(function () {
+    
+    Route::post('users/{user}/approve', [UserController::class, 'approve'])
+    ->name('admin.users.approve');
 
     Route::get('dashboard', [AdminDashboardController::class, 'index'])
         ->name('admin.dashboard');
@@ -138,12 +136,9 @@ Route::middleware(['auth', 'isAdmin'])
 
     Route::delete('users/{user}', [UserController::class, 'destroy'])
         ->name('admin.users.destroy');
-            
-    Route::post('users/{user}/approve', [UserController::class, 'approve'])
-        ->name('admin.users.approve');
     
-    Route::get('/notifications', [RequestController::class, 'getAdminNotifications'])->middleware('auth');
-    Route::post('/notifications/read', [RequestController::class, 'markNotificationsRead'])->middleware('auth');
+    Route::get('notifications', [RequestController::class, 'getAdminNotifications']);
+    Route::post('notifications/read', [RequestController::class, 'markNotificationsRead']);
 
     Route::get('created-admins/pdf', [AdminCreateController::class, 'exportPdf'])
         ->name('admin.created-admins.pdf');

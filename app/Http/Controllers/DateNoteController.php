@@ -13,38 +13,36 @@ class DateNoteController extends Controller
             'date' => 'required|date',
             'note' => 'nullable|string'
         ]);
-        
-        DateNote::updateOrCreate(
-            [
-                'user_id' => auth()->id(),
-                'date' => $request->date,
-            ],
-            [
-                'note' => $request->note
-            ]
-        );
 
-        return response()->json(['status' => 'success']);
+        DateNote::create([
+            'user_id' => auth()->id(),
+            'date' => $request->date,
+            'note' => $request->note
+        ]);
+
+        return response()->json([
+            'success' => true
+        ]);
     }
     
     public function index()
-    {
-        $notes = DateNote::where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->groupBy('date')
-            ->map(function ($items) {
+{
+    $notes = DateNote::where('user_id', auth()->id())
+    ->orderBy('created_at', 'desc')
+    ->get()
+    ->groupBy('date')
+    ->map(function ($items) {
+        return [
+            'latest' => $items->first()->note,
+            'history' => $items->map(function ($item) {
                 return [
-                    'latest' => $items->first()->note,
-                    'history' => $items->map(function ($item) {
-                        return [
-                            'note' => $item->note,
-                            'created_at' => $item->created_at
-                        ];
-                    })
+                    'note' => $item->note,
+                    'created_at' => $item->created_at
                 ];
-            });
+            })
+        ];
+    });
 
-        return response()->json($notes);
-    }
+return response()->json($notes);
+}
 }

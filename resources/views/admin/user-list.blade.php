@@ -1,4 +1,5 @@
 <x-app-layout>
+    <!-- HEADER: Greeting + Actions -->
     <div class="header-container rounded-2xl mb-3 mx-3 mt-3">
         <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <!-- Page Title -->
@@ -6,6 +7,7 @@
                 User List
             </div>
 
+            <!-- Include header actions (Dark Mode, Notifications, Profile) -->
         @include('layouts.header')
         </div>
     </div>
@@ -42,6 +44,7 @@
     
 <div class="request-history-list rounded-xl shadow overflow-hidden mx-10">
 
+    <!-- Table Header -->
     <div class="head bg-blue-100 dark:bg-blue-900 px-4 py-2 flex text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-t-xl">
         <div class="w-1/12 flex justify-center items-center">ID</div>
         <div class="w-3/12 flex justify-center items-center">Name</div>
@@ -52,6 +55,7 @@
         <div class="w-2/12 flex justify-center items-center">Actions</div>
     </div>
 
+    <!-- Table Body -->
     <div class="request-history-wrapper divide-y divide-gray-200 dark:divide-gray-700">
         @forelse($users as $user)
             @php
@@ -168,21 +172,18 @@
     vertical-align: middle;
 }
 
-
 .header-container {
     margin-left: 1.5rem;
     margin-right: 1.5rem;
 }
 
 .highlighted-user {
-    background-color: #cfe2ff;
-    color: #0a58ca;
-    transition: background-color 0.3s, color 0.3s;
+    background-color: #dbeafe;
+    transition: all 0.3s ease;
 }
 
 .dark .highlighted-user {
-    background-color: #2a3f6e;
-    color: #a5d0ff;
+    background-color: #1e3a8a33;
 }
 
 </style>

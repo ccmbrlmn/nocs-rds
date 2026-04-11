@@ -65,7 +65,7 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
                             const data = notif.data;
 
                             // User/Admin deletion or registration
-                            if(['user_deletion_request', 'user_registration'].includes(data?.type)){
+                            if(['user_deletion_request', 'user_registration', 'profile_updated'].includes(data?.type)){
                                 const userId = data?.user_id;
                                 if(userId){
                                     openModal = false;
@@ -99,27 +99,41 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
                             <div class="flex justify-between items-start gap-4">
                                 <p class="text-sm leading-relaxed break-words max-w-[70%] line-clamp-2"
                                     x-text="(() => {
-                                        const d = notif.data;
+                                        const d = notif.data ?? {};
 
                                         // Helper to get the actor name
                                         const actor = d?.user_name || d?.requester_name || 'User';
 
-                                        switch(d?.type){
-                                            case 'user_deletion_request':
-                                                return `[${d.is_admin ? 'Admin' : 'User'} Deletion Request] ${actor} requested account deletion.`;
-                                            case 'created':
-                                            case 'edited':
-                                                return `[${d.type_label || 'Request'}] ${actor} ${d.type === 'created' ? 'submitted' : 'updated'} ${d.request_name || d.eventName}.`;
-                                            case 'request_accepted':
-                                                return `[Accepted Request] ${actor} had their request accepted.`;
-                                            case 'request_declined':
-                                                return `[Declined Request] ${actor} had their request declined.`;
-                                            case 'user_registration':
-                                                return `[User Registration] ${actor} recently created an account.`;
-                                            case 'user_approved':
-                                                return `[Account Approved] ${actor}'s account was approved.`;
-                                            default:
-                                                return `[Notification] ${d.message || 'No details available.'}`;
+                                           switch(d?.type || d?.action){
+                                                case 'user_management':
+                                                    const actionLabel = d.action || 'performed an action';
+                                                    return `[User ${actionLabel.charAt(0).toUpperCase() + actionLabel.slice(1)}] ${d.actor_name} ${actionLabel} ${d.user_name}.`;
+
+                                                case 'user_deletion_request':
+                                                    return `[${d.is_admin ? 'Admin' : 'User'} Deletion Request] ${actor} requested account deletion.`;
+
+                                                case 'created':
+                                                case 'edited':
+                                                    return `[${d.type_label || 'Request'}] ${actor} ${d.type === 'created' ? 'submitted' : 'updated'} ${d.request_name || d.eventName}.`;
+
+                                                case 'request_accepted':
+                                                    return `[Accepted Request] ${actor} had their request accepted.`;
+
+                                                case 'request_declined':
+                                                    return `[Declined Request] ${actor} had their request declined.`;
+
+                                                case 'user_registration':
+                                                    return `[User Registration] ${actor} recently created an account.`;
+
+                                                case 'user_approved':
+                                                    return `[Account Approved] ${d.message || `${actor}'s account was approved.`}`;
+
+                                                case 'profile_updated':
+                                                    return `[Profile Updated] ${actor} updated their profile.`;
+
+                                                default:
+                                                    return `[Notification] ${d.message || 'No details available.'}`;
+                                        
                                         }
                                     })()"
                                 ></p>
@@ -147,7 +161,7 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
 </div>
 
 <script>
-function notificationsModal() {
+window.notificationsModal = function () {
     return {
         openModal: false,
         notifications: [],
@@ -159,9 +173,14 @@ function notificationsModal() {
                 .then(res => res.json())
                 .then(data => {
                     this.notifications = data.map(n => {
-                        if(typeof n.data === 'string'){
-                            try { n.data = JSON.parse(n.data); } catch(e){ n.data = {}; }
+                        if (typeof n.data === 'string') {
+                            try {
+                                n.data = JSON.parse(n.data);
+                            } catch (e) {
+                                n.data = {};
+                            }
                         }
+                        n.data.type = n.data.type || n.type; 
                         return n;
                     }).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
 
@@ -170,21 +189,29 @@ function notificationsModal() {
         },
 
         markNotificationsRead() {
-            fetch(userRole === 'admin' ? '/admin/notifications/read' : '/notifications/read', {
-                method: 'POST',
-                headers: { 
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            }).then(() => {
-                this.notifications.forEach(n => n.is_read = true);
-                this.hasNotifications = false;
-            });
-        },
+    fetch(userRole === 'admin' ? '/admin/notifications/read' : '/notifications/read', {
+        method: 'POST',
+        headers: { 
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.ok ? res.json() : Promise.reject())
+    .then(() => {
+        this.notifications.forEach(n => n.is_read = true);
+        this.hasNotifications = false;
+    })
+    .catch(() => {
+        console.error('Failed to mark notifications as read');
+    });
+},
 
         openNotificationsModal() {
             this.openModal = true;
-            this.markNotificationsRead();
+
+            if (this.notifications.length > 0) {
+                this.markNotificationsRead();
+            }
         }
     }
 }

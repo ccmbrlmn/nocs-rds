@@ -42,11 +42,8 @@
                             </div>
                             
                             <div class="w-2/6 text-center">
-                                {{ $log->request->event_name 
-                                    ?? ($log->action == 'user_registered' ? 'User Registration' 
-                                    : ($log->action == 'profile_updated' ? 'Profile Updated' 
-                                    : ($log->action == 'user_delete_requested' ? 'Account Deletion Requested' : '-'))) }}
-                            </div>
+    {{ $log->event_name }}
+</div>
 
                             <div class="w-1/6 text-center">
                                 @php
@@ -62,11 +59,11 @@
                                         @case('request_edited')
                                             <span class="text-yellow-600">Edited Request</span>
                                         @break
-                                        
+
                                         @case('user_registered')
                                             <span class="text-green-600">Account Created</span>
                                         @break
-                                        
+
                                         @case('profile_updated')
                                             <span class="text-indigo-600">Profile Updated</span>
                                         @break
