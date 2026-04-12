@@ -34,6 +34,10 @@
             <div class="request-history-wrapper max-h-[60vh] overflow-y-auto">
 
                 @forelse($combinedLogs as $item)
+                @php
+    $action = $item['action'] ?? 'unknown';
+    $target = $item['target_user_name'] ?? null;
+@endphp
                     <div class="block hover:bg-blue-50 transition border-b border-gray-200">
                         <div class="flex justify-between items-center px-4 py-3 text-sm dark:text-gray-200 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700">
 
@@ -42,32 +46,93 @@
                                 #{{ $item['id'] }}
                             </div>
 
-                            <!-- EVENT -->
-                            <div class="w-2/6 text-center">
-                                @if($item['type'] === 'user_log')
-                                    @if($item['action'] === 'profile_updated')
-                                        Profile Updated
-                                    @elseif($item['action'] === 'user_delete_requested')
-                                        Requested Account Deletion
-                                    @elseif($item['action'] === 'user_approved')
-                                        Approved User Registration
-                                    @elseif($item['action'] === 'user_declined')
-                                        Declined User Registration
-                                    @elseif($item['action'] === 'user_updated')
-                                        Edited User Information
-                                    @elseif($item['action'] === 'user_deleted')
-                                        Deleted User Account
-                                    @elseif($item['action'] === 'user_restored')
-                                        Restored User Account
-                                    @else
-                                        {{ ucfirst(str_replace('_', ' ', $item['action'])) }}
-                                    @endif
-                                @else
-                                    {{ $item['event_name'] }}
-                                @endif
-                            </div>
+                <div class="w-2/6 text-center">
+                    @if($item['type'] === 'user_log')
 
-                            <!-- ACTION -->
+                        @if($item['action'] === 'user_delete_requested')
+                            Requested account deletion
+
+                        @elseif($item['action'] === 'profile_updated')
+                            Conducted a profile update
+
+                        @elseif($item['action'] === 'user_approved')
+                            @if($target)
+                                Approved user registration of {{ $target }}
+                            @else
+                                Approved user registration
+                            @endif
+
+                        @elseif($item['action'] === 'user_declined')
+                            @if($target)
+                                Declined user registration of {{ $target }}
+                            @else
+                                Declined user registration
+                            @endif
+
+                        @elseif($item['action'] === 'user_updated')
+                            @if($target)
+                                Edited user information of {{ $target }}
+                            @else
+                                Edited user information
+                            @endif
+
+                        @elseif($item['action'] === 'user_deleted')
+                            @if($target)
+                                Deleted user account of {{ $target }}
+                            @else
+                                Deleted a user account
+                            @endif
+
+                        @elseif($item['action'] === 'user_restored')
+                            @if($target)
+                                Restored user account of {{ $target }}
+                            @else
+                                Restored a user account
+                            @endif
+
+                        @else
+                            {{ ucfirst(str_replace('_', ' ', $item['action'])) }}
+
+                            @php
+                                $desc = $item['description'] ?? null;
+                                $data = json_decode($desc, true);
+                            @endphp
+
+                            @if(is_array($data))
+                                <br>
+                                Edited:
+                                <br>
+                                <span class="text-gray-500 text-xs">
+                                    {{ $data['old']['event_name'] ?? 'N/A' }}
+                                </span>
+                                →
+                                <span class="text-green-600 text-xs">
+                                    {{ $data['new']['event_name'] ?? 'N/A' }}
+                                </span>
+                            @elseif($desc)
+                                <br>
+                                Edited: {{ $desc }}
+                            @endif
+
+                        @endif
+
+                    @else
+                        @php
+                            $event = $item['event_name'] ?? '';
+                            $requester = $item['user_name'] ?? '';
+                        @endphp
+
+                        @if($item['status'] === 'Active' || $item['status'] === 'Closed')
+                            Accepted {{ $event }} for {{ $requester }}
+                        @elseif($item['status'] === 'Declined')
+                            Declined {{ $event }} for {{ $requester }}
+                        @else
+                            {{ $event }}
+                        @endif
+
+                    @endif
+                </div>
+
                             <div class="w-1/6 text-center">
                                 @if($item['type'] === 'user_log')
 
@@ -85,6 +150,10 @@
                                         <span class="text-red-700">Deleted User</span>
                                     @elseif($item['action'] === 'user_restored')
                                         <span class="text-green-700">Restored User</span>
+                                    @elseif($item['action'] === 'admin_created')
+                                        <span class="text-blue-700">Created Admin</span>
+                                    @elseif($item['action'] === 'account_registered')
+                                        <span class="text-green-600">Registered</span>
                                     @else
                                         <span class="text-indigo-600">Performed</span>
                                     @endif

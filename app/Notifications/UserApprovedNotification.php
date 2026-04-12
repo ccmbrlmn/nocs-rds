@@ -10,13 +10,11 @@ class UserApprovedNotification extends Notification
 {
     use Queueable;
 
-    public $approvedUser;
-    public $admin;
+    public $user;
 
-    public function __construct($approvedUser, $admin)
+    public function __construct(User $user)
     {
-        $this->approvedUser = $approvedUser;
-        $this->admin = $admin;
+        $this->user = $user;
     }
 
     public function via($notifiable)
@@ -27,12 +25,11 @@ class UserApprovedNotification extends Notification
     public function toDatabase($notifiable)
     {
         return [
-            'user_id' => $this->approvedUser->id,
-            'user_name' => $this->approvedUser->name,
-            'admin_name' => $this->admin->name,
             'type' => 'user_approved',
-            'type_label' => 'User Approved',
-            'message' => 'Your account has been approved by admin',
+            'user_id' => $this->user->id,
+            'user_name' => $this->user->name,
+            'actor_name' => auth()->user()->name,
+            'message' => $this->user->name . ' was approved by ' . auth()->user()->name,
         ];
     }
 }

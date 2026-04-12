@@ -37,8 +37,6 @@
                       hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm
                       flex items-center justify-center gap-2 whitespace-nowrap">
 
-
-                <!-- THIS WILL BE CONTROLLED BY ALPINE -->
                 <span x-show="$root.sidebarExpanded"
                       x-transition
                       class="transition-all duration-200">
@@ -187,7 +185,11 @@
     .sort-select { appearance: none; }
 
     .highlighted-admin {
-        background-color: #ffe58f;
-        transition: background-color 0.3s;
+        background-color: #dbeafe;
+        transition: all 0.3s ease;
+    }
+
+    .dark .highlighted-admin {
+        background-color: #1e3a8a33;
     }
 </style>

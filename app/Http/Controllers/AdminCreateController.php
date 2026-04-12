@@ -40,13 +40,23 @@ class AdminCreateController extends Controller
             'office' => 'nullable|string|max:255',
         ]);
 
-        User::create([
+        $admin = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'admin',
             'office' => $request->office,
             'created_by' => auth()->id(),
+        ]);
+        
+        \App\Models\UserLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'admin_created',
+        ]);
+        
+        \App\Models\UserLog::create([
+            'user_id' => $admin->id,
+            'action' => 'account_registered',
         ]);
 
         return redirect()->route('admin.dashboard')

@@ -64,12 +64,29 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
                         <div @click="
                             const data = notif.data;
 
-                            // User/Admin deletion or registration
-                            if(['user_deletion_request', 'user_registration', 'profile_updated'].includes(data?.type)){
-                                const userId = data?.user_id;
+                            if([
+                                'user_deletion_request',
+                                'user_registration',
+                                'user_deleted',
+                                'user_restored',
+                                'user_updated',
+                                'user_approved',
+                                'profile_updated'
+                            ].includes(data?.type)){
+                                const userId = data?.user_id || data?.target_user_id || data?.id;
                                 if(userId){
                                     openModal = false;
                                     setTimeout(() => {
+                                        if(data?.type === 'profile_updated') {
+                                            if(data?.is_admin) {
+                                                window.location.href = `{{ url('/created-admins') }}?highlight=${userId}`;
+                                            } else {
+                                                window.location.href = `{{ route('admin.users') }}?highlight=${userId}`;
+                                            }
+
+                                            return;
+                                        }
+
                                         if(data?.is_admin){
                                             window.location.href = `{{ url('/created-admins') }}?highlight=${userId}`;
                                         } else {
@@ -104,24 +121,50 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
                                         // Helper to get the actor name
                                         const actor = d?.user_name || d?.requester_name || 'User';
 
-                                        switch(d?.type || d?.action){
-                                            case 'user_deletion_request':
-                                                return `[${d.is_admin ? 'Admin' : 'User'} Deletion Request] ${actor} requested account deletion.`;
-                                            case 'created':
-                                            case 'edited':
-                                                return `[${d.type_label || 'Request'}] ${actor} ${d.type === 'created' ? 'submitted' : 'updated'} ${d.request_name || d.eventName}.`;
-                                            case 'request_accepted':
-                                                return `[Accepted Request] ${actor} had their request accepted.`;
-                                            case 'request_declined':
-                                                return `[Declined Request] ${actor} had their request declined.`;
-                                            case 'user_registration':
-                                                return `[User Registration] ${actor} recently created an account.`;
-                                            case 'user_approved':
-                                                return `[Account Approved] ${d.message || `${actor}'s account was approved.`}`;
-                                            case 'profile_updated':
-                                                return `[Profile Updated] ${actor} updated their profile.`;
-                                            default:
-                                                return `[Notification] ${d.message || 'No details available.'}`;
+                                           switch(d?.type || d?.action){
+                                                case 'user_management':
+                                            const action = d.action;
+
+                                            switch(action){
+                                                case 'updated':
+                                                    return `[User Updated] ${d.user_name} was updated by ${d.actor_name}.`;
+
+                                                case 'deleted':
+                                                    return `[User Deleted] ${d.user_name} was deleted by ${d.actor_name}.`;
+
+                                                case 'restored':
+                                                    return `[User Restored] ${d.user_name} was restored by ${d.actor_name}.`;
+
+                                                default:
+                                                    return `[User Action] ${d.actor_name} performed ${action} on ${d.user_name}.`;
+                                            }
+                                                    return `[User ${actionLabel.charAt(0).toUpperCase() + actionLabel.slice(1)}] ${d.actor_name} ${actionLabel} ${d.user_name}.`;
+
+                                                case 'user_deletion_request':
+                                                    return `[${d.is_admin ? 'Admin' : 'User'} Deletion Request] ${actor} requested account deletion.`;
+
+                                                case 'created':
+                                                case 'edited':
+                                                    return `[${d.type_label || 'Request'}] ${actor} ${d.type === 'created' ? 'submitted' : 'updated'} ${d.request_name || d.eventName}.`;
+
+                                                case 'request_accepted':
+                                                    return `[Accepted Request] ${actor} had their request accepted.`;
+
+                                                case 'request_declined':
+                                                    return `[Declined Request] ${actor} had their request declined.`;
+
+                                                case 'user_registration':
+                                                    return `[User Registration] ${actor} recently created an account.`;
+
+                                                case 'user_approved':
+                                                    return `[User Approved] ${d.user_name} was approved by ${d.actor_name}.`;
+
+                                                case 'profile_updated':
+                                                    return `[Profile Updated] ${actor} updated their profile.`;
+
+                                                default:
+                                                    return `[Notification] ${d.message || 'No details available.'}`;
+                                        
                                         }
                                     })()"
                                 ></p>

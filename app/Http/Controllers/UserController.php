@@ -109,6 +109,9 @@ public function logs($id)
         UserLog::create([
             'user_id' => auth()->id(),
             'action' => 'user_updated',
+            'target_user_id' => $user->id,
+            'target_user_name' => $user->name,
+            'actor_name' => auth()->user()->name,
             'updated_at' => now(),
         ]);
         
@@ -152,6 +155,9 @@ public function logs($id)
         UserLog::create([
             'user_id' => auth()->id(),
             'action' => 'user_deleted',
+            'target_user_id' => $user->id,
+            'target_user_name' => $user->name,
+            'actor_name' => auth()->user()->name,
             'updated_at' => now(),
         ]);
 
@@ -172,14 +178,30 @@ public function approve(User $user)
     UserLog::create([
         'user_id' => auth()->id(),
         'action' => 'user_approved',
-        'created_at' => now(),
+        'target_user_id' => $user->id,
+        'target_user_name' => $user->name,
+        'actor_name' => auth()->user()->name,
         'updated_at' => now(),
     ]);
+    
+    $user->notify(new \App\Notifications\UserApprovedNotification(
+        $user,
+        auth()->user()
+    ));
 
     $user->notify(new \App\Notifications\UserApprovedNotification(
         $user,
         auth()->user()
     ));
+    
+    $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
+
+    foreach ($admins as $admin) {
+        $admin->notify(new \App\Notifications\UserApprovedNotification(
+            $user,
+            auth()->user()
+        ));
+    }
 
     return redirect()->route('admin.users')
         ->with('success', 'User approved successfully.');
@@ -350,6 +372,9 @@ public function approve(User $user)
         UserLog::create([
             'user_id' => auth()->id(),
             'action' => 'user_restored',
+            'target_user_id' => $user->id,
+            'target_user_name' => $user->name,
+            'actor_name' => auth()->user()->name,
             'updated_at' => now(),
         ]);
 

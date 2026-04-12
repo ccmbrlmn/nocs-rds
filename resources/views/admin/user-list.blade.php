@@ -172,7 +172,6 @@
     vertical-align: middle;
 }
 
-
 .header-container {
     margin-left: 1.5rem;
     margin-right: 1.5rem;
@@ -183,7 +182,6 @@
     transition: all 0.3s ease;
 }
 
-/* Dark mode */
 .dark .highlighted-user {
     background-color: #1e3a8a33;
 }
