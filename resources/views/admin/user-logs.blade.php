@@ -42,7 +42,45 @@
                             </div>
                             
                             <div class="w-2/6 text-center">
-    {{ $log->event_name }}
+
+    @php
+        $action = $log->action;
+        $desc = $log->description;
+    @endphp
+
+    {{-- REQUEST CREATED --}}
+    @if($action === 'request_created')
+        @php
+            $data = json_decode($desc, true);
+        @endphp
+
+        Created: {{ $data['event_name'] ?? $desc }}
+
+    {{-- REQUEST EDITED --}}
+    @elseif($action === 'request_edited')
+        @php
+            $data = json_decode($desc, true);
+        @endphp
+
+        @if(is_array($data))
+            Edited:
+            <br>
+            <span class="text-gray-500">
+                {{ $data['old']['event_name'] ?? 'N/A' }}
+            </span>
+            →
+            <span class="text-gray-500">
+                {{ $data['new']['event_name'] ?? 'N/A' }}
+            </span>
+        @else
+            Edited: {{ $desc }}
+        @endif
+
+    {{-- OTHER EVENTS --}}
+    @else
+        {{ $log->event_name }}
+    @endif
+
 </div>
 
                             <div class="w-1/6 text-center">

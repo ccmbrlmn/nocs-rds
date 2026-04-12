@@ -16,34 +16,63 @@ public function logs($id)
         ->where('role', 'admin')
         ->firstOrFail();
 
-    $userLogs = UserLog::where('user_id', $admin->id)->get();
+    $userLogs = UserLog::with('user')
+        ->where(function ($query) use ($admin) {
+            $query->where('user_id', $admin->id);
+        })
+        ->get();
 
     $handledRequests = UserRequest::with(['user'])
         ->where('handled_by', $admin->id)
         ->get();
 
-    $combinedLogs = $userLogs->map(function($log){
+    $combinedLogs = $userLogs->map(function ($log) {
+
+        $actorName = $log->actor_name
+            ?? optional($log->user)->name
+            ?? 'System';
+
+        $targetUser = null;
+
+        if ($log->target_user_id) {
+            $targetUser = \App\Models\User::withTrashed()
+                ->where('id', $log->target_user_id)
+                ->first();
+        }
+
+        $targetName = $targetUser?->name
+    ?? $log->target_user_name
+    ?? null;
+
         return [
             'type' => 'user_log',
             'id' => $log->id,
             'action' => $log->action,
             'updated_at' => $log->updated_at,
-            'log' => $log
+
+            'actor_name' => $actorName,
+            'target_user_name' => $targetName,
+            'target_user_id' => $log->target_user_id,
+
+            'user_name' => optional($log->user)->name,
+            'log' => $log,
         ];
     })->merge(
-        $handledRequests->map(function($req){
+        $handledRequests->map(function ($req) {
             return [
                 'type' => 'handled_request',
                 'id' => $req->id,
                 'status' => $req->status,
                 'handled_at' => $req->handled_at ?? $req->created_at,
                 'event_name' => $req->event_name,
-                'user_name' => $req->user->name ?? 'N/A',
+                'user_name' => optional($req->user)->name ?? 'N/A',
                 'log' => $req
             ];
         })
-    )->sortByDesc(function($item){
-        return $item['type'] === 'user_log' ? $item['updated_at'] : $item['handled_at'];
+    )->sortByDesc(function ($item) {
+        return $item['type'] === 'user_log'
+            ? $item['updated_at']
+            : $item['handled_at'];
     });
 
     return view('auth.admin-logs', compact('admin', 'combinedLogs'));

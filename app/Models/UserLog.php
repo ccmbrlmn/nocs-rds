@@ -13,11 +13,14 @@ class UserLog extends Model
         'request_id',
         'action',
         'description',
-        'is_read', 
+        'is_read',
+        'target_user_id',
+        'target_user_name',
+        'actor_name',
     ];
 
 public function user() {
-    return $this->belongsTo(User::class, 'requested_by');
+    return $this->belongsTo(User::class, 'user_id');
 }
     
     public function request()

@@ -25,11 +25,11 @@ class UserApprovedNotification extends Notification
     public function toDatabase($notifiable)
     {
         return [
+            'type' => 'user_approved',
             'user_id' => $this->user->id,
             'user_name' => $this->user->name,
-            'type' => 'user_approval',
-            'type_label' => 'User Approved',
-            'message' => $this->user->name . ' has been approved by admin',
+            'actor_name' => auth()->user()->name,
+            'message' => $this->user->name . ' was approved by ' . auth()->user()->name,
         ];
     }
 }

@@ -58,6 +58,8 @@ class RegisteredUserController extends Controller
             'user_id' => $user->id,
             'action' => 'user_registered',
             'handled_by' => null,
+            'target_user_id' => $user->id,
+            'target_user_name' => $user->name,
         ]);
         
 

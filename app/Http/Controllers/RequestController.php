@@ -191,7 +191,9 @@ class RequestController extends Controller
             'user_id' => $requestedBy,
             'request_id' => $req->id,
             'action' => 'request_created',
-            'description' => 'Created request: ' . $validated['event_name'],
+            'description' => json_encode([
+                'event_name' => $validated['event_name'],
+            ])
         ]);
         
         $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
@@ -256,13 +258,46 @@ class RequestController extends Controller
         $req->items = json_encode($validated['items']);
 
         $req->is_edited = true;
+        
+        
+        $oldData = $req->getOriginal();
+
+        $req->representative_name = $validated['representative_name'];
+        $req->event_name = $validated['event_name'];
+        $req->purpose = $validated['purpose'];
+        $req->other_purpose = $validated['other_purpose'] ?? null;
+        $req->start_date = $validated['start_date'];
+        $req->end_date = $validated['end_date'];
+        $req->setup_date = $validated['setup_date'] ?? null;
+        $req->setup_time = $validated['setup_time'] ?? null;
+        $req->location = $validated['location'];
+        $req->users = $validated['users'];
+        $req->items = json_encode($validated['items']);
+
+        $req->is_edited = true;
+        $req->save();
+
+        $newData = $req->fresh()->toArray();
+        
+        
         $req->save();
         
         UserLog::create([
             'user_id' => auth()->id(),
             'request_id' => $req->id,
             'action' => 'request_edited',
-            'description' => 'Edited request: ' . $validated['event_name'],
+            'description' => json_encode([
+                'old' => [
+                    'event_name' => $oldData['event_name'],
+                    'purpose' => $oldData['purpose'],
+                    'location' => $oldData['location'],
+                ],
+                'new' => [
+                    'event_name' => $newData['event_name'],
+                    'purpose' => $newData['purpose'],
+                    'location' => $newData['location'],
+                ],
+            ]),
         ]);
         
         $user = auth()->user();
@@ -270,14 +305,13 @@ class RequestController extends Controller
 
         $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
 
-        // Notify each admin about the edit
         foreach ($admins as $admin) {
             $admin->notify(
                 new \App\Notifications\RequestEditedNotification(
-                    auth()->user(),      // The user who edited
-                    $req->id,            // Request ID
-                    $validated['event_name'], // Request name
-                    'edited'             // Explicit type (optional, default is 'edited')
+                    auth()->user(),      
+                    $req->id,            
+                    $validated['event_name'], 
+                    'edited'             
                 )
             );
         }
