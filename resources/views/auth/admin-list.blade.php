@@ -12,6 +12,14 @@
     @php
         $statusColors = config('status');
     @endphp
+    
+    @php
+        $firstAdmin = \App\Models\User::where('role', 'admin')
+            ->orderBy('id')
+            ->first();
+
+        $isFirstAdmin = $firstAdmin && auth()->id() === $firstAdmin->id;
+    @endphp
 
     @include('layouts.filter', [
         'routeName' => 'admin.created-admins',
@@ -32,21 +40,30 @@
         'exportPdf' => 'admin.created-admins.pdf',
         'exportCsv' => 'admin.created-admins.csv',
 
-        'rightSlot' => '
-            <a href="'.route('admin.create').'"
-               class="px-4 py-2 rounded-xl text-sm font-medium transition
-                      bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
-                      hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm
-                      flex items-center justify-center gap-2 whitespace-nowrap">
+'rightSlot' => '
+' . (
+    $isFirstAdmin
+    ? '<button onclick="alert(\'You are not allowed to create additional admin accounts.\')"
+        class="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-400 
+cursor-not-allowed border border-gray-200 dark:border-gray-600
+shadow-sm shadow-sm flex items-center justify-center gap-2 whitespace-nowrap">
+        <span>Add Admin</span>
+      </button>'
+    : '<a href="'.route('admin.create').'"
+        class="px-4 py-2 rounded-xl text-sm font-medium transition
+               bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
+               hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm
+               flex items-center justify-center gap-2 whitespace-nowrap">
 
-                <span x-show="$root.sidebarExpanded"
-                      x-transition
-                      class="transition-all duration-200">
-                    Add Admin
-                </span>
+        <span x-show="$root.sidebarExpanded"
+              x-transition
+              class="transition-all duration-200">
+            Add Admin
+        </span>
 
-            </a>
-        '
+      </a>
+      '
+)
     ])
 
     @php

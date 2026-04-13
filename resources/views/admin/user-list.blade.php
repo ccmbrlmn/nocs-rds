@@ -17,6 +17,16 @@
         @php
             $statusColors = config('status');
         @endphp
+        
+        @php
+        $allowedAdmins = [
+            'nocs_services@gbox.adnu.edu.ph',
+            'aandrada@gbox.adnu.edu.ph',
+            'dgirodriguez@gbox.adnu.edu.ph'
+        ];
+
+        $isAllowedAdmin = in_array(auth()->user()->email, $allowedAdmins);
+    @endphp
 
         @include('layouts.filter', [
             'routeName' => 'admin.users',
@@ -36,7 +46,40 @@
             ],
 
             'exportPdf' => 'admin.users.pdf',
-            'exportCsv' => 'admin.users.csv'
+            'exportCsv' => 'admin.users.csv',
+            
+            'rightSlot' => '
+' . (
+    $isAllowedAdmin
+    ? '<a href="'.route('register').'"
+        class="px-4 py-2 rounded-xl text-sm font-medium transition
+               bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
+               hover:bg-blue-100 dark:hover:bg-gray-600
+               border border-gray-200 dark:border-gray-600
+               shadow-sm
+               flex items-center justify-center gap-2 whitespace-nowrap shrink-0">
+
+        <span x-show="$root.sidebarExpanded"
+              x-transition
+              class="transition-all duration-200">
+            Add User
+        </span>
+
+      </a>'
+      
+    : '<button onclick="alert(\'You are not allowed to create users.\')"
+        class="px-4 py-2 rounded-xl text-sm font-medium
+               bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-400
+               border border-gray-200 dark:border-gray-600
+               cursor-not-allowed
+               shadow-sm
+               flex items-center justify-center gap-2 whitespace-nowrap shrink-0">
+
+        <span>Add User</span>
+
+      </button>'
+)
+            
         ])
     
 <div class="request-history-list rounded-xl shadow overflow-hidden mx-10">

@@ -16,6 +16,17 @@ class AdminCreateController extends Controller
 
     public function store(Request $request)
     {
+        $firstAdminId = \App\Models\User::where('role', 'admin')
+        ->orderBy('id')
+        ->first()
+        ->id;
+
+        if (auth()->id() === $firstAdminId) {
+            return back()->withErrors([
+                'email' => 'The first admin is not allowed to create additional admin accounts.'
+            ]);
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => [
@@ -23,8 +34,11 @@ class AdminCreateController extends Controller
                 'email',
                 \Illuminate\Validation\Rule::unique('users')->whereNull('deleted_at'),
                 function ($attribute, $value, $fail) {
-                    if (!str_ends_with($value, '@gbox.adnu.edu.ph')) {
-                        $fail('Admin email must be a gbox account.');
+
+                    $allowedEmails = config('services.allowed_admin_emails');
+
+                    if (!in_array($value, $allowedEmails)) {
+                        $fail('Only authorized NOCS admin emails are allowed.');
                     }
                 }
             ],

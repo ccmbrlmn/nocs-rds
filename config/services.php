@@ -34,5 +34,7 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    
+    'allowed_admin_emails' => explode(',', env('ALLOWED_ADMIN_EMAILS', '')),
 
 ];
