@@ -45,7 +45,7 @@
                 
                 <div 
                     x-data="{
-                        maxItems: 5,
+                        maxItems: 20,
                         items: [{ name: '', quantity: 1 }]
                     }" 
                     class="mb-4"

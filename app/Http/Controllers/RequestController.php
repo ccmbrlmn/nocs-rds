@@ -151,7 +151,7 @@ class RequestController extends Controller
             'representative_name' => 'required|string',
             'event_name' => 'required|string',
             'purpose' => 'required|string',
-            'items' => 'required|array|max:5',
+            'items' => 'required|array|max:20',
             'items.*.name' => 'required|string',
             'items.*.quantity' => 'required|integer|min:1',
             'other_purpose' => 'nullable|string',
