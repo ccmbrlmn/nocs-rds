@@ -56,25 +56,31 @@
 
         Created: {{ $data['event_name'] ?? $desc }}
 
-    {{-- REQUEST EDITED --}}
-    @elseif($action === 'request_edited')
-        @php
-            $data = json_decode($desc, true);
-        @endphp
+        @elseif($action === 'request_edited')
+            @php
+                $data = json_decode($desc, true);
+            @endphp
 
-        @if(is_array($data))
             Edited:
-            <br>
-            <span class="text-gray-500">
-                {{ $data['old']['event_name'] ?? 'N/A' }}
-            </span>
-            →
-            <span class="text-gray-500">
-                {{ $data['new']['event_name'] ?? 'N/A' }}
-            </span>
-        @else
-            Edited: {{ $desc }}
-        @endif
+
+            @if(is_array($data) && count($data))
+                <div class="text-left text-xs space-y-1">
+                    @foreach($data as $field => $change)
+                        <div>
+                            <span class="font-semibold">{{ ucfirst(str_replace('_', ' ', $field)) }}:</span>
+                            <span class="text-gray-500">
+                                {{ is_array($change['old'] ?? null) ? json_encode($change['old']) : ($change['old'] ?? '-') }}
+                            </span>
+                            →
+                            <span class="text-gray-500">
+                                {{ is_array($change['new'] ?? null) ? json_encode($change['new']) : ($change['new'] ?? '-') }}
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                No changes detected
+            @endif
 
     {{-- OTHER EVENTS --}}
     @else

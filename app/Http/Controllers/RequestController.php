@@ -282,23 +282,47 @@ class RequestController extends Controller
         
         $req->save();
         
+        $changes = [];
+
+        $fields = [
+            'representative_name',
+            'event_name',
+            'purpose',
+            'other_purpose',
+            'start_date',
+            'end_date',
+            'setup_date',
+            'setup_time',
+            'location',
+            'users',
+            'items',
+        ];
+
+        foreach ($fields as $field) {
+            $old = $oldData[$field] ?? null;
+            $new = $newData[$field] ?? null;
+
+            // normalize JSON fields
+            if ($field === 'items') {
+                $old = json_decode($old, true);
+                $new = json_decode($new, true);
+            }
+
+            if ($old != $new) {
+                $changes[$field] = [
+                    'old' => $old,
+                    'new' => $new,
+                ];
+            }
+        }
+        
         UserLog::create([
             'user_id' => auth()->id(),
             'request_id' => $req->id,
             'action' => 'request_edited',
-            'description' => json_encode([
-                'old' => [
-                    'event_name' => $oldData['event_name'],
-                    'purpose' => $oldData['purpose'],
-                    'location' => $oldData['location'],
-                ],
-                'new' => [
-                    'event_name' => $newData['event_name'],
-                    'purpose' => $newData['purpose'],
-                    'location' => $newData['location'],
-                ],
-            ]),
+            'description' => json_encode($changes),
         ]);
+        
         
         $user = auth()->user();
         $userName = $user ? $user->name : 'Unknown User';

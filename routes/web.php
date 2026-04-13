@@ -46,10 +46,13 @@ Route::post('/date-notes', [DateNoteController::class, 'store'])
     
 Route::post('/admin/register', [RegisteredUserController::class, 'storeFirstAdmin'])
     ->middleware('guest');
+    
+Route::middleware(['auth', 'first.admin'])->group(function () {
+    Route::get('created-admins', [AdminCreateController::class, 'indexCreatedAdmins'])
+        ->name('admin.created-admins');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
-        Route::get('created-admins', [App\Http\Controllers\AdminCreateController::class, 'indexCreatedAdmins'])
-         ->name('admin.created-admins');
          
     Route::get('/dashboard', [DashboardController::class, 'showDashboard'])->name('dashboard');
     Route::get('/history', function () { return view('history'); })->name('history');

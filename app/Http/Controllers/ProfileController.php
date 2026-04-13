@@ -39,8 +39,12 @@ class ProfileController extends Controller
         
         $admins = \App\Models\User::whereIn('role', ['admin', 'first_admin'])->get();
 
-        foreach ($admins as $admin) {
-            $admin->notify(new \App\Notifications\UserProfileUpdatedNotification($user));
+        $firstAdmin = \App\Models\User::where('role', 'admin')
+            ->orderBy('created_at')
+            ->first();
+
+        if ($firstAdmin && $firstAdmin->id !== $user->id) {
+            $firstAdmin->notify(new \App\Notifications\UserProfileUpdatedNotification($user));
         }
         
         UserLog::create([
@@ -79,12 +83,13 @@ class ProfileController extends Controller
 
         if ($user->role !== 'first_admin') {
 
-            \App\Models\User::whereIn('role', ['admin', 'first_admin'])
-                ->where('id', '!=', $user->id) // don't notify self
-                ->get()
-                ->each(function ($admin) use ($user) {
-                    $admin->notify(new \App\Notifications\UserDeletionRequest($user));
-                });
+            $firstAdmin = \App\Models\User::where('role', 'admin')
+                ->orderBy('created_at')
+                ->first();
+
+            if ($firstAdmin && $firstAdmin->id !== $user->id) {
+                $firstAdmin->notify(new \App\Notifications\UserDeletionRequest($user));
+            }
         }
 
         $request->session()->flash('status', 'Your account deletion request has been sent. Wait for admin approval.');

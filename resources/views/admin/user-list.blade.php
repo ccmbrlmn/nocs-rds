@@ -1,20 +1,17 @@
 <x-app-layout>
-    <!-- HEADER: Greeting + Actions -->
     <div class="header-container rounded-2xl mb-3 mx-3 mt-3">
         <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <!-- Page Title -->
             <div class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
                 User List
             </div>
 
-            <!-- Include header actions (Dark Mode, Notifications, Profile) -->
         @include('layouts.header')
         </div>
     </div>
     
     @php
-    $highlightUserId = request()->query('highlight');
-@endphp
+        $highlightUserId = request()->query('highlight');
+    @endphp
 
 
         @php

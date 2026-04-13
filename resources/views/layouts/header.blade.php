@@ -77,14 +77,11 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
                                 if(userId){
                                     openModal = false;
                                     setTimeout(() => {
-                                        if(data?.type === 'profile_updated') {
-                                            if(data?.is_admin) {
-                                                window.location.href = `{{ url('/created-admins') }}?highlight=${userId}`;
-                                            } else {
-                                                window.location.href = `{{ route('admin.users') }}?highlight=${userId}`;
-                                            }
-
-                                            return;
+                                    
+                                        if(data?.is_admin){
+                                            window.location.href = `{{ url('/created-admins') }}?highlight=${userId}`;
+                                        } else {
+                                            window.location.href = `{{ route('admin.users') }}?highlight=${userId}`;
                                         }
 
                                         if(data?.is_admin){

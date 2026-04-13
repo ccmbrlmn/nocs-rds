@@ -4,6 +4,8 @@
             <div class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
                 Admins Created
             </div>
+
+        @include('layouts.header')
         </div>
     </div>
 
