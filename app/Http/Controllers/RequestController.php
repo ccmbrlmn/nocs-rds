@@ -6,19 +6,25 @@ use Illuminate\Http\Request;
 use App\Models\Requests; 
 use App\Models\User; 
 use App\Mail\NewRequestNotification;
+use App\Mail\EditedRequestNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Models\UserLog;
 use App\Models\Notification;
 use PDF;
 use Carbon\Carbon;
 use App\Notifications\RequestCreatedNotification;
-use App\Notifications\RequestAcceptedNotification;
+use App\Notifications\RequestApprovedNotification;
+use App\Notifications\RequestCancelledNotification;
+use App\Notifications\RequestReturnNotification;
+use App\Models\Asset;
 
 class RequestController extends Controller
 {
     public function index(){
         $requests = Requests::where('status', 'Open')->get(); 
-        return view('admin.admin-requests', compact('requests'));
+        $assets = $this->getAssetCategories();
+        
+        return view('admin.admin-requests', compact('requests', 'assets'));
     }
 
     public function adminRequest(Request $request){
@@ -47,12 +53,17 @@ class RequestController extends Controller
             $query->whereDate('created_at', $specificDate);
         }
         
+        $sort = $request->get('sort', 'desc');
         $query->orderBy('created_at', $sort);
 
         $requests = $query->get();
         $totalRequests = $requests->count();
  
-        return view('admin.user-requests', compact('requests', 'logs', 'totalRequests'));
+        return view('admin.user-requests', [
+            'requests' => $requests,
+            'totalRequests' => $totalRequests,
+            'assets' => $this->getAssetCategories(),
+        ]);
     }
 
     public function userRequest(Request $request, $userId = null)
@@ -61,13 +72,15 @@ class RequestController extends Controller
 
         $user = User::findOrFail($userId);
 
-        $logs = UserLog::with('request')
-    ->where('user_id', $userId) // logs created by this user
-    ->orWhereHas('request', function ($query) use ($userId) {
-        $query->where('requested_by', $userId); // logs related to user's requests
-    })
-    ->orderBy('updated_at', 'desc')
-    ->get();
+        $logs = UserLog::with([
+            'request.assetTransactions.asset'
+        ])
+        ->where('user_id', $userId)
+        ->orWhereHas('request', function ($query) use ($userId) {
+            $query->where('requested_by', $userId);
+        })
+        ->orderBy('updated_at', 'desc')
+        ->get();
 
         return view('admin.user-logs', compact('logs', 'user'));
     }
@@ -79,22 +92,34 @@ class RequestController extends Controller
 
     public function complete($id)
     {
-        $requestRecord = Requests::findOrFail($id); 
-        if( $requestRecord->status === 'Active'){
-            $requestRecord->status = 'Closed';
-            $requestRecord->save();
+        $requestRecord = Requests::findOrFail($id);
+
+        if ($requestRecord->status !== 'Active') {
+            return redirect()->back()->with('error', 'Request is not active.');
         }
 
-        return redirect()->back()->with('success', 'Request marked as completed.');
+        $requestRecord->status = 'Closed';
+        $requestRecord->save();
+
+        $assets = Asset::where('request_id', $requestRecord->id)->get();
+
+        foreach ($assets as $asset) {
+            $asset->update([
+                'asset_status' => 'Available',
+                'request_id' => null,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Request completed and assets released.');
     }
 
-    public function decline(Request $request, $id)
+    public function cancel(Request $request, $id)
     {
         $requestRecord = Requests::findOrFail($id);
 
         if ($requestRecord->status === 'Open') {
-            $requestRecord->status = 'Declined';
-            $requestRecord->decline_reason = $request->input('decline_reason');
+            $requestRecord->status = 'Cancelled';
+            $requestRecord->cancel_reason = $request->input('cancel_reason');
 
             // Set who handled and when
             $requestRecord->handled_by = auth()->id();
@@ -105,46 +130,14 @@ class RequestController extends Controller
             UserLog::create([
                 'user_id' => auth()->id(),
                 'request_id' => $requestRecord->id,
-                'action' => 'request_declined',
-                'description' => 'Declined request: ' . $requestRecord->event_name,
+                'action' => 'request_cancelled',
+                'description' => 'Cancelled request: ' . $requestRecord->event_name,
             ]);
         }
 
-        return redirect()->back()->with('success', 'Request declined with reason.');
-    }
-
-
-    public function cancel(Request $request, $id)
-    {
-        $requestRecord = Requests::findOrFail($id);
-
-        if ($requestRecord->status === 'Open') {
-            $requestRecord->status = 'Declined';
-            $requestRecord->cancel_reason = $request->input('cancel_reason');
-            $requestRecord->save();
-        }
-
-        UserLog::create([
-            'user_id' => auth()->id(),
-            'request_id' => $requestRecord->id,
-            'action' => 'request_cancelled',
-            'description' => 'Cancelled request: ' . $requestRecord->event_name,
-        ]);
-        
-        $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
-
-        foreach ($admins as $admin) {
-    $admin->notify(
-        new \App\Notifications\RequestEditedNotification(
-            auth()->user(),
-            $requestRecord->id,
-            $validated['event_name']
-        )
-    );
-}
-
         return redirect()->back()->with('success', 'Request cancelled with reason.');
     }
+
 
     public function store(Request $request){
         $validated = $request->validate([
@@ -161,6 +154,8 @@ class RequestController extends Controller
             'setup_time' => 'nullable',
             'location' => 'required|string',
             'users' => 'required|integer',
+            'requested_employee' => 'nullable|string',
+            'note' => 'nullable|string',
         ]);
 
         $requestedBy = auth()->id(); 
@@ -183,8 +178,10 @@ class RequestController extends Controller
             'status' => 'Open',
             'personnel_name' => $validated['personnel_name'] ?? null,
             'other_equipments' => $validated['other_equipments'] ?? null,
-            'decline_reason' => $validated['decline_reason'] ?? null,
             'cancel_reason' => $validated['cancel_reason'] ?? null,
+            'cancel_reason' => $validated['cancel_reason'] ?? null,
+            'requested_employee' => $validated['requested_employee'] ?? null,
+            'note' => $validated['note'] ?? null,
         ]);
         
         UserLog::create([
@@ -193,6 +190,8 @@ class RequestController extends Controller
             'action' => 'request_created',
             'description' => json_encode([
                 'event_name' => $validated['event_name'],
+                'requested_employee' => $validated['requested_employee'] ?? null,
+                'note' => $validated['note'] ?? null,
             ])
         ]);
         
@@ -211,6 +210,12 @@ class RequestController extends Controller
 
         $requestData = $validated;
         $requestData['requested_by'] = $userName;
+        
+        $requestData['setup_date'] = $validated['setup_date'] ?? null;
+        $requestData['setup_time'] = $validated['setup_time'] ?? null;
+        $requestData['users'] = $validated['users'] ?? null;
+        $requestData['requested_employee'] = $validated['requested_employee'] ?? null;
+        $requestData['note'] = $validated['note'] ?? null;
 
         Mail::to(config('mail.admin'))->send(
             new NewRequestNotification($requestData)
@@ -218,130 +223,169 @@ class RequestController extends Controller
 
         return redirect()->back()->with('success', 'Request submitted successfully!');
     }
+    
+    public function requestReturn($id)
+{
+    $requestRecord = Requests::findOrFail($id);
 
-    public function update(Request $request, $id)
-    {
-        $req = Requests::where('id', $id)
-            ->where('requested_by', auth()->id())
-            ->firstOrFail();
-            
-        if ($req->is_edited) {
-            return redirect()->back()->with('error', 'You can only edit this request once.');
-        }
+    if ($requestRecord->requested_by !== auth()->id()) {
+        abort(403);
+    }
 
-        $validated = $request->validate([
-            'representative_name' => 'required|string',
-            'event_name' => 'required|string',
-            'purpose' => 'required|string',
-            'items' => 'required|array|max:5',
-            'items.*.name' => 'required|string',
-            'items.*.quantity' => 'required|integer|min:1',
-            'other_purpose' => 'nullable|string',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
-            'setup_date' => 'nullable|date|before_or_equal:end_date',
-            'setup_time' => 'nullable',
-            'location' => 'required|string',
-            'users' => 'required|integer',
-        ]);
+    if ($requestRecord->status === 'Pending Return') {
+        return redirect()->back()->with('error', 'Return already requested.');
+    }
 
-        $req->representative_name = $validated['representative_name'];
-        $req->event_name = $validated['event_name'];
-        $req->purpose = $validated['purpose'];
-        $req->other_purpose = $validated['other_purpose'] ?? null;
-        $req->start_date = $validated['start_date'];
-        $req->end_date = $validated['end_date'];
-        $req->setup_date = $validated['setup_date'] ?? null;
-        $req->setup_time = $validated['setup_time'] ?? null;
-        $req->location = $validated['location'];
-        $req->users = $validated['users'];
-        $req->items = json_encode($validated['items']);
+    if ($requestRecord->status === 'Active') {
 
-        $req->is_edited = true;
-        
-        
-        $oldData = $req->getOriginal();
-
-        $req->representative_name = $validated['representative_name'];
-        $req->event_name = $validated['event_name'];
-        $req->purpose = $validated['purpose'];
-        $req->other_purpose = $validated['other_purpose'] ?? null;
-        $req->start_date = $validated['start_date'];
-        $req->end_date = $validated['end_date'];
-        $req->setup_date = $validated['setup_date'] ?? null;
-        $req->setup_time = $validated['setup_time'] ?? null;
-        $req->location = $validated['location'];
-        $req->users = $validated['users'];
-        $req->items = json_encode($validated['items']);
-
-        $req->is_edited = true;
-        $req->save();
-
-        $newData = $req->fresh()->toArray();
-        
-        
-        $req->save();
-        
-        $changes = [];
-
-        $fields = [
-            'representative_name',
-            'event_name',
-            'purpose',
-            'other_purpose',
-            'start_date',
-            'end_date',
-            'setup_date',
-            'setup_time',
-            'location',
-            'users',
-            'items',
-        ];
-
-        foreach ($fields as $field) {
-            $old = $oldData[$field] ?? null;
-            $new = $newData[$field] ?? null;
-
-            // normalize JSON fields
-            if ($field === 'items') {
-                $old = json_decode($old, true);
-                $new = json_decode($new, true);
-            }
-
-            if ($old != $new) {
-                $changes[$field] = [
-                    'old' => $old,
-                    'new' => $new,
-                ];
-            }
-        }
-        
-        UserLog::create([
-            'user_id' => auth()->id(),
-            'request_id' => $req->id,
-            'action' => 'request_edited',
-            'description' => json_encode($changes),
-        ]);
-        
-        
-        $user = auth()->user();
-        $userName = $user ? $user->name : 'Unknown User';
+        $requestRecord->status = 'Pending Return';
+        $requestRecord->save();
 
         $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
 
         foreach ($admins as $admin) {
             $admin->notify(
                 new \App\Notifications\RequestEditedNotification(
-                    auth()->user(),      
-                    $req->id,            
-                    $validated['event_name'], 
-                    'edited'             
+                    auth()->user(),
+                    $requestRecord->id,
+                    $requestRecord->event_name,
+                    'return_requested'
                 )
             );
         }
 
-        return redirect()->back()->with('success', 'Request updated successfully!');
+        UserLog::create([
+            'user_id' => auth()->id(),
+            'request_id' => $requestRecord->id,
+            'action' => 'return_requested',
+            'description' => 'User requested return for: ' . $requestRecord->event_name,
+        ]);
+
+        return redirect()->back()->with('success', 'Return request sent to admin.');
     }
+
+    return redirect()->back()->with('error', 'Invalid request state.');
+}
+
+public function update(Request $request, $id)
+{
+    $req = Requests::where('id', $id)
+        ->where('requested_by', auth()->id())
+        ->firstOrFail();
+
+    if ($req->is_edited) {
+        return redirect()->back()->with('error', 'You can only edit this request once.');
+    }
+
+    $validated = $request->validate([
+        'representative_name' => 'required|string',
+        'event_name' => 'required|string',
+        'purpose' => 'required|string',
+        'items' => 'required|array|max:20',
+        'items.*.name' => 'required|string',
+        'items.*.quantity' => 'required|integer|min:1',
+        'other_purpose' => 'nullable|string',
+        'start_date' => 'required|date',
+        'end_date' => 'required|date',
+        'setup_date' => 'nullable|date|before_or_equal:end_date',
+        'setup_time' => 'nullable',
+        'location' => 'required|string',
+        'users' => 'required|integer',
+        'requested_employee' => 'nullable|string',
+        'note' => 'nullable|string',
+    ]);
+
+    $oldData = $req->getOriginal();
+
+    $req->fill([
+        'representative_name' => $validated['representative_name'],
+        'event_name' => $validated['event_name'],
+        'purpose' => $validated['purpose'],
+        'other_purpose' => $validated['other_purpose'] ?? null,
+        'start_date' => $validated['start_date'],
+        'end_date' => $validated['end_date'],
+        'setup_date' => $validated['setup_date'] ?? null,
+        'setup_time' => $validated['setup_time'] ?? null,
+        'location' => $validated['location'],
+        'users' => $validated['users'],
+        'requested_employee' => $validated['requested_employee'] ?? null,
+        'note' => $validated['note'] ?? null,
+        'items' => $validated['items'],
+        'is_edited' => true,
+    ]);
+
+    $req->save();
+    
+    $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
+
+    $requestData = $req->fresh()->toArray();
+
+    foreach ($admins as $admin) {
+        Mail::to($admin->email)->send(
+            new EditedRequestNotification($requestData, $changes)
+        );
+    }
+
+
+    $newData = $req->fresh()->toArray();
+
+    $changes = [];
+
+    $fields = [
+        'representative_name',
+        'event_name',
+        'purpose',
+        'other_purpose',
+        'start_date',
+        'end_date',
+        'setup_date',
+        'setup_time',
+        'location',
+        'users',
+        'items',
+        'requested_employee',
+        'note',
+    ];
+
+    foreach ($fields as $field) {
+        $old = $oldData[$field] ?? null;
+        $new = $newData[$field] ?? null;
+
+        if ($field === 'items') {
+            $old = is_string($old) ? json_decode($old, true) : $old;
+            $new = is_string($new) ? json_decode($new, true) : $new;
+        }
+
+        if ($old != $new) {
+            $changes[$field] = [
+                'old' => $old,
+                'new' => $new,
+            ];
+        }
+    }
+
+    UserLog::create([
+        'user_id' => auth()->id(),
+        'request_id' => $req->id,
+        'action' => 'request_edited',
+        'description' => json_encode($changes),
+    ]);
+
+    $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
+
+    foreach ($admins as $admin) {
+        $admin->notify(
+            new \App\Notifications\RequestEditedNotification(
+                auth()->user(),
+                $req->id,
+                $validated['event_name'],
+                'edited'
+            )
+        );
+    }
+
+    return redirect()->back()->with('success', 'Request updated successfully!');
+}
 
     public function myLogs()
     {
@@ -393,22 +437,11 @@ class RequestController extends Controller
         return view('admin.user-requests', compact('requests', 'totalRequests'));
     }
 
-    public function getNotifications()
+
+
+    public function approve(Request $request, $id)
     {
-        $userId = auth()->id();
-
-        $notifications = UserLog::with('request')
-            ->where('user_id', $userId)
-            ->whereIn('action', ['request_accepted', 'request_declined'])
-            ->where('is_read', false)
-            ->orderBy('updated_at', 'desc')
-            ->get();
-
-        return response()->json($notifications);
-    }
-
-    public function accept(Request $request, $id)
-    {
+    
         $deploymentRequest = Requests::findOrFail($id); 
 
         $deploymentRequest->other_equipments = $request->other_equipments;
@@ -417,20 +450,37 @@ class RequestController extends Controller
         $deploymentRequest->handled_at = now();
         $deploymentRequest->save();
         
+        if ($request->has('asset_ids')) {
+            foreach ($request->asset_ids as $assetId) {
+
+                $asset = Asset::find($assetId);
+
+                if ($asset) {
+                    $asset->request_id = $deploymentRequest->id;
+                    $asset->asset_status = 'In Use';
+                    $asset->save();
+                }
+            }
+        }
+        
         $deploymentRequest->user->notify(
-            new RequestAcceptedNotification($deploymentRequest)
+            new RequestApprovedNotification(
+                $deploymentRequest,
+                auth()->user()
+            )
         );
-
+        
         UserLog::create([
-            'user_id' => $deploymentRequest->requested_by,
+            'user_id' => auth()->id(),
             'request_id' => $deploymentRequest->id,
-            'action' => 'request_accepted',
-            'description' => 'Your request "' . $deploymentRequest->event_name . '" has been accepted.',
-            'is_read' => false
+            'action' => 'request_approved',
+            'description' => 'Approved request: ' . $deploymentRequest->event_name,
         ]);
-
+        
         return redirect()->back()->with('success', 'Request updated successfully.');
     }
+    
+
 
     public function getAdminNotifications()
     {
@@ -566,30 +616,58 @@ class RequestController extends Controller
         return response()->stream($callback, 200, $headers);
     }
     
-public function getUserNotifications()
-{
-    return auth()->user()->notifications()
-        ->whereIn('type', [
-            \App\Notifications\RequestAcceptedNotification::class,
-            \App\Notifications\RequestRejectedNotification::class,
-        ])
-        ->latest()
-        ->take(20)
-        ->get()
-        ->map(function ($notif) {
-            $data = $notif->data;
+    public function getUserNotifications()
+    {
+        return auth()->user()->notifications()
+            ->whereIn('type', [
+                \App\Notifications\RequestApprovedNotification::class,
+                \App\Notifications\RequestRejectedNotification::class,
+            ])
+            ->latest()
+            ->take(20)
+            ->get()
+            ->map(function ($notif) {
+                $data = $notif->data;
 
-            return [
-                'id' => $notif->id,
-                'message' => $data['message'] ?? '',
-                'type' => $notif->type,
-                'type_label' => $data['type_label'] ?? $data['action'] ?? '',
-                'data' => $data,
-                'is_read' => $notif->read_at ? true : false,
-                'request_id' => $data['request_id'] ?? null,
-                'created_at' => optional($notif->created_at)->format('M d, Y h:i A'),
-            ];
-        });
-}
+                return [
+                    'id' => $notif->id,
+                    'message' => $data['message'] ?? '',
+                    'type' => $notif->type,
+                    'type_label' => $data['type_label'] ?? $data['action'] ?? '',
+                    'data' => $data,
+                    'is_read' => $notif->read_at ? true : false,
+                    'request_id' => $data['request_id'] ?? null,
+                    'created_at' => optional($notif->created_at)->format('M d, Y h:i A'),
+                ];
+            });
+    }
+
+
+    public function edit($id)
+    {
+        $request = Requests::where('id', $id)
+            ->where('requested_by', auth()->id())
+            ->firstOrFail();
+
+        if ($request->is_edited) {
+            return response()->json([
+                'message' => 'You are not allowed to edit this request anymore.'
+            ], 403);
+        }
+
+        return view('admin.edit', [
+            'request' => $request,
+            'assets' => $this->getAssetCategories()
+        ]);
+    }
+    
+    private function getAssetCategories()
+    {
+        return Asset::where('asset_status', 'Available')
+            ->pluck('asset_category')
+            ->unique()
+            ->values();
+    }
+    
 }
 

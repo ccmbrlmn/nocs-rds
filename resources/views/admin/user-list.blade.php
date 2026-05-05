@@ -27,7 +27,8 @@
 
         $isAllowedAdmin = in_array(auth()->user()->email, $allowedAdmins);
     @endphp
-
+    
+    <div class="mx-3 flex items-center justify-between flex-wrap gap-2">
         @include('layouts.filter', [
             'routeName' => 'admin.users',
 
@@ -39,7 +40,6 @@
             ],
 
             'dateFilters' => [
-                null => 'All Time',
                 '30_days' => '30 Days',
                 '7_days' => '7 Days',
                 '24_hours' => '24 Hours'
@@ -47,40 +47,40 @@
 
             'exportPdf' => 'admin.users.pdf',
             'exportCsv' => 'admin.users.csv',
-            
-            'rightSlot' => '
-' . (
-    $isAllowedAdmin
-    ? '<a href="'.route('register').'"
-        class="px-4 py-2 rounded-xl text-sm font-medium transition
-               bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
-               hover:bg-blue-100 dark:hover:bg-gray-600
-               border border-gray-200 dark:border-gray-600
-               shadow-sm
-               flex items-center justify-center gap-2 whitespace-nowrap shrink-0">
-
-        <span x-show="$root.sidebarExpanded"
-              x-transition
-              class="transition-all duration-200">
-            Add User
-        </span>
-
-      </a>'
-      
-    : '<button onclick="alert(\'You are not allowed to create users.\')"
-        class="px-4 py-2 rounded-xl text-sm font-medium
-               bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-400
-               border border-gray-200 dark:border-gray-600
-               cursor-not-allowed
-               shadow-sm
-               flex items-center justify-center gap-2 whitespace-nowrap shrink-0">
-
-        <span>Add User</span>
-
-      </button>'
-)
-            
+             
         ])
+            
+      
+    {{-- ADD USER (RIGHTMOST) --}}
+    @if($isAllowedAdmin)
+        <a href="{{ route('register') }}"
+                class="px-4 py-2 rounded-xl text-sm font-medium transition
+                       bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
+                       hover:bg-blue-100 dark:hover:bg-gray-600
+                       border border-gray-200 dark:border-gray-600
+                       shadow-sm
+                       flex items-center justify-center gap-2 whitespace-nowrap shrink-0">
+
+                <span x-show="$root.sidebarExpanded"
+                      x-transition
+                      class="transition-all duration-200">
+                    Add User
+                </span>
+      </a>
+    @else
+        <button onclick="alert(\'You are not allowed to create users.\')"
+                class="px-4 py-2 rounded-xl text-sm font-medium
+                       bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-400
+                       border border-gray-200 dark:border-gray-600
+                       cursor-not-allowed
+                       shadow-sm
+                       flex items-center justify-center gap-2 whitespace-nowrap shrink-0">
+
+                <span>Add User</span>
+        </button>
+    @endif
+
+</div>
     
 <div class="request-history-list rounded-xl shadow overflow-hidden mx-10">
 

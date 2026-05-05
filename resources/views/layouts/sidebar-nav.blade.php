@@ -27,6 +27,18 @@
                             <span class="material-symbols-outlined">dashboard</span> Dashboard
                         </a>
                     </li>
+                    
+                    <li>
+<a href="{{ route('admin.assets') }}"
+   class="flex items-center gap-2
+          text-gray-700 dark:text-gray-300
+          {{ request()->routeIs('admin.assets') ? 'active text-blue-600 dark:text-blue-400' : '' }}">
+
+                            <span class="material-symbols-outlined">inventory_2</span>
+
+                            Assets
+                        </a>
+                    </li>
 
                     <li>
                         <a href="{{ route('admin.requests') }}"
@@ -47,7 +59,7 @@
                            class="flex items-center gap-2
                                   text-gray-700 dark:text-gray-300
                                   {{ Route::is('admin.created-admins') ? 'active text-blue-600 dark:text-blue-400' : '' }}">
-                            <span class="material-symbols-outlined">admin_panel_settings</span> My Admins
+                            <span class="material-symbols-outlined">admin_panel_settings</span> Admins
                         </a>
                     </li>
                     @endif

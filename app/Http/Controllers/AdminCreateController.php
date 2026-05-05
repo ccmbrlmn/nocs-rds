@@ -21,12 +21,10 @@ class AdminCreateController extends Controller
         ->first()
         ->id;
 
-        if (auth()->id() === $firstAdminId) {
-            return back()->withErrors([
-                'email' => 'The first admin is not allowed to create additional admin accounts.'
-            ]);
+        if (auth()->id() !== $firstAdminId) {
+            abort(403, 'Only the first admin can create other admins.');
         }
-
+        
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => [

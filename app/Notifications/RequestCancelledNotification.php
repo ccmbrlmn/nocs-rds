@@ -5,11 +5,11 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
-class RequestAcceptedNotification extends Notification
+class RequestCancelledNotification extends Notification
 {
     use Queueable;
 
-    public $request;
+    protected $request;
 
     public function __construct($request)
     {
@@ -24,12 +24,15 @@ class RequestAcceptedNotification extends Notification
     public function toDatabase($notifiable)
     {
         return [
+            'request_id' => $this->request->id,
+            'message' => "Your request '{$this->request->event_name}' was cancelled. Reason: {$this->request->cancel_reason}",
+            'type' => 'request_cancelled',
             'user_id' => $notifiable->id,
             'user_name' => $notifiable->name,
+            'actor_name' => auth()->user()->name,
             'request_id' => $this->request->id,
             'request_name' => $this->request->event_name,
-            'type' => 'request_accepted',
-            'message' => 'Your request "' . $this->request->event_name . '" has been accepted.',
+            'type' => 'request_cancelled',
         ];
     }
 }

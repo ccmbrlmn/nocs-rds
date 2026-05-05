@@ -25,38 +25,49 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
-    {
-        $user = $request->user();
-        
-        $request->user()->fill($request->validated());
+public function update(ProfileUpdateRequest $request): RedirectResponse
+{
+    $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+    $original = $user->getOriginal();
+
+    $data = $request->validated();
+
+    $changes = [];
+
+    foreach ($data as $field => $newValue) {
+        $oldValue = $original[$field] ?? null;
+
+        if ($oldValue != $newValue) {
+            $changes[$field] = [
+                'old' => $oldValue ?? 'N/A',
+                'new' => $newValue
+            ];
         }
-
-        $request->user()->save();
-        
-        $admins = \App\Models\User::whereIn('role', ['admin', 'first_admin'])->get();
-
-        $firstAdmin = \App\Models\User::where('role', 'admin')
-            ->orderBy('created_at')
-            ->first();
-
-        if ($firstAdmin && $firstAdmin->id !== $user->id) {
-            $firstAdmin->notify(new \App\Notifications\UserProfileUpdatedNotification($user));
-        }
-        
-        UserLog::create([
-            'user_id' => $user->id,
-            'action' => 'profile_updated',
-            'request_id' => null,
-            'status' => 'Updated',
-            'event_name' => 'Profile Updated',
-        ]);
-
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
+
+    $user->fill($data);
+
+    if (isset($data['email']) && $user->isDirty('email')) {
+        $user->email_verified_at = null;
+    }
+
+    $user->save();
+    
+    $descriptionArray = $changes;
+
+    UserLog::create([
+        'actor_id' => $user->id,
+        'user_id' => $user->id,
+        'action' => 'profile_updated',
+            'description' => json_encode($descriptionArray),
+        'request_id' => null,
+        'status' => 'Updated',
+        'event_name' => 'Profile Updated',
+    ]);
+
+    return Redirect::route('profile.edit');
+}
 
     /**
      * Delete the user's account.
@@ -69,14 +80,14 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        // Set pending deletion
         $user->deletion_status = 'pending';
         $user->save();
         
         UserLog::create([
+            'actor_id' => $user->id,
             'user_id' => $user->id,
             'action' => 'user_delete_requested',
-            'request_id' => null, // no request involved
+            'request_id' => null,
             'status' => 'Pending',
             'event_name' => 'Account Deletion Requested',
         ]);

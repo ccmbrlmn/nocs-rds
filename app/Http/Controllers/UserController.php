@@ -29,13 +29,17 @@ public function logs($id)
                 'user_registered' => 'User Registration',
                 'profile_updated' => 'Profile Updated',
                 'user_delete_requested' => 'Account Deletion Requested',
+                
+                'user_updated' => 'Edited User',
+                'user_deleted' => 'Deleted User',
+                'user_restored' => 'Restored User',
 
                 default => '-',
             };
 
             if ($log->request_id) {
                 $request = Requests::find($log->request_id);
-                $log->request_name = $request->title ?? 'Unnamed Request';
+                $log->request_name = $request->event_name ?? 'Unnamed Request';
             } else {
                 $log->request_name = '-';
             }
@@ -62,61 +66,63 @@ public function logs($id)
         return view('admin.user-edit', compact('user'));
     }
 
-    public function update(Request $request, User $user)
-    {
-        $firstAdmin = User::where('role', 'admin')->orderBy('id')->first();
+public function update(Request $request, User $user)
+{
+    $oldUser = clone $user; // or $user->replicate()
 
-        if ($firstAdmin && $firstAdmin->id !== auth()->id()) {
-            $firstAdmin->notify(new class($user) extends \Illuminate\Notifications\Notification {
-            protected $user;
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $user->id,
+        'office' => 'required|string|max:255', 
+    ]);
 
-            public function __construct($user) {
-                $this->user = $user;
-            }
+    $user->update([
+        'name' => $request->name,
+        'email' => $request->email,
+        'office' => $request->office,
+    ]);
 
-            public function via($notifiable) {
-                return ['database'];
-            }
+    $changes = [];
 
-            public function toDatabase($notifiable) {
-                return [
-                    'type' => 'user_management',
-                    'action' => 'updated',
-                    'user_id' => $this->user->id,
-                    'user_name' => $this->user->name,
-                    'actor_name' => auth()->user()->name,
-                ];
-            }
-        });
-        }
-
-        if (auth()->user()->role !== 'admin') {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'office' => 'required|string|max:255', 
-        ]);
-
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'office' => $request->office,
-        ]);
-        
-        UserLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'user_updated',
-            'target_user_id' => $user->id,
-            'target_user_name' => $user->name,
-            'actor_name' => auth()->user()->name,
-            'updated_at' => now(),
-        ]);
-        
-        return redirect()->route('admin.users')->with('success', 'User updated successfully.');
+    if ($request->name !== $oldUser->name) {
+        $changes['name'] = [
+            'old' => $oldUser->name,
+            'new' => $request->name,
+        ];
     }
+
+    if ($request->email !== $oldUser->email) {
+        $changes['email'] = [
+            'old' => $oldUser->email,
+            'new' => $request->email,
+        ];
+    }
+
+    if ($request->office !== $oldUser->office) {
+        $changes['office'] = [
+            'old' => $oldUser->office,
+            'new' => $request->office,
+        ];
+    }
+
+    UserLog::create([
+        'actor_id' => auth()->id(),
+        'user_id' => $user->id,
+
+        'action' => auth()->id() === $user->id
+            ? 'profile_updated'
+            : 'user_updated',
+
+        'description' => json_encode($changes),
+
+        'target_user_id' => $user->id,
+        'target_user_name' => $user->name,
+        'actor_name' => auth()->user()->name,
+        'updated_at' => now(),
+    ]);
+
+    return redirect()->route('admin.users')->with('success', 'User updated successfully.');
+}
 
     public function destroy(User $user)
     {
@@ -153,7 +159,8 @@ public function logs($id)
         $user->delete();
         
         UserLog::create([
-            'user_id' => auth()->id(),
+            'actor_id' => auth()->id(),
+            'user_id' => $user->id,
             'action' => 'user_deleted',
             'target_user_id' => $user->id,
             'target_user_name' => $user->name,
@@ -176,7 +183,8 @@ public function approve(User $user)
     ]);
 
     UserLog::create([
-        'user_id' => auth()->id(),
+        'actor_id' => auth()->id(),
+        'user_id' => $user->id,
         'action' => 'user_approved',
         'target_user_id' => $user->id,
         'target_user_name' => $user->name,
@@ -370,7 +378,8 @@ public function approve(User $user)
         $user->restore();
         
         UserLog::create([
-            'user_id' => auth()->id(),
+            'actor_id' => auth()->id(),
+            'user_id' => $user->id,
             'action' => 'user_restored',
             'target_user_id' => $user->id,
             'target_user_name' => $user->name,

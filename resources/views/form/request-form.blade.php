@@ -2,216 +2,340 @@
      x-cloak
      class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center px-4">
 
-    <div class="bg-white dark:bg-gray-800 dark:text-gray-200 rounded-lg w-full max-w-5xl p-6">
-        <div class="flex justify-end">
-            <button @click="openRequestForm = false" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white">
-                <span class="material-symbols-outlined">close</span>
-            </button>
+    <div class="bg-white dark:bg-gray-800 dark:text-gray-200 
+                rounded-2xl w-full max-w-5xl 
+                max-h-[90vh] flex flex-col shadow-xl">
+
+<div x-data="clock()" x-init="start()"
+     class="flex justify-between items-center px-6 pt-6 pb-2 border-b dark:border-gray-700">
+
+    <!-- LEFT -->
+    <h1 class="text-lg font-semibold">Request Form</h1>
+
+    <!-- RIGHT -->
+    <div class="flex items-center gap-4">
+
+        <!-- DATE & TIME -->
+        <div class="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
+            <span x-text="formattedDate"></span>
+            <span class="mx-1">•</span>
+            <span x-text="formattedTime"></span>
         </div>
 
-        <h1 class="form-header mb-5 text-center dark:text-gray-200">Request Form</h1>
+        <!-- CLOSE BUTTON -->
+        <button @click="openRequestForm = false"
+                class="text-gray-500 hover:text-gray-700 dark:hover:text-white">
+            <span class="material-symbols-outlined">close</span>
+        </button>
 
-        <form action="{{ route('requests.store') }}" method="POST">
+    </div>
+</div>
+
+        <!-- FORM -->
+        <form action="{{ route('requests.store') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
             @csrf
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <div class="mb-4">
-                    <x-input-label for="representative_name" value="Name of Representative" />
-                    <x-text-input id="representative_name" class="block mt-1 w-full" type="text" name="representative_name" required />
-                </div>
 
-                <div class="mb-4">
-                    <x-input-label for="event_name" value="Name of Event" />
-                    <x-text-input id="event_name" class="block mt-1 w-full" type="text" name="event_name" required />
-                </div>
+            <!-- SCROLLABLE BODY -->
+            <div class="overflow-y-auto px-6 py-4">
 
-                <div class="mb-4">
-                    <x-input-label for="purpose" value="Purpose of the Event" />
-                    <select id="purpose" name="purpose"
-                            class="block mt-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
-                            onchange="toggleOtherInput()">
-                        <option value="Conference">Conference</option>
-                        <option value="VideoCon">Video Con</option>
-                        <option value="Training">Training</option>
-                        <option value="Others">Others</option>
-                    </select>
-                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-                <div id="other_purpose" class="mb-4 hidden">
-                    <x-input-label for="other_purpose" value="Specify Purpose" />
-                    <input type="text" id="other_purpose" name="other_purpose"
-                           class="block mt-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                </div>
-                
-                <div 
-                    x-data="{
-                        maxItems: 20,
-                        items: [{ name: '', quantity: 1 }]
-                    }" 
-                    class="mb-4"
-                >
+                    <!-- LEFT SIDE -->
+                    <div>
 
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        Requested Items
-                    </label>
-                    
-                    <template x-for="(item, index) in items" :key="index">
-                    <div class="flex gap-3 mb-3 items-center">
-                        <input type="text"
-                               :name="`items[${index}][name]`"
-                               x-model="item.name"
-                               class="w-full h-10 px-3 rounded-md border-gray-300 shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
-                               required>
+                        <div class="mb-4">
+                            <x-input-label for="representative_name" value="Name of Representative" />
+                            <x-text-input id="representative_name" class="block mt-1 w-full" type="text" name="representative_name" required />
+                        </div>
 
-                        <input type="number"
-                               :name="`items[${index}][quantity]`"
-                               x-model="item.quantity"
-                               min="1"
-                               class="w-24 h-10 px-2 rounded-md border-gray-300 shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
-                               required>
+                        <div class="mb-4">
+                            <x-input-label for="requested_employee" value="Requested Employee (Optional)" />
+                            <x-text-input id="requested_employee" class="block mt-1 w-full"
+                                          type="text" name="requested_employee"
+                                          placeholder="Enter employee name (if any)" />
+                        </div>
 
-                        <button type="button"
-                                x-show="items.length > 1"
-                                @click="items.splice(index, 1)"
-                                class="flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-700">
-                            ✕
-                        </button>
-                    </div>
-                </template>
-                    <button type="button"
-                            @click="if (items.length < maxItems) items.push({ name: '', quantity: 1 })"
-                            x-show="items.length < maxItems"
-                            class="text-sm text-blue-600 hover:underline mt-2">
-                        + Add item
-                    </button>
+                        <div class="mb-4">
+                            <x-input-label for="event_name" value="Name of Event" />
+                            <x-text-input id="event_name" class="block mt-1 w-full" type="text" name="event_name" required />
+                        </div>
 
-                    <p x-show="items.length >= maxItems"
-                       class="text-xs text-red-500 mt-1">
-                        Maximum of 5 items only.
-                    </p>
-                </div>
-                </div>
+<div x-data="{ purpose: '' }" class="mb-6">
+    <x-input-label for="event_name" value="Purpose" />
+    <select id="purpose"
+            name="purpose"
+            x-model="purpose"
+            class="block mt-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
 
-            <div>
-                <div class="mb-4 flex gap-4">
-                    <div class="w-full">
-                        <x-input-label for="start_date" value="Start Date" />
-                        <input id="start_date" type="date" name="start_date"
-                               class="block mt-1 w-full border-gray-300 rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                    </div>
-                    <div class="w-full">
-                        <x-input-label for="end_date" value="End Date" />
-                        <input id="end_date" type="date" name="end_date"
-                               class="block mt-1 w-full border-gray-300 rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                    </div>
-                </div>
+        <option value="Conference">Conference</option>
+        <option value="VideoCon">Video Con</option>
+        <option value="Training">Training</option>
+        <option value="Others">Others</option>
+    </select>
 
-                <div class="mb-4 flex gap-4">
-                    <div class="w-full">
-                        <x-input-label for="setup_date" value="Set up Date" />
-                        <input id="setup_date" type="date" name="setup_date"
-                               class="block mt-1 w-full border-gray-300 rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                    </div>
-                    <div class="w-full">
-                        <x-input-label for="setup_time" value="Set up Time" />
-                        <input id="setup_time" type="time" name="setup_time"
-                               class="block mt-1 w-full border-gray-300 rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <x-input-label for="location" value="Location" />
-                    <x-text-input id="location" class="block mt-1 w-full" type="text" name="location" required />
-                </div>
-
-                <div class="mb-6">
-                    <x-input-label for="users" value="No. of Users" />
-                    <x-text-input id="users" class="block mt-1 w-full" type="number" name="users" required />
-                </div>
-            </div>
-            </div>
-            
-            <div x-data="{ openTerms: false }" class="mb-4">
-
-    <div class="flex items-start gap-2">
-        <input type="checkbox"
-               id="terms_agreement"
-               name="terms_agreement"
-               required
-               onclick="toggleSubmitButton()"
-               class="mt-1">
-
-        <label for="terms_agreement" class="text-sm text-gray-700 dark:text-gray-200">
-            I have read and agree to the 
-            <span @click="openTerms = true" 
-                  class="text-blue-600 underline cursor-pointer">
-                terms and conditions
-            </span>.
-        </label>
+    <div x-show="purpose === 'Others'" x-transition class="mt-3 mb-6">
+        <x-input-label for="other_purpose" value="Specify Purpose" />
+        <input type="text" name="other_purpose"
+               class="block mt-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
     </div>
 
-<div x-show="openTerms" x-cloak
-     class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4">
-    <div class="bg-white dark:bg-gray-700 rounded-lg w-full max-w-2xl p-6 shadow-lg"
-         @click.away="openTerms = false">
-        <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Terms and Conditions & Liability</h2>
-        <div class="h-64 overflow-y-auto mb-4 text-sm text-gray-700 dark:text-gray-200 dark:text-gray-200 border p-3 rounded">
-            <p><strong>Liability:</strong> Any borrowed items will be your responsibility. Damages or losses incurred during the event will be shouldered by the requester.</p>
-            <p><strong>Usage:</strong> Borrowed items must be returned in the same condition as received. Any misuse or negligence is prohibited.</p>
-            <p><strong>Compliance:</strong> By agreeing, you acknowledge that you understand these terms and will comply with all policies.</p>
-        </div>
-
-        <div class="flex justify-end gap-3">
-            <button @click="openTerms = false"
-                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                I Accept
-            </button>
-        </div>
-    </div>
 </div>
+                        
+
+                        <!-- ITEMS -->
+                        <div x-data="{
+                                maxItems: 20,
+                                items: [],
+                                showAssets: false,
+                                assets: @js($assets ?? []),
+
+                                init() {
+                                    console.log('REQUEST FORM LOADED');
+                                    console.log('assets:', this.assets);
+                                }
+                            }"
+                            class="mb-4">
+
+
+                            <x-input-label for="items" value="Requested Items" class="mb-2" />
+                            
+<div class="flex items-center justify-between mt-3 mb-3">
+
+    <!-- LEFT: Browse Available Items -->
+    <div class="relative">
+        <button type="button"
+                @click="showAssets = !showAssets"
+                class="text-sm text-indigo-600 hover:underline
+                       active:scale-95 transition-transform duration-100">
+            <span x-text="showAssets ? 'Hide Available Items' : 'Browse Available Items'"></span>
+        </button>
+
+        <!-- ASSET LIST -->
+        <div x-show="showAssets"
+             x-transition
+             class="absolute z-10 mt-2 w-64 p-3 border rounded-lg 
+                    bg-gray-50 dark:bg-gray-900 max-h-40 overflow-auto shadow-lg">
+
+            <template x-if="assets.length === 0">
+                <p class="text-sm text-gray-500">No items available</p>
+            </template>
+
+            <template x-for="(asset, index) in assets" :key="asset + '-' + index">
+                <button type="button"
+                        @click="items.push({ name: asset, quantity: 1, id: Date.now() }); showAssets = false"
+                        class="block w-full text-left px-2 py-1 rounded
+                               hover:bg-gray-200 dark:hover:bg-gray-700
+                               active:scale-95 transition">
+                    <span x-text="asset"></span>
+                </button>
+            </template>
+
+        </div>
+    </div>
+
+    <!-- RIGHT: Add Item -->
+    <button type="button"
+            @click="if (items.length < maxItems) items.push({ name: '', quantity: 1, id: Date.now() })"
+            class="text-sm text-blue-600 hover:underline
+                   active:scale-95 transition-transform duration-100">
+        + Add item
+    </button>
 
 </div>
 
 
+                            <!-- ITEMS CONTAINER -->
+                            <div class="max-h-52 overflow-y-auto pr-2 border rounded-lg p-2 bg-gray-50 dark:bg-gray-900">
 
-            <div class="mt-4">
-                <x-primary-button id="submit_button" class="w-full bg-indigo-600 text-white hover:bg-indigo-700" disabled>
-                    {{ __('Submit') }}
+                                <template x-for="(item, index) in items" :key="item.id">
+                                    <div class="flex gap-3 mb-2 items-center bg-white dark:bg-gray-800 p-2 rounded-lg shadow-sm">
+
+                                        <input type="text"
+                                               :name="`items[${index}][name]`"
+                                               x-model="item.name"
+                                               class="w-full h-10 px-3 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
+                                               required>
+
+                                        <input type="number"
+                                               :name="`items[${index}][quantity]`"
+                                               x-model="item.quantity"
+                                               min="1"
+                                               class="w-24 h-10 px-2 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
+                                               required>
+
+                                        <button type="button"
+                                                x-show="items.length > 1"
+                                                @click="items.splice(index, 1)"
+                                                class="text-red-500 hover:text-red-700">
+                                            ✕
+                                        </button>
+                                    </div>
+                                </template>
+                                
+                        
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT SIDE -->
+                    <div>
+
+                        <div class="mb-4 flex gap-4">
+                            <div class="w-full">
+                                <x-input-label for="start_date" value="Start Date" />
+                                <input type="date" name="start_date" required
+                                       class="block mt-1 w-full rounded-md border-gray-300 dark:bg-gray-900 dark:text-gray-200">
+                            </div>
+
+                            <div class="w-full">
+                                <x-input-label for="end_date" value="End Date" />
+                                <input type="date" name="end_date" required
+                                       class="block mt-1 w-full rounded-md border-gray-300 dark:bg-gray-900 dark:text-gray-200">
+                            </div>
+                        </div>
+
+                        <div class="mb-4 flex gap-4">
+                            <div class="w-full">
+                                <x-input-label for="setup_date" value="Set up Date" />
+                                <input type="date" name="setup_date" required
+                                       class="block mt-1 w-full rounded-md border-gray-300 dark:bg-gray-900 dark:text-gray-200">
+                            </div>
+
+                            <div class="w-full">
+                                <x-input-label for="setup_time" value="Set up Time" />
+                                <input type="time" name="setup_time"
+                                       class="block mt-1 w-full rounded-md border-gray-300 dark:bg-gray-900 dark:text-gray-200">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <x-input-label for="location" value="Location" />
+                            <x-text-input name="location" class="block mt-1 w-full" type="text" required />
+                        </div>
+
+                        <div class="mb-6">
+                            <x-input-label for="users" value="No. of Users" />
+                            <x-text-input name="users" class="block mt-1 w-full" type="number" required />
+                        </div>
+
+                        <div class="mb-4">
+                            <x-input-label for="note" value="Notes (Optional)" />
+                            <textarea name="note"
+                                      rows="3"
+                                      class="block mt-1 w-full rounded-md dark:bg-gray-900 dark:text-gray-200"></textarea>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- TERMS -->
+                <div x-data="{ openTerms: false }" class="mt-4">
+                    <div class="flex items-start gap-2">
+                        <input type="checkbox"
+                               id="terms_agreement"
+                               name="terms_agreement"
+                               required
+                               onclick="toggleSubmitButton()"
+                               class="mt-1">
+
+                        <label class="text-sm">
+                            I have read and agree to the 
+                            <span @click="openTerms = true" 
+                                  class="text-blue-600 underline cursor-pointer">
+                                terms and conditions
+                            </span>.
+                        </label>
+                    </div>
+
+                    <!-- TERMS MODAL -->
+                    <div x-show="openTerms" x-cloak
+                         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4">
+
+                        <div class="bg-white dark:bg-gray-700 rounded-lg w-full max-w-2xl p-6 shadow-lg"
+                             @click.away="openTerms = false">
+
+                            <h2 class="text-xl font-semibold mb-4">
+                                Terms and Conditions & Liability
+                            </h2>
+
+                            <div class="h-64 overflow-y-auto mb-4 text-sm border p-3 rounded">
+                                <p><strong>Liability:</strong> Any borrowed items will be your responsibility...</p>
+                                <p><strong>Usage:</strong> Borrowed items must be returned...</p>
+                                <p><strong>Compliance:</strong> By agreeing, you acknowledge...</p>
+                            </div>
+
+                            <div class="flex justify-end">
+                                <button @click="openTerms = false"
+                                        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">
+                                    I Accept
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="p-6 border-t dark:border-gray-700">
+                <x-primary-button id="submit_button" class="w-full bg-gray-400 text-white" disabled>
+                    Submit
                 </x-primary-button>
             </div>
-          
+
         </form>
     </div>
 </div>
 
+<script>
+function toggleOtherInput() {
+    const purpose = document.getElementById('purpose');
+    const other = document.getElementById('other_purpose');
+    other.classList.toggle('hidden', purpose.value !== 'Others');
+}
 
+function toggleSubmitButton() {
+    const cb = document.getElementById('terms_agreement');
+    const btn = document.getElementById('submit_button');
 
-
+    btn.disabled = !cb.checked;
+    btn.classList.toggle('bg-indigo-600', cb.checked);
+    btn.classList.toggle('bg-gray-400', !cb.checked);
+}
+</script>
 
 <script>
-    function toggleOtherInput() {
-        const purposeSelect = document.getElementById('purpose');
-        const otherInputDiv = document.getElementById('other_purpose');
+function clock() {
+    return {
+        now: new Date(),
 
-        if (purposeSelect.value === 'Others') {
-            otherInputDiv.classList.remove('hidden');
-        } else {
-            otherInputDiv.classList.add('hidden');
+        start() {
+            this.update();
+            setInterval(() => this.update(), 1000);
+        },
+
+        update() {
+            this.now = new Date();
+        },
+
+        get formattedDate() {
+            return this.now.toLocaleDateString(undefined, {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        },
+
+        get formattedTime() {
+            return this.now.toLocaleTimeString(undefined, {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
         }
     }
-
-    function toggleSubmitButton() {
-        const checkbox = document.getElementById('terms_agreement');
-        const submitButton = document.getElementById('submit_button');
-
-        if (checkbox.checked) {
-            submitButton.classList.remove('bg-gray-400');
-            submitButton.classList.add('bg-blue-600');
-            submitButton.disabled = false;
-        } else {
-            submitButton.classList.add('bg-gray-400');
-            submitButton.classList.remove('bg-blue-600');
-            submitButton.disabled = true;
-        }
-    }
+}
 </script>

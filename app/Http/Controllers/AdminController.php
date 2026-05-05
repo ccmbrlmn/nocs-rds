@@ -9,6 +9,7 @@ use App\Models\UserLog;
 
 class AdminController extends Controller
 {
+
 public function logs($id)
 {
     $admin = User::withTrashed()
@@ -16,66 +17,42 @@ public function logs($id)
         ->where('role', 'admin')
         ->firstOrFail();
 
-    $userLogs = UserLog::with('user')
-        ->where(function ($query) use ($admin) {
-            $query->where('user_id', $admin->id);
+    $adminLogs = UserLog::where(function ($q) use ($admin) {
+            $q->where('actor_id', $admin->id)
+              ->orWhere('target_user_id', $admin->id)
+              ->orWhere('user_id', $admin->id);
         })
-        ->get();
+        ->latest()
+        ->get()
+        ->map(function ($log) {
 
-    $handledRequests = UserRequest::with(['user'])
-        ->where('handled_by', $admin->id)
-        ->get();
-
-    $combinedLogs = $userLogs->map(function ($log) {
-
-        $actorName = $log->actor_name
-            ?? optional($log->user)->name
-            ?? 'System';
-
-        $targetUser = null;
-
-        if ($log->target_user_id) {
-            $targetUser = \App\Models\User::withTrashed()
-                ->where('id', $log->target_user_id)
-                ->first();
-        }
-
-        $targetName = $targetUser?->name
-    ?? $log->target_user_name
-    ?? null;
-
-        return [
-            'type' => 'user_log',
-            'id' => $log->id,
-            'action' => $log->action,
-            'updated_at' => $log->updated_at,
-
-            'actor_name' => $actorName,
-            'target_user_name' => $targetName,
-            'target_user_id' => $log->target_user_id,
-
-            'user_name' => optional($log->user)->name,
-            'log' => $log,
-        ];
-    })->merge(
-        $handledRequests->map(function ($req) {
             return [
-                'type' => 'handled_request',
-                'id' => $req->id,
-                'status' => $req->status,
-                'handled_at' => $req->handled_at ?? $req->created_at,
-                'event_name' => $req->event_name,
-                'user_name' => optional($req->user)->name ?? 'N/A',
-                'log' => $req
-            ];
-        })
-    )->sortByDesc(function ($item) {
-        return $item['type'] === 'user_log'
-            ? $item['updated_at']
-            : $item['handled_at'];
-    });
+                'type' => 'admin_log',
+                'id' => $log->id,
+                'action' => $log->action,
 
-    return view('auth.admin-logs', compact('admin', 'combinedLogs'));
+                'event_name' => match ($log->action) {
+                    'user_updated' => 'Edited User Account',
+                    'user_deleted' => 'Deleted User Account',
+                    'user_restored' => 'Restored User Account',
+                    'user_approved' => 'Approved User Registration',
+
+                    'profile_updated' => 'Updated Profile',
+
+                    default => ucfirst(str_replace('_', ' ', $log->action)),
+                },
+
+                'description' => $log->description,
+                'updated_at' => $log->created_at,
+                'target_user_name' => $log->target_user_name,
+                'target_user_id' => $log->target_user_id,
+            ];
+        });
+
+    return view('auth.admin-logs', [
+        'admin' => $admin,
+        'combinedLogs' => $adminLogs
+    ]);
 }
 
     public function listUsers(Request $request)
@@ -91,7 +68,7 @@ public function logs($id)
                     $query->where('is_approved', true);
                     break;
                 case 'deleted':
-                    $query->onlyTrashed(); // assumes soft deletes enabled
+                    $query->onlyTrashed();
                     break;
             }
         }
@@ -129,10 +106,19 @@ public function approveDeletion(User $user)
     }
 
     if (!$user->trashed()) {
-        $user->delete(); // soft delete
+        $user->delete();
     }
 
     $user->notify(new \App\Notifications\DeletionApproved($user->name));
+    
+    UserLog::create([
+    'actor_id' => auth()->id(),
+    'user_id' => $user->id,
+    'action' => 'user_deletion_approved',
+    'description' => 'Approved deletion request for ' . $user->name,
+    'target_user_id' => $user->id,
+    'target_user_name' => $user->name,
+]);
 
     return response()->json([
         'status' => 'success',
@@ -147,6 +133,15 @@ public function declineDeletion(User $user)
     }
 
     $user->notify(new \App\Notifications\DeletionDeclined($user->name));
+    
+    UserLog::create([
+    'actor_id' => auth()->id(),
+    'user_id' => $user->id,
+    'action' => 'user_deletion_declined',
+    'description' => 'Declined deletion request for ' . $user->name,
+    'target_user_id' => $user->id,
+    'target_user_name' => $user->name,
+]);
 
     return response()->json([
         'status' => 'success',

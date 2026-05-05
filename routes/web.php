@@ -14,6 +14,7 @@ use App\Http\Controllers\AdminCreateController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DateNoteController;
+use App\Http\Controllers\AssetController;
 use App\Models\UserLog;
 
 Route::middleware(['auth','isAdmin'])->group(function () {
@@ -69,10 +70,8 @@ Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('user
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-
-Route::get('/my-requests/pdf', [RequestController::class, 'exportUserPdf'])->name('user.requests.pdf');
-
-Route::get('/my-requests/csv', [RequestController::class, 'exportUserCsv'])->name('user.requests.csv');
+    Route::get('/my-requests/pdf', [RequestController::class, 'exportUserPdf'])->name('user.requests.pdf');
+    Route::get('/my-requests/csv', [RequestController::class, 'exportUserCsv'])->name('user.requests.csv');
 });
 
 Route::middleware(['first.admin'])->group(function () {
@@ -92,6 +91,42 @@ Route::middleware(['first.admin'])->group(function () {
     Route::delete('{id}', [AdminCreateController::class, 'destroy'])
         ->name('admin.destroy');
 });
+
+Route::middleware(['auth', 'isAdmin'])
+    ->prefix('admin')
+    ->group(function () {
+
+        Route::post('assets', [AssetController::class, 'store'])
+            ->name('assets.store');
+
+        Route::put('assets/{id}', [AssetController::class, 'update'])
+            ->name('admin.assets.update');
+            
+        Route::get('assets', [AssetController::class, 'index'])
+        ->name('admin.assets');
+        
+        Route::get('assets/{id}', [AssetController::class, 'show'])
+        ->name('admin.assets.show');
+        
+        Route::get('assets/filter', [AssetController::class, 'index'])
+        ->name('admin.assets.filter');
+    
+        Route::get('assets/pdf', [AssetController::class, 'exportPdf'])
+            ->name('admin.assets.pdf');
+
+        Route::get('assets/csv', [AssetController::class, 'exportCsv'])
+            ->name('admin.assets.csv');
+            
+        Route::get('requests/{id}/assign-assets', [AdminRequestController::class, 'assignAssetsPage'])
+            ->name('admin.requests.assign');
+
+        Route::post('requests/{id}/assign-assets', [AdminRequestController::class, 'storeAssignedAssets'])
+            ->name('admin.requests.assign.store');
+            
+        Route::post('assets/{id}/retrieve', [AssetController::class, 'retrieved'])
+    ->name('assets.retrieve');
+    
+    });
 
 Route::middleware(['auth', 'isAdmin'])
     ->prefix('admin')
@@ -118,11 +153,17 @@ Route::middleware(['auth', 'isAdmin'])
     Route::post('requests/accept/{id}', [AdminRequestController::class, 'accept'])
         ->name('admin.requests.accept');
 
-    Route::post('requests/decline/{id}', [AdminRequestController::class, 'decline'])
-        ->name('admin.requests.decline');
+    Route::post('requests/{id}/cancel', [AdminRequestController::class, 'cancel'])
+        ->name('admin.requests.cancel');
 
     Route::post('requests/complete/{id}', [AdminRequestController::class, 'complete'])
         ->name('admin.requests.complete');
+        
+    Route::post('/return/{id}/accept', [AdminRequestController::class, 'acceptReturn'])
+    ->name('return.accept');
+
+    Route::post('/return/{id}/cancel', [AdminRequestController::class, 'cancelReturn'])
+        ->name('return.cancel');
 
 
     Route::get('users', [UserController::class, 'index'])
@@ -163,6 +204,19 @@ Route::middleware(['auth', 'isAdmin'])
      
 });
 
+Route::middleware(['auth'])->group(function () {
+
+    Route::post('/request/{id}/return', [RequestController::class, 'requestReturn'])
+        ->name('requests.return');
+    
+    Route::get('/requests/{id}/edit', [RequestController::class, 'edit'])
+    ->name('requests.edit');
+    
+    Route::post('return/{id}/cancel', [AdminRequestController::class, 'cancelReturn'])
+    ->name('admin.return.cancel');
+
+});
+
 Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
     // Approve user deletion
     Route::post('users/{user}/approve-deletion', [AdminController::class, 'approveDeletion'])
@@ -171,6 +225,9 @@ Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
     // Decline user deletion
     Route::post('users/{user}/decline-deletion', [AdminController::class, 'declineDeletion'])
         ->name('admin.users.decline-deletion');
+        
+        Route::post('return/{id}/retrieved', [AdminRequestController::class, 'markRetrieved'])
+    ->name('admin.return.retrieved');
 });
 
 Route::post('/notifications/read', function () {
@@ -178,7 +235,7 @@ Route::post('/notifications/read', function () {
     if (!$user) return response()->json([]);
 
     UserLog::where('user_id', $user->id)
-        ->whereIn('action', ['request_accepted', 'request_declined'])
+        ->whereIn('action', ['request_accepted', 'request_cancelled'])
         ->update(['is_read' => true]);
 
     return response()->json(['status' => 'ok']);
@@ -194,7 +251,7 @@ Route::middleware(['auth'])->group(function () {
     // User notifications
     Route::get('/notifications', [RequestController::class, 'getUserNotifications']);
     
-    // Mark notifications read
+
     Route::post('/notifications/read', [RequestController::class, 'markNotificationsRead']);
 });
 

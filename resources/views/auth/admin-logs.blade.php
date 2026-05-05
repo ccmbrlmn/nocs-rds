@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="page-wrapper flex flex-col h-screen">
 
-        <div class="header-container flex items-center justify-between p-3 mt-8 mb-6" 
+        <div class="header-container flex items-center justify-between p-3 mt-8 mb-6"
              style="margin-left:5rem; margin-right:5rem;">
 
             <a href="{{ route('admin.created-admins') }}"
@@ -13,173 +13,629 @@
                 Back
             </a>
 
-            <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
-                    {{ $admin->name }}'s Logs
-                </h1>
-            </div>
+            <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
+                {{ $admin->name }}'s Activity Logs
+            </h1>
 
         </div>
-        
-        <div class="request-history-list rounded-xl shadow overflow-hidden" 
+
+        <div class="request-history-list rounded-xl shadow overflow-hidden"
              style="margin-left:4.5rem; margin-right:5rem;">
 
-            <div class="head bg-blue-100 dark:bg-blue-900 px-4 py-2 flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-t-xl">
-                <div class="w-1/6 text-center">Request No.</div>
-                <div class="w-2/6 text-center">Event</div>
+            <div class="head bg-blue-100 dark:bg-blue-900 px-4 py-2 flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-200">
+                <div class="w-1/6 text-center">ID</div>
+                <div class="w-3/6 text-center">Event</div>
                 <div class="w-1/6 text-center">Action</div>
-                <div class="w-2/6 text-center">Date</div>
+                <div class="w-1/6 text-center">Date</div>
             </div>
 
             <div class="request-history-wrapper max-h-[60vh] overflow-y-auto">
 
                 @forelse($combinedLogs as $item)
-                @php
-    $action = $item['action'] ?? 'unknown';
-    $target = $item['target_user_name'] ?? null;
-@endphp
-                    <div class="block hover:bg-blue-50 transition border-b border-gray-200">
-                        <div class="flex justify-between items-center px-4 py-3 text-sm dark:text-gray-200 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700">
 
-                            <!-- ID -->
+                    @php
+                        $action = $item['action'] ?? 'unknown';
+                        $type = $item['type'] ?? 'user_log';
+                        $desc = $item['description'] ?? null;
+                    @endphp
+
+                    <div class="border-b border-gray-200 dark:border-gray-700">
+
+                        <div class="flex justify-between items-center px-4 py-3 text-sm bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700">
+
+                            {{-- ID --}}
                             <div class="w-1/6 text-center">
                                 #{{ $item['id'] }}
                             </div>
 
-                <div class="w-2/6 text-center">
-                    @if($item['type'] === 'user_log')
+                            {{-- EVENT (FULL DETAILS) --}}
+                            <div class="w-3/6 text-left text-xs space-y-1">
 
-                        @if($item['action'] === 'user_delete_requested')
-                            Requested account deletion
+                                {{-- ================= USER LOGS ================= --}}
+                                @if($type === 'user_log')
 
-                        @elseif($item['action'] === 'profile_updated')
-                            Conducted a profile update
+                                    @switch($action)
 
-                        @elseif($item['action'] === 'user_approved')
-                            @if($target)
-                                Approved user registration of {{ $target }}
-                            @else
-                                Approved user registration
-                            @endif
+                                        {{-- REQUEST ACTIONS --}}
+                                        @case('request_created')
+                                            <div class="font-semibold text-gray-800 dark:text-gray-200">
+                                                Created Request
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $desc }}
+                                            </div>
+                                        @break
 
-                        @elseif($item['action'] === 'user_declined')
-                            @if($target)
-                                Declined user registration of {{ $target }}
-                            @else
-                                Declined user registration
-                            @endif
+                                        @case('request_edited')
+                                            <div class="font-semibold">Edited Request</div>
+                                            <div class="text-gray-500">{{ $desc }}</div>
+                                        @break
 
-                        @elseif($item['action'] === 'user_updated')
-                            @if($target)
-                                Edited user information of {{ $target }}
-                            @else
-                                Edited user information
-                            @endif
+                                        @case('request_cancelled_admin')
+                                            <div class="font-semibold text-red-600">Cancelled Request</div>
+                                            <div class="text-gray-500">{{ $desc }}</div>
+                                        @break
 
-                        @elseif($item['action'] === 'user_deleted')
-                            @if($target)
-                                Deleted user account of {{ $target }}
-                            @else
-                                Deleted a user account
-                            @endif
+                                        @case('request_approved')
+                                            <div class="font-semibold text-green-600">Approved Request</div>
+                                            <div class="text-gray-500">{{ $desc }}</div>
+                                        @break
 
-                        @elseif($item['action'] === 'user_restored')
-                            @if($target)
-                                Restored user account of {{ $target }}
-                            @else
-                                Restored a user account
-                            @endif
+                                        {{-- USER ACCOUNT ACTIONS --}}
+                                        @case('user_approved')
+                                            <div class="font-semibold text-green-600">
+                                                Approved User Registration
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $item['target_user_name'] ?? 'User' }}
+                                            </div>
+                                        @break
 
-                        @else
-                            {{ ucfirst(str_replace('_', ' ', $item['action'])) }}
+                                        @case('user_declined')
+                                            <div class="font-semibold text-red-600">
+                                                Declined User Registration
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $item['target_user_name'] ?? 'User' }}
+                                            </div>
+                                        @break
 
-                            @php
-                                $desc = $item['description'] ?? null;
-                                $data = json_decode($desc, true);
-                            @endphp
+                                        @case('user_deleted')
+                                            <div class="font-semibold text-red-700">
+                                                Deleted User Account
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $item['target_user_name'] ?? 'User' }}
+                                            </div>
+                                        @break
 
-                            @if(is_array($data))
-                                <br>
-                                Edited:
-                                <br>
-                                <span class="text-gray-500 text-xs">
-                                    {{ $data['old']['event_name'] ?? 'N/A' }}
-                                </span>
-                                →
-                                <span class="text-green-600 text-xs">
-                                    {{ $data['new']['event_name'] ?? 'N/A' }}
-                                </span>
-                            @elseif($desc)
-                                <br>
-                                Edited: {{ $desc }}
-                            @endif
+                                        @case('user_restored')
+                                            <div class="font-semibold text-green-700">
+                                                Restored User Account
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $item['target_user_name'] ?? 'User' }}
+                                            </div>
+                                        @break
 
-                        @endif
+                                        @case('user_deletion_approved')
+                                            <div class="font-semibold text-red-600">
+                                                Approved Account Deletion
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $item['target_user_name'] ?? 'User' }}
+                                            </div>
+                                        @break
 
-                    @else
-                        @php
-                            $event = $item['event_name'] ?? '';
-                            $requester = $item['user_name'] ?? '';
-                        @endphp
+                                        @case('user_deletion_declined')
+                                            <div class="font-semibold text-yellow-600">
+                                                Declined Account Deletion
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $item['target_user_name'] ?? 'User' }}
+                                            </div>
+                                        @break
 
-                        @if($item['status'] === 'Active' || $item['status'] === 'Closed')
-                            Accepted {{ $event }} for {{ $requester }}
-                        @elseif($item['status'] === 'Declined')
-                            Declined {{ $event }} for {{ $requester }}
-                        @else
-                            {{ $event }}
-                        @endif
+@case('profile_updated')
+    <div class="font-semibold text-blue-600 mb-1">
+        Updated Own Profile
+    </div>
 
-                    @endif
+    @php
+        $decoded = json_decode($desc, true);
+    @endphp
+
+    @if(!empty($decoded) && is_array($decoded))
+        <div class="space-y-1 text-sm">
+            @foreach($decoded as $field => $change)
+
+                @php
+                    $old = $change['old'] ?? '-';
+                    $new = $change['new'] ?? '-';
+
+                    while (is_array($old) && isset($old['old'])) {
+                        $old = $old['old'];
+                    }
+
+                    while (is_array($new) && isset($new['new'])) {
+                        $new = $new['new'];
+                    }
+
+                    if (is_array($old)) $old = implode(', ', $old);
+                    if (is_array($new)) $new = implode(', ', $new);
+
+                    $old = $old ?: '-';
+                    $new = $new ?: '-';
+                @endphp
+
+                <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+
+                    <span class="font-medium text-gray-800 dark:text-gray-200 min-w-[120px]">
+                        {{ ucfirst(str_replace('_', ' ', $field)) }}:
+                    </span>
+
+                    <span class="text-red-500 line-through">
+                        {{ $old }}
+                    </span>
+
+                    <span class="text-gray-400">→</span>
+
+                    <span class="text-green-600 font-medium">
+                        {{ $new }}
+                    </span>
+
                 </div>
 
-                            <div class="w-1/6 text-center">
-                                @if($item['type'] === 'user_log')
+            @endforeach
+        </div>
+    @else
+        <div class="text-gray-500 italic">
+            No readable changes
+        </div>
+    @endif
+@break
 
-                                    @if($item['action'] === 'profile_updated')
-                                        <span class="text-blue-600">Profile Updated</span>
-                                    @elseif($item['action'] === 'user_delete_requested')
-                                        <span class="text-red-600">Requested Account Deletion</span>
-                                    @elseif($item['action'] === 'user_approved')
-                                        <span class="text-green-600">Approved User</span>
-                                    @elseif($item['action'] === 'user_declined')
-                                        <span class="text-red-600">Declined User</span>
-                                    @elseif($item['action'] === 'user_updated')
-                                        <span class="text-yellow-600">Edited User</span>
-                                    @elseif($item['action'] === 'user_deleted')
-                                        <span class="text-red-700">Deleted User</span>
-                                    @elseif($item['action'] === 'user_restored')
-                                        <span class="text-green-700">Restored User</span>
-                                    @elseif($item['action'] === 'admin_created')
-                                        <span class="text-blue-700">Created Admin</span>
-                                    @elseif($item['action'] === 'account_registered')
-                                        <span class="text-green-600">Registered</span>
-                                    @else
-                                        <span class="text-indigo-600">Performed</span>
-                                    @endif
+                                        @case('user_delete_requested')
+                                            <div class="font-semibold text-red-500">
+                                                Requested Account Deletion
+                                            </div>
+                                        @break
+                                        
+                                        
+                                        @case('user_updated')
+                                        <div class="font-semibold text-blue-600">
+                                            Updated User
+                                        </div>
+                                        <div class="text-gray-500">
+                                            {{ $item['target_user_name'] ?? 'User' }}
+                                        </div>
+                                    @break
 
+
+                                        @default
+                                            <div>{{ $desc ?? ucfirst($action) }}</div>
+
+                                    @endswitch
+
+                                {{-- ================= ADMIN LOGS ================= --}}
                                 @else
-                                    @if($item['status'] === 'Active' || $item['status'] === 'Closed')
-                                        <span class="text-green-600">Accepted Request</span>
-                                    @elseif($item['status'] === 'Declined')
-                                        <span class="text-red-600">Declined Request</span>
-                                    @else
-                                        <span class="text-gray-500">Unknown</span>
-                                    @endif
+
+                                    @switch($action)
+
+                                        @case('request_approved')
+                                            <div class="font-semibold text-green-600">
+                                                Approved Request
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $desc }}
+                                            </div>
+                                        @break
+
+                                        @case('request_cancelled_admin')
+                                            <div class="font-semibold text-red-600">
+                                                Cancelled Request
+                                            </div>
+                                            <div class="text-gray-500">{{ $desc }}</div>
+                                        @break
+
+@case('return_accepted')
+    <div class="font-semibold text-blue-600">
+        Accepted Return
+    </div>
+
+    @php
+        $data = json_decode($item['description'] ?? '{}', true);
+    @endphp
+
+    <div class="text-gray-500 space-y-2 mt-2">
+
+        {{-- EVENT --}}
+        <div>
+            <span class="font-medium">Event:</span>
+            {{ $data['event_name'] ?? 'Unknown Event' }}
+        </div>
+
+        {{-- ASSETS --}}
+        <div>
+            <span class="font-medium">Assets assigned:</span>
+
+            @if(!empty($data['assets']))
+                <ul class="list-disc ml-5 mt-1">
+                    @foreach($data['assets'] as $asset)
+                        <li>{{ $asset['asset_name'] }}</li>
+                    @endforeach
+                </ul>
+            @else
+                <span class="text-gray-400">No assets found</span>
+            @endif
+        </div>
+
+        {{-- PERSONNEL --}}
+        <div>
+            <span class="font-medium">Assigned Retrieval Personnel:</span>
+            {{ $data['personnel_name'] ?? 'N/A' }}
+        </div>
+
+    </div>
+@break
+
+
+
+@case('assets_retrieved')
+    <div class="font-semibold text-indigo-600">
+        Retrieved Assets
+    </div>
+
+    @php
+        $data = json_decode($desc, true);
+    @endphp
+
+    <div class="text-gray-500 space-y-2 mt-1">
+
+        {{-- EVENT --}}
+        <div>
+            <span class="font-medium">Event:</span>
+            {{ $data['event_name'] ?? 'Unknown Event' }}
+        </div>
+
+        {{-- ASSETS --}}
+        <div>
+            <span class="font-medium">Assets retrieved:</span>
+
+            @if(!empty($data['assets']))
+                <ul class="list-disc ml-5 mt-1">
+                    @foreach($data['assets'] as $asset)
+                        <li>{{ $asset['asset_name'] }}</li>
+                    @endforeach
+                </ul>
+            @else
+                <span class="text-gray-400">No assets found</span>
+            @endif
+        </div>
+
+        {{-- HANDLED BY --}}
+        <div>
+            <span class="font-medium">Handled by:</span>
+            {{ $data['handled_by'] ?? 'Admin' }}
+        </div>
+        
+
+    </div>
+@break
+
+
+                                        
+@case('profile_updated')
+    <div class="font-semibold text-blue-600 mb-1">
+        Updated Own Profile
+    </div>
+
+    @php
+        $decoded = json_decode($desc, true);
+    @endphp
+
+    @if(!empty($decoded) && is_array($decoded))
+        <div class="space-y-1 text-sm">
+            @foreach($decoded as $field => $change)
+
+                @php
+                    $old = $change['old'] ?? '-';
+                    $new = $change['new'] ?? '-';
+
+                    while (is_array($old) && isset($old['old'])) {
+                        $old = $old['old'];
+                    }
+
+                    while (is_array($new) && isset($new['new'])) {
+                        $new = $new['new'];
+                    }
+
+                    if (is_array($old)) $old = implode(', ', $old);
+                    if (is_array($new)) $new = implode(', ', $new);
+
+                    $old = $old ?: '-';
+                    $new = $new ?: '-';
+                @endphp
+
+                <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+
+                    <span class="font-medium text-gray-800 dark:text-gray-200 min-w-[120px]">
+                        {{ ucfirst(str_replace('_', ' ', $field)) }}:
+                    </span>
+
+                    <span class="text-red-500 line-through">
+                        {{ $old }}
+                    </span>
+
+                    <span class="text-gray-400">→</span>
+
+                    <span class="text-green-600 font-medium">
+                        {{ $new }}
+                    </span>
+
+                </div>
+
+            @endforeach
+        </div>
+    @else
+        <div class="text-gray-500 italic">
+            No readable changes
+        </div>
+    @endif
+@break
+                                        
+                                        @case('user_delete_requested')
+                                            <div class="font-semibold text-red-500">
+                                                Requested Account Deletion
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $item['event_name'] ?? 'Admin requested account deletion' }}
+                                            </div>
+                                        @break
+                                    
+
+                                        @case('user_updated')
+                                            <div class="font-semibold text-blue-600 mb-1">
+                                                Edited User Account
+                                            </div>
+
+                                            @php
+                                                $decoded = json_decode($desc, true);
+                                            @endphp
+
+                                            <div class="text-gray-600 mb-1">
+                                                {{ $item['target_user_name'] ?? 'User' }}
+                                            </div>
+
+                                            @if(!empty($decoded) && is_array($decoded))
+                                                <div class="space-y-1 text-sm">
+                                                    @foreach($decoded as $field => $change)
+
+                                                        @php
+                                                            $old = $change['old'] ?? '-';
+                                                            $new = $change['new'] ?? '-';
+
+                                                            if (is_array($old)) $old = implode(', ', $old);
+                                                            if (is_array($new)) $new = implode(', ', $new);
+
+                                                            $old = $old ?: '-';
+                                                            $new = $new ?: '-';
+                                                        @endphp
+
+                                                        <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+
+                                                            <span class="font-medium min-w-[120px]">
+                                                                {{ ucfirst(str_replace('_', ' ', $field)) }}:
+                                                            </span>
+
+                                                            <span class="text-red-500 line-through">
+                                                                {{ $old }}
+                                                            </span>
+
+                                                            <span class="text-gray-400">→</span>
+
+                                                            <span class="text-green-600 font-medium">
+                                                                {{ $new }}
+                                                            </span>
+
+                                                        </div>
+
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <div class="text-gray-400 italic text-sm">
+                                                    No changes recorded
+                                                </div>
+                                            @endif
+                                        @break
+
+                                        @case('user_created')
+                                            <div class="font-semibold text-blue-600">
+                                                Created User Account
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $item['target_user_name'] ?? 'User' }}
+                                            </div>
+                                        @break
+
+                                        @case('user_approved')
+                                            <div class="font-semibold text-green-600">
+                                                Approved User Registration
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $item['target_user_name'] ?? 'User' }}
+                                            </div>
+                                        @break
+                                                      
+
+                                        @case('user_deleted')
+                                            <div class="font-semibold text-red-600">
+                                                Deleted User Account
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $item['target_user_name'] ?? 'User' }}
+                                            </div>
+                                        @break
+
+                                        @case('user_restored')
+                                            <div class="font-semibold text-green-600">
+                                                Restored User Account
+                                            </div>
+                                            <div class="text-gray-500">
+                                                {{ $item['target_user_name'] ?? 'User' }}
+                                            </div>
+                                        @break
+
+
+                                                                      
+                                        @case('asset_created')
+                                            <div class="font-semibold text-green-600">
+                                                Created Asset
+                                            </div>
+
+                                            @php
+                                                $decoded = json_decode($desc, true);
+                                            @endphp
+
+                                            <div class="text-gray-500 text-sm">
+                                                {{ $decoded['asset_name'] ?? 'Asset' }}
+                                            </div>
+                                        @break
+
+                                        @case('asset_updated')
+                                            <div class="font-semibold text-blue-600 mb-1">
+                                                Updated Asset
+                                            </div>
+
+                                            @php
+                                                $decoded = json_decode($desc, true);
+                                            @endphp
+
+                                            @if(!empty($decoded) && is_array($decoded))
+                                                <div class="space-y-1 text-sm">
+                                                    @foreach($decoded as $field => $change)
+
+                                                        @php
+                                                            $old = $change['old'] ?? '-';
+                                                            $new = $change['new'] ?? '-';
+                                                        @endphp
+
+                                                        <div class="flex items-center gap-2 text-gray-600">
+
+                                                            <span class="font-medium min-w-[120px]">
+                                                                {{ ucfirst(str_replace('_', ' ', $field)) }}:
+                                                            </span>
+
+                                                            <span class="text-red-500 line-through">
+                                                                {{ $old }}
+                                                            </span>
+
+                                                            <span class="text-gray-400">→</span>
+
+                                                            <span class="text-green-600 font-medium">
+                                                                {{ $new }}
+                                                            </span>
+
+                                                        </div>
+
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        @break                          
+
+                                        @default
+                                            <div class="text-gray-500">Admin Action</div>
+
+                                    @endswitch
+
                                 @endif
+
                             </div>
 
-                            <!-- DATE -->
-                            <div class="w-2/6 text-center">
-                                {{ \Carbon\Carbon::parse(
-                                    $item['type'] === 'user_log' 
-                                        ? $item['updated_at'] 
-                                        : $item['handled_at']
-                                )->timezone('Asia/Manila')->format('M d, Y H:i') }}
+                            {{-- ACTION BADGE --}}
+                            <div class="w-1/6 text-center">
+
+                                @if($type === 'user_log')
+
+                                    <span class="text-gray-500">User</span>
+
+                                @else
+
+                                    @switch($action)
+                                        @case('request_approved')
+                                            <span class="text-green-600">Approved Request</span>
+                                        @break
+
+                                        @case('request_cancelled_admin')
+                                            <span class="text-red-600">Cancelled Request</span>
+                                        @break
+
+                                        @case('return_accepted')
+                                            <span class="text-blue-600">Returned Request</span>
+                                        @break
+
+                                        @case('assets_retrieved')
+                                            <span class="text-indigo-600">Retrieved Request</span>
+                                        @break
+                                        
+                                        @case('profile_updated')
+                                            <span class="text-blue-600">Updated Profile</span>
+                                        @break
+                                        
+                                        @case('user_delete_requested')
+                                            <span class="text-red-500">Account Deletion</span>
+                                        @break
+                                        
+                                        @case('user_created')
+                                            <span class="text-blue-600">Created User</span>
+                                        @break
+
+                                        @case('user_registered')
+                                            <span class="text-indigo-600">Registered User</span>
+                                        @break
+                                        
+                                        @case('user_approved')
+                                            <span class="text-green-600">Approved User</span>
+                                        @break
+                                        
+                                        @case('user_updated')
+                                            <span class="text-green-600">Edited User</span>
+                                        @break
+                                        
+                                        @case('user_deleted')
+                                            <span class="text-indigo-600">Deleted User</span>
+                                        @break
+                                        
+                                        @case('user_restored')
+                                            <span class="text-green-600">Restored User</span>
+                                        @break
+                                        
+                                        @case('asset_created')
+                                            <span class="text-indigo-600">Created Asset</span>
+                                        @break
+                                        
+                                        @case('asset_updated')
+                                            <span class="text-green-600">Updated Asset</span>
+                                        @break
+
+                                        @default
+                                            <span class="text-gray-400">Admin</span>
+                                    @endswitch
+
+                                @endif
+
+                            </div>
+
+                            {{-- DATE --}}
+                            <div class="w-1/6 text-center text-xs">
+                                {{ \Carbon\Carbon::parse($item['updated_at'])
+                                    ->timezone('Asia/Manila')
+                                    ->format('M d, Y H:i') }}
                             </div>
 
                         </div>
                     </div>
+
                 @empty
                     <div class="py-6 text-center text-gray-500 text-sm">
                         No logs available.
@@ -196,20 +652,5 @@
 <style>
     .material-symbols-outlined { font-size: 22px; }
     .request-history-wrapper::-webkit-scrollbar { width: 6px; }
-    .request-history-wrapper::-webkit-scrollbar-track { background: transparent; }
     .request-history-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-    .request-history-wrapper::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    .sort-select { appearance: none; }
-    
-    .highlighted-user {
-        background-color: #dbeafe;
-        border-left: 4px solid #3b82f6;
-        transition: all 0.3s ease;
-    }
-
-    .dark .highlighted-user {
-        background-color: #1e3a8a33;
-        border-left: 4px solid #60a5fa;
-    }
-
 </style>

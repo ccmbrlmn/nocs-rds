@@ -20,7 +20,10 @@
 
         $isFirstAdmin = $firstAdmin && auth()->id() === $firstAdmin->id;
     @endphp
+    
+<div class="mx-3 flex items-center justify-between flex-wrap gap-2">
 
+    {{-- FILTER (LEFT SIDE) --}}
     @include('layouts.filter', [
         'routeName' => 'admin.created-admins',
 
@@ -31,7 +34,6 @@
         ],
 
         'dateFilters' => [
-            null => 'All Time',
             '30_days' => '30 Days',
             '7_days' => '7 Days',
             '24_hours' => '24 Hours'
@@ -39,32 +41,25 @@
 
         'exportPdf' => 'admin.created-admins.pdf',
         'exportCsv' => 'admin.created-admins.csv',
-
-'rightSlot' => '
-' . (
-    $isFirstAdmin
-    ? '<button onclick="alert(\'You are not allowed to create additional admin accounts.\')"
-        class="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-400 
-cursor-not-allowed border border-gray-200 dark:border-gray-600
-shadow-sm shadow-sm flex items-center justify-center gap-2 whitespace-nowrap">
-        <span>Add Admin</span>
-      </button>'
-    : '<a href="'.route('admin.create').'"
-        class="px-4 py-2 rounded-xl text-sm font-medium transition
-               bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
-               hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm
-               flex items-center justify-center gap-2 whitespace-nowrap">
-
-        <span x-show="$root.sidebarExpanded"
-              x-transition
-              class="transition-all duration-200">
-            Add Admin
-        </span>
-
-      </a>
-      '
-)
     ])
+
+    {{-- ADD ADMIN (RIGHTMOST) --}}
+    @if($isFirstAdmin)
+        <a href="{{ route('admin.create') }}"
+           class="px-4 py-2 rounded-xl text-sm font-medium transition
+                  bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
+                  hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm whitespace-nowrap">
+            Add Admin
+        </a>
+    @else
+        <button onclick="alert('Only the first admin can create new admins.')"
+            class="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-400 
+                   cursor-not-allowed border border-gray-200 dark:border-gray-600 whitespace-nowrap">
+            Add Admin
+        </button>
+    @endif
+
+</div>
 
     @php
         $highlightAdminId = request()->query('highlight');
