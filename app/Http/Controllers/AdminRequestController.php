@@ -455,4 +455,3 @@ public function markRetrieved($id)
     }
 
 }
-
