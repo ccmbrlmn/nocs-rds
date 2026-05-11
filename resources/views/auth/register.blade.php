@@ -1,19 +1,19 @@
 <x-guest-layout>
     <div class="relative min-h-screen bg-white dark:bg-gray-900">
 
-        <a href="{{ url()->previous() }}" 
-           class="absolute top-4 left-4 px-4 py-2 rounded-xl text-sm font-medium transition 
-                  bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 
+        <a href="{{ url()->previous() }}"
+           class="absolute top-4 left-4 px-4 py-2 rounded-xl text-sm font-medium transition
+                  bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
                   hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm flex items-center gap-2 z-20">
             <span class="material-symbols-outlined text-[18px]">arrow_back</span>
             Back
         </a>
 
-        <img src="{{ asset('assets/images/reg-bg.png') }}" 
+        <img src="{{ asset('assets/images/reg-bg.png') }}"
              class="absolute bottom-0 left-0 w-100 h-auto opacity-100 dark:opacity-30">
 
         <div class="flex items-center justify-center min-h-screen">
-            <form method="POST" action="{{ route('register') }}" 
+            <form method="POST" action="{{ route('register') }}"
                   class="form-container bg-white dark:bg-gray-800 p-6 rounded-lg relative z-10 w-full max-w-md shadow-lg">
 
                 @csrf
@@ -42,13 +42,13 @@
 
                 <div class="mt-4">
                     <x-input-label for="office" :value="__('Office')" class="dark:text-gray-200" />
-                    <x-text-input 
-                        id="office" 
+                    <x-text-input
+                        id="office"
                         class="block mt-1 w-full dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                        type="text" 
-                        name="office" 
-                        :value="old('office')" 
-                        required 
+                        type="text"
+                        name="office"
+                        :value="old('office')"
+                        required
                         placeholder="Enter your office"
                     />
                     <x-input-error :messages="$errors->get('office')" class="mt-2" />

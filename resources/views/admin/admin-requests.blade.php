@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div 
+    <div
         class="page-wrapper flex flex-col h-screen"
         x-data="{
             view: new URLSearchParams(window.location.search).get('view') || 'list'
@@ -66,30 +66,32 @@
                         $userClass = ($user && $user->trashed()) ? 'text-red-600 italic' : '';
                         $status = $request->computed_status;
                     @endphp
-                    
+
                     @php
                         $highlightId = request()->query('highlight');
                         $isHighlighted = $highlightId == $request->id;
                     @endphp
 
-<div
-    id="request-{{ $request->id }}"
-    class="request-row group {{ $isHighlighted ? 'highlighted-request' : '' }}
-           bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition"
->
+            <div
+                id="request-{{ $request->id }}"
+                class="request-row group {{ $isHighlighted ? 'highlighted-request' : '' }}
+                    bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition"
+            >
 
-    <div
-    @click="window.location.href='{{ route('admin.request-details', $request->id) }}'"
-    class="flex w-full items-center px-4 py-3 text-sm cursor-pointer select-none text-gray-700 dark:text-gray-200"
->
+            <div class="flex w-full items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
 
-        <div class="w-1/6 text-center">#{{ $request->id }}</div>
+            <div
+                class="w-1/6 text-center cursor-pointer"
+                @click="window.location.href='{{ route('admin.request-details', $request->id) }}'"
+            >
+                #{{ $request->id }}
+            </div>
 
-        <div class="w-1/6 text-center">
-            <span class="{{ $userClass }}">
-                {{ $user->name ?? '—' }}
-            </span>
-        </div>
+            <!-- REQUESTER -->
+            <div class="w-1/6 text-center truncate {{ $userClass }}">
+                {{ $user?->name ?? 'Deleted User' }}
+            </div>
+
 
         <div class="w-1/6 text-center">{{ $request->event_name ?? '-' }}</div>
 
@@ -101,11 +103,19 @@
             {{ $request->purpose }}
         </div>
 
-        <div class="w-1/6 text-center">
-            <span class="px-3 py-1 rounded-xl bg-gray-200 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200">
-                {{ $status }}
-            </span>
-        </div>
+@php
+    $statusConfig = config('status')[$status] ?? null;
+
+    $statusClass = $statusConfig
+        ? $statusConfig['bg'] . ' ' . $statusConfig['text']
+        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200';
+@endphp
+
+<div class="w-1/6 text-center">
+    <span class="px-3 py-1 rounded-xl text-sm font-semibold {{ $statusClass }}">
+        {{ $status }}
+    </span>
+</div>
 
         <!-- ACTION -->
         <div class="w-1/6 flex justify-center gap-2">
@@ -179,10 +189,43 @@
 
                 <h2 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Assign Personnel (Optional)</h2>
 
-                <input x-model="personnel"
-                    class="w-full border rounded-lg px-3 py-2 mb-4 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+            <div class="mb-2 flex justify-between items-center">
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    Personnel
+                </h3>
 
-                <form :action="returnAction" method="POST">
+                <button
+                    type="button"
+                    @click="showPersonnelList = !showPersonnelList"
+                    class="text-xs text-indigo-600 hover:underline"
+                >
+                    Browse NOCS Personnel
+                </button>
+            </div>
+
+<!-- SELECTED VALUE INPUT -->
+<input x-model="personnel"
+    readonly
+    placeholder="Select personnel..."
+    class="w-full border rounded-lg px-3 py-2 mb-3 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer">
+
+<!-- DROPDOWN LIST -->
+<div x-show="showPersonnelList"
+     x-transition
+     class="mb-3 max-h-40 overflow-y-auto border rounded-lg bg-gray-50 dark:bg-gray-700">
+
+    @foreach($personnel ?? [] as $person)
+        <div
+            @click="selectPersonnel('{{ $person->name }}')"
+            class="p-2 hover:bg-indigo-100 dark:hover:bg-gray-600 cursor-pointer text-sm"
+        >
+            {{ $person->name }}
+        </div>
+    @endforeach
+
+</div>
+
+                <form :action="`/admin/return/${selectedId}/accept`" method="POST">
                     @csrf
                     <input type="hidden" name="personnel" :value="personnel">
 
@@ -240,8 +283,7 @@
                         Close
                     </button>
 
-                    <form :action="cancelAction" method="POST">
-                        @csrf
+                    <form :action="`/admin/requests/${selectedId}/cancel`" method="POST">                        @csrf
                         <input type="hidden" name="cancel_reason" :value="cancelReason">
 
                         <button class="px-3 py-1 bg-red-500 text-white rounded-lg">
@@ -255,3 +297,46 @@
 
     </div>
 </x-app-layout>
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('requestModals', () => ({
+        assignOpen: false,
+        cancelOpen: false,
+        returnOpen: false,
+        selectedId: null,
+        cancelReason: '',
+        personnel: '',
+
+        openAssignModal(id) {
+            console.log('Assign clicked:', id);
+            this.selectedId = id;
+            this.assignOpen = true;
+        },
+
+        openCancelModal(id) {
+            this.selectedId = id;
+            this.cancelReason = '';
+            this.cancelAction = `/admin/requests/${id}/cancel`;
+            this.cancelOpen = true;
+            console.log('ACTION:', this.cancelAction);
+        },
+
+        openReturnModal(id) {
+            this.selectedId = id;
+            this.returnOpen = true;
+        },
+
+        goToAssets() {
+            window.location.href = `/admin/requests/${this.selectedId}/assign-assets`;
+        },
+
+        showPersonnelList: false,
+
+        selectPersonnel(name) {
+            this.personnel = name;
+            this.showPersonnelList = false;
+        }
+
+    }))
+});
+</script>

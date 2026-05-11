@@ -1,4 +1,4 @@
-<div 
+<div
     x-data="requestDashboard()"
     x-init="initChart()"
     class="p-6"
@@ -24,13 +24,13 @@
 
             <button
                 @click="openFilter = !openFilter"
-                class="border px-4 py-2 rounded-lg shadow transition flex items-center gap-2
+                class="border px-4 py-2 rounded-xl text-sm font-medium transition
                        bg-white dark:bg-gray-800
                        text-gray-800 dark:text-gray-200
                        border-gray-300 dark:border-gray-600
                        hover:bg-gray-50 dark:hover:bg-gray-700"
-                :class="selectedStatus 
-                    ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-600 dark:border-indigo-600' 
+                :class="selectedStatus
+                    ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-600 dark:border-indigo-600'
                     : ''">
 
                 Filter
@@ -85,7 +85,7 @@
         <!-- VIEW REQUEST BUTTON -->
         <button
             @click="window.location.href='/admin/requests'"
-            class="px-4 py-2 rounded-lg shadow transition
+            class="px-4 py-2 rounded-xl text-sm font-medium transition
                    bg-indigo-600 text-white
                    hover:bg-indigo-700
                    dark:bg-indigo-500 dark:hover:bg-indigo-600">
@@ -210,10 +210,9 @@
         <table class="w-full text-sm">
 
             <!-- HEADER -->
-            <thead class="bg-gray-100 dark:bg-gray-900 sticky top-0">
+            <thead class="bg-gray-100 dark:bg-gray-800 sticky top-0">
                 <tr class="text-gray-700 dark:text-gray-300">
-                    <th class="p-3 text-left">#</th>
-                    <th class="p-3 text-left">Requester</th>
+                    <th class="p-4 text-left">Requester</th>
                     <th class="p-3 text-left">Event</th>
                     <th class="p-3 text-left">Date</th>
                     <th class="p-3 text-left">Status</th>
@@ -224,12 +223,10 @@
             <tbody class="text-gray-700 dark:text-gray-200">
 
             <template x-for="req in filteredRequests" :key="req.id">
-                <tr 
+                <tr
                     class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                     @click="window.location = `/admin/requests/${req.id}`"
                 >
-
-                    <td class="p-3" x-text="req.id"></td>
 
                     <td class="p-3" x-text="req.user?.name || '—'"></td>
 
@@ -240,7 +237,7 @@
                     </td>
 
                     <td class="p-3">
-                        <span 
+                        <span
                             class="px-2 py-1 rounded-full text-xs font-medium"
                             :class="{
                                 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300': req.computed_status === 'Open',

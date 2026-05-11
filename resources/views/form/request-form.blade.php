@@ -2,8 +2,8 @@
      x-cloak
      class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center px-4">
 
-    <div class="bg-white dark:bg-gray-800 dark:text-gray-200 
-                rounded-2xl w-full max-w-5xl 
+    <div class="bg-white dark:bg-gray-800 dark:text-gray-200
+                rounded-2xl w-full max-w-5xl
                 max-h-[90vh] flex flex-col shadow-xl">
 
 <div x-data="clock()" x-init="start()"
@@ -48,12 +48,62 @@
                             <x-text-input id="representative_name" class="block mt-1 w-full" type="text" name="representative_name" required />
                         </div>
 
-                        <div class="mb-4">
-                            <x-input-label for="requested_employee" value="Requested Employee (Optional)" />
-                            <x-text-input id="requested_employee" class="block mt-1 w-full"
-                                          type="text" name="requested_employee"
-                                          placeholder="Enter employee name (if any)" />
-                        </div>
+<div class="mb-4 relative"
+     x-data="{
+        showPersonnel: false,
+        personnelList: @js($personnel ?? []),
+        selected: ''
+     }">
+
+    <!-- LABEL ROW (LABEL + BUTTON) -->
+    <div class="flex items-center justify-between mb-1">
+
+        <x-input-label for="requested_employee" value="Requested Employee (Optional)" />
+
+        <!-- BUTTON MOVED OUTSIDE INPUT -->
+        <button type="button"
+                @click="showPersonnel = !showPersonnel"
+                class="text-xs text-indigo-600 hover:underline">
+            Browse NOCS Personnel
+        </button>
+
+    </div>
+
+    <!-- INPUT -->
+    <x-text-input id="requested_employee"
+                  name="requested_employee"
+                  x-model="selected"
+                  class="block mt-1 w-full"
+                  placeholder="Enter employee name (if any)" />
+
+    <!-- DROPDOWN -->
+    <div x-show="showPersonnel"
+         x-transition
+         @click.outside="showPersonnel = false"
+         class="absolute z-20 mt-2 w-full bg-white dark:bg-gray-900
+                border rounded-lg shadow-lg max-h-44 overflow-y-auto">
+
+        <template x-if="personnelList.length === 0">
+            <div class="p-3 text-sm text-gray-500">
+                No personnel available
+            </div>
+        </template>
+
+        <template x-for="(p, i) in personnelList" :key="p.id">
+            <button type="button"
+                    @click="
+                        selected = p.name;
+                        showPersonnel = false;
+                    "
+                    class="w-full text-left px-3 py-2 text-sm
+                           hover:bg-gray-100 dark:hover:bg-gray-700">
+                <div class="font-medium" x-text="p.name"></div>
+                <div class="text-xs text-gray-400" x-text="p.office ?? '-'"></div>
+            </button>
+        </template>
+
+    </div>
+</div>
 
                         <div class="mb-4">
                             <x-input-label for="event_name" value="Name of Event" />
@@ -80,7 +130,7 @@
     </div>
 
 </div>
-                        
+
 
                         <!-- ITEMS -->
                         <div x-data="{
@@ -97,49 +147,55 @@
                             class="mb-4">
 
 
-                            <x-input-label for="items" value="Requested Items" class="mb-2" />
-                            
-<div class="flex items-center justify-between mt-3 mb-3">
+<div class="flex items-center justify-between mb-2">
 
-    <!-- LEFT: Browse Available Items -->
-    <div class="relative">
+    <x-input-label for="items" value="Requested Items" />
+
+    <!-- RIGHT SIDE ACTIONS -->
+    <div class="flex items-center gap-3">
+
+        <!-- Browse Available Items -->
+<div class="relative inline-block">
+
+            <button type="button"
+                    @click="showAssets = !showAssets"
+                    class="text-sm text-indigo-600 hover:underline
+                           active:scale-95 transition-transform duration-100">
+                <span x-text="showAssets ? 'Hide Available Items' : 'Browse Available Items'"></span>
+            </button>
+
+            <!-- ASSET LIST (UNCHANGED) -->
+            <div x-show="showAssets"
+                 x-transition
+                 class="absolute z-10 mt-2 w-64 p-3 border rounded-lg
+                        bg-gray-50 dark:bg-gray-900 max-h-40 overflow-auto shadow-lg">
+
+                <template x-if="assets.length === 0">
+                    <p class="text-sm text-gray-500">No items available</p>
+                </template>
+
+                <template x-for="(asset, index) in assets" :key="asset + '-' + index">
+                    <button type="button"
+                            @click="items.push({ name: asset, quantity: 1, id: Date.now() }); showAssets = false"
+                            class="block w-full text-left px-2 py-1 rounded
+                                   hover:bg-gray-200 dark:hover:bg-gray-700
+                                   active:scale-95 transition">
+                        <span x-text="asset"></span>
+                    </button>
+                </template>
+
+            </div>
+        </div>
+
+        <!-- Add Item -->
         <button type="button"
-                @click="showAssets = !showAssets"
-                class="text-sm text-indigo-600 hover:underline
+                @click="if (items.length < maxItems) items.push({ name: '', quantity: 1, id: Date.now() })"
+                class="text-sm text-blue-600 hover:underline
                        active:scale-95 transition-transform duration-100">
-            <span x-text="showAssets ? 'Hide Available Items' : 'Browse Available Items'"></span>
+            + Add item
         </button>
 
-        <!-- ASSET LIST -->
-        <div x-show="showAssets"
-             x-transition
-             class="absolute z-10 mt-2 w-64 p-3 border rounded-lg 
-                    bg-gray-50 dark:bg-gray-900 max-h-40 overflow-auto shadow-lg">
-
-            <template x-if="assets.length === 0">
-                <p class="text-sm text-gray-500">No items available</p>
-            </template>
-
-            <template x-for="(asset, index) in assets" :key="asset + '-' + index">
-                <button type="button"
-                        @click="items.push({ name: asset, quantity: 1, id: Date.now() }); showAssets = false"
-                        class="block w-full text-left px-2 py-1 rounded
-                               hover:bg-gray-200 dark:hover:bg-gray-700
-                               active:scale-95 transition">
-                    <span x-text="asset"></span>
-                </button>
-            </template>
-
-        </div>
     </div>
-
-    <!-- RIGHT: Add Item -->
-    <button type="button"
-            @click="if (items.length < maxItems) items.push({ name: '', quantity: 1, id: Date.now() })"
-            class="text-sm text-blue-600 hover:underline
-                   active:scale-95 transition-transform duration-100">
-        + Add item
-    </button>
 
 </div>
 
@@ -171,8 +227,8 @@
                                         </button>
                                     </div>
                                 </template>
-                                
-                        
+
+
 
                             </div>
                         </div>
@@ -240,8 +296,8 @@
                                class="mt-1">
 
                         <label class="text-sm">
-                            I have read and agree to the 
-                            <span @click="openTerms = true" 
+                            I have read and agree to the
+                            <span @click="openTerms = true"
                                   class="text-blue-600 underline cursor-pointer">
                                 terms and conditions
                             </span>.

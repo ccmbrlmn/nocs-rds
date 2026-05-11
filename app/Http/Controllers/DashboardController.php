@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Models\Requests;
 use Carbon\Carbon;
 use App\Models\Asset;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
@@ -12,8 +13,8 @@ class DashboardController extends Controller
     {
         $scheduledRequests = collect();
         $calendarEvents = collect();
-        
-        
+
+
 
         if (auth()->check()) {
             $userId = auth()->id();
@@ -64,10 +65,17 @@ class DashboardController extends Controller
             ->unique()
             ->values();
 
+        $personnel = User::where('role', 'personnel')
+            ->select('id', 'name', 'office')
+            ->orderBy('name')
+            ->get();
+
         return view('admin.user-dashboard', compact(
             'scheduledRequests',
             'calendarEvents',
-            'assets'
+            'assets',
+            'personnel'
+
         ));
     }
 

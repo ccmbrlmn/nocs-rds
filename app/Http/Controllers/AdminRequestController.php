@@ -14,13 +14,14 @@ use App\Models\Asset;
 use App\Notifications\RequestReturnAcceptedNotification;
 use App\Notifications\RequestReturnNotification;
 use App\Models\UserLog;
+use App\Models\User;
 
 class AdminRequestController extends Controller
 {
     public function index(Request $request)
     {
         $highlightId = $request->query('highlight');
-        
+
         $query = RequestModel::with(['user' => function($q) {
             $q->withTrashed();
         }]);
@@ -62,11 +63,17 @@ class AdminRequestController extends Controller
 
         $statusLabels = $statusData->keys()->values();
         $statusValues = $statusData->values();
-        
+
         $assets = Asset::where('asset_status', 'Available')
             ->pluck('asset_category')
             ->unique()
             ->values();
+
+        $personnel = User::where('role', 'personnel')
+            ->whereNull('deleted_at')
+            ->select('id', 'name', 'office')
+            ->orderBy('name')
+            ->get();
 
         return view('admin.admin-requests', compact(
             'requests',
@@ -75,7 +82,8 @@ class AdminRequestController extends Controller
             'statusLabels',
             'statusValues',
             'assets',
-            'highlightId'
+            'highlightId',
+            'personnel'
         ));
     }
 
@@ -109,8 +117,8 @@ class AdminRequestController extends Controller
         $requests = $query->orderBy('created_at', $sort)->get();
 
         $statusLabel = $status ?? 'All';
-        $dateLabel = $specificDate 
-                        ? Carbon::parse($specificDate)->format('M d, Y') 
+        $dateLabel = $specificDate
+                        ? Carbon::parse($specificDate)->format('M d, Y')
                         : match($dateFilter) {
                             '30_days' => 'Last 30 Days',
                             '7_days' => 'Last 7 Days',
@@ -191,7 +199,7 @@ class AdminRequestController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
-    
+
 public function approve($id)
 {
     $req = RequestModel::findOrFail($id);
@@ -223,7 +231,7 @@ public function approve($id)
                     'actor_id' => Auth::id(),
                     'status' => 'Borrowed',
                     'borrowed_at' => now(),
-                    
+
                 ]);
             }
         }
@@ -238,7 +246,7 @@ public function approve($id)
     $req->handled_at = now();
     $req->approved_at = now();
     $req->save();
-    
+
     UserLog::create([
         'actor_id' => Auth::id(),
         'user_id' => $req->requested_by,
@@ -260,7 +268,7 @@ public function cancel(Request $request, $id)
         $req->handled_by = Auth::id();
         $req->handled_at = now();
         $req->save();
-        
+
         UserLog::create([
             'actor_id' => Auth::id(),
             'user_id' => $req->requested_by,
@@ -279,7 +287,7 @@ public function cancel(Request $request, $id)
         $user = auth()->user();
         return $user->notifications()->orderBy('created_at', 'desc')->get();
     }
-    
+
     public function acceptReturn(Request $request, $id)
     {
         $req = RequestModel::findOrFail($id);
@@ -292,13 +300,13 @@ public function cancel(Request $request, $id)
                     'returned_at' => now(),
                 ]);
 
-            $req->status = 'Pending Retrieval'; 
+            $req->status = 'Pending Retrieval';
             $req->handled_by = Auth::id();
             $req->handled_at = now();
             $req->returned_at = now();
             $req->personnel_name = $request->input('personnel');
             $req->save();
-            
+
             UserLog::create([
                 'actor_id' => Auth::id(),
                 'user_id' => $req->requested_by,
@@ -326,7 +334,7 @@ public function cancel(Request $request, $id)
 
         return redirect()->back()->with('success', 'Return approved.');
     }
-    
+
     public function cancelReturn($id)
     {
         $req = RequestModel::findOrFail($id);
@@ -367,14 +375,14 @@ public function markRetrieved($id)
                 'status' => 'Retrieved',
                 'retrieved_at' => now(),
             ]);
-            
+
         $req->retrieved_at = now();
 
         $req->status = 'Closed';
         $req->handled_by = Auth::id();
         $req->handled_at = now();
         $req->save();
-        
+
         UserLog::create([
             'actor_id' => Auth::id(),
             'user_id' => $req->requested_by,
@@ -399,7 +407,7 @@ public function markRetrieved($id)
 
     return redirect()->back()->with('success', 'Asset retrieved successfully.');
 }
-    
+
     public function assignAssetsPage($id)
     {
         $request = \App\Models\Requests::with('user')->findOrFail($id);
@@ -432,7 +440,7 @@ public function markRetrieved($id)
         $request->active_at = now();
         $request->approved_at = now();
         $request->save();
-        
+
         UserLog::create([
             'actor_id' => Auth::id(),
             'user_id' => $request->requested_by,
@@ -443,7 +451,7 @@ public function markRetrieved($id)
 
         return redirect()->route('admin.requests')
             ->with('success', 'Assets assigned successfully.');
-            
+
     }
 
 }

@@ -1,5 +1,5 @@
 <x-app-layout>
-<div 
+<div
     class="page-wrapper flex flex-col h-screen bg-gray-100 dark:bg-gray-900"
     x-data="{
         openEdit: false,
@@ -64,12 +64,18 @@
             <!-- ADD BUTTON -->
             <div class="flex justify-end">
                 <button
-                    @click="openAssetForm = true"
-                    class="px-4 py-2 rounded-lg shadow transition
-                           bg-indigo-600 text-white
-                           hover:bg-indigo-700
-                           dark:bg-indigo-500 dark:hover:bg-indigo-600">
-                    + Add Asset
+                    @click="
+                        if (window.userRole == 'user') {
+                            alert('Only admin can add assets.');
+                            return;
+                        }
+                        openAssetForm = true;
+                    "
+                    class="px-4 py-2 rounded-xl text-sm font-medium transition
+                        bg-indigo-600 text-white
+                        hover:bg-indigo-700
+                        dark:bg-indigo-500 dark:hover:bg-indigo-600">
+                    Add Asset
                 </button>
             </div>
 
@@ -77,82 +83,96 @@
     </div>
 
     <!-- TABLE -->
-    <div class="px-6">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-200 dark:border-gray-700">
+     <!-- TABLE -->
+<div class="request-history-list rounded-xl shadow overflow-hidden mx-10">
 
-            <div class="overflow-x-auto max-h-[650px] overflow-y-auto">
+    <!-- HEADER -->
+    <div class="head bg-blue-100 dark:bg-blue-900 px-4 py-2 flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-t-xl">
+        <div class="w-2/6 text-center">Asset Name</div>
+        <div class="w-1/6 text-center">Tag</div>
+        <div class="w-1/6 text-center">Serial</div>
+        <div class="w-1/6 text-center">Model</div>
+        <div class="w-1/6 text-center">Category</div>
+        <div class="w-1/6 text-center">Status</div>
+        <div class="w-1/6 text-center">Actions</div>
+    </div>
 
-                <table class="w-full text-sm text-left text-gray-700 dark:text-gray-200">
+    <div class="request-history-wrapper divide-y divide-gray-200 dark:divide-gray-700 max-h-[650px] overflow-y-auto">
 
-                    <thead class="sticky top-0 bg-gray-50 dark:bg-gray-700 text-xs uppercase text-gray-700 dark:text-gray-200">
-                        <tr>
-                            <th class="px-5 py-3">Asset Name</th>
-                            <th class="px-5 py-3">Tag</th>
-                            <th class="px-5 py-3">Serial</th>
-                            <th class="px-5 py-3">Model</th>
-                            <th class="px-5 py-3">Category</th>
-                            <th class="px-5 py-3 text-center">Status</th>
-                            <th class="px-5 py-3 text-center">Action</th>
-                        </tr>
-                    </thead>
+        @forelse($assets as $asset)
 
-                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+        <div
+            class="request-row bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition cursor-pointer"
+            onclick="window.location='{{ route('admin.assets.show', $asset->id) }}'"
+        >
 
-                        @forelse($assets as $asset)
-                        <tr 
-                            class="hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer"
-                            onclick="window.location='{{ route('admin.assets.show', $asset->id) }}'"
-                        >
+            <div class="row flex items-center px-6 py-3 text-sm">
 
-                            <td class="px-5 py-3 font-medium">{{ $asset->asset_name }}</td>
-                            <td class="px-5 py-3">{{ $asset->asset_tag ?? '-' }}</td>
-                            <td class="px-5 py-3">{{ $asset->asset_serial ?? '-' }}</td>
-                            <td class="px-5 py-3">{{ $asset->asset_model ?? '-' }}</td>
-                            <td class="px-5 py-3">{{ $asset->asset_category ?? '-' }}</td>
+                <div class="w-2/6 text-center font-medium text-gray-700 dark:text-gray-200">
+                    {{ $asset->asset_name }}
+                </div>
 
-                            <!-- STATUS -->
-                            <td class="px-5 py-3 text-center">
-                                @php $status = $asset->asset_status; @endphp
+                <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
+                    {{ $asset->asset_tag ?? '-' }}
+                </div>
 
-                                <span class="px-3 py-1 rounded-full text-xs font-semibold
-                                    {{ $status === 'Available'
-                                        ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                                        : ($status === 'In Use'
-                                            ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
-                                            : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200') }}">
-                                    {{ $status }}
-                                </span>
-                            </td>
+                <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
+                    {{ $asset->asset_serial ?? '-' }}
+                </div>
 
-                            <!-- ACTION -->
-                            <td class="px-5 py-3 text-center" onclick="event.stopPropagation();">
-                                <button
-                                    @click="openEditAsset(@js($asset))"
-                                    :class="{
-                                        'bg-gray-400 cursor-not-allowed': {{ $asset->asset_status === 'In Use' ? 'true' : 'false' }},
-                                        'bg-blue-500 hover:bg-blue-600': {{ $asset->asset_status !== 'In Use' ? 'true' : 'false' }}
-                                    }"
-                                    class="text-white px-3 py-1 rounded-lg text-xs">
-                                    Edit
-                                </button>
-                            </td>
+                <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
+                    {{ $asset->asset_model ?? '-' }}
+                </div>
 
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-12 text-gray-500 dark:text-gray-400">
-                                No assets found.
-                            </td>
-                        </tr>
-                        @endforelse
+                <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
+                    {{ $asset->asset_category ?? '-' }}
+                </div>
 
-                    </tbody>
+                <!-- STATUS -->
+                @php
+                    $statusConfig = config('status')[$asset->asset_status] ?? null;
 
-                </table>
+                    $statusClass = $statusConfig
+                        ? $statusConfig['bg'] . ' ' . $statusConfig['text']
+                        : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200';
+                @endphp
+
+                <div class="w-1/6 flex justify-center">
+                    <span class="px-3 py-1 rounded-xl text-sm font-semibold {{ $statusClass }}">
+                        {{ $asset->asset_status }}
+                    </span>
+                </div>
+
+                <!-- ACTION -->
+                <div class="w-1/6 flex justify-center gap-2"
+                     onclick="event.stopPropagation();">
+
+                    <button
+                        @click="openEditAsset(@js($asset))"
+                        :class="{
+                            'bg-gray-400 cursor-not-allowed': {{ $asset->asset_status === 'In Use' ? 'true' : 'false' }},
+                            'bg-amber-500 hover:bg-amber-600': {{ $asset->asset_status !== 'In Use' ? 'true' : 'false' }}
+                        }"
+                        class="text-white px-3 py-1 rounded-md font-semibold shadow">
+                        Edit
+                    </button>
+
+                </div>
 
             </div>
+
         </div>
+
+        @empty
+
+        <div class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
+            No assets found.
+        </div>
+
+        @endforelse
+
     </div>
+</div>
 
     <!-- EDIT MODAL -->
     <div x-show="openEdit" x-cloak

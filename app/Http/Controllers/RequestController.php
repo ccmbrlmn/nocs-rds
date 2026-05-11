@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Requests; 
-use App\Models\User; 
+use App\Models\Requests;
+use App\Models\User;
 use App\Mail\NewRequestNotification;
 use App\Mail\EditedRequestNotification;
 use Illuminate\Support\Facades\Mail;
@@ -18,13 +18,17 @@ use App\Notifications\RequestCancelledNotification;
 use App\Notifications\RequestReturnNotification;
 use App\Models\Asset;
 
+
 class RequestController extends Controller
 {
     public function index(){
-        $requests = Requests::where('status', 'Open')->get(); 
-        $assets = $this->getAssetCategories();
-        
-        return view('admin.admin-requests', compact('requests', 'assets'));
+        $requests = Requests::where('status', 'Open')->get();
+
+        return view('admin.admin-requests', [
+            'requests' => $requests,
+            'assets' => $this->getAssetCategories(),
+            'personnel' => $this->getPersonnel(),
+        ]);
     }
 
     public function adminRequest(Request $request){
@@ -32,7 +36,7 @@ class RequestController extends Controller
         $dateFilter = $request->query('date_filter');
         $specificDate = $request->query('specific_date');
 
-        $query = Requests::query(); 
+        $query = Requests::query();
 
         if ($status) {
             $query->where('status', $status);
@@ -52,17 +56,18 @@ class RequestController extends Controller
         if ($specificDate) {
             $query->whereDate('created_at', $specificDate);
         }
-        
+
         $sort = $request->get('sort', 'desc');
         $query->orderBy('created_at', $sort);
 
         $requests = $query->get();
         $totalRequests = $requests->count();
- 
+
         return view('admin.user-requests', [
             'requests' => $requests,
             'totalRequests' => $totalRequests,
             'assets' => $this->getAssetCategories(),
+            'personnel' => $this->getPersonnel(),
         ]);
     }
 
@@ -86,8 +91,8 @@ class RequestController extends Controller
     }
 
     public function show($id) {
-        $request = Requests::with('handledByAdmin')->findOrFail($id); 
-        return view('admin.user-request-details', compact('request')); 
+        $request = Requests::with('handledByAdmin')->findOrFail($id);
+        return view('admin.user-request-details', compact('request'));
     }
 
     public function complete($id)
@@ -158,12 +163,12 @@ class RequestController extends Controller
             'note' => 'nullable|string',
         ]);
 
-        $requestedBy = auth()->id(); 
+        $requestedBy = auth()->id();
         $user = User::find($requestedBy);
-        $userName = $user ? $user->name : 'Unknown User'; 
+        $userName = $user ? $user->name : 'Unknown User';
 
         $req = Requests::create([
-            'representative_name' => $validated['representative_name'], 
+            'representative_name' => $validated['representative_name'],
             'event_name' => $validated['event_name'],
             'purpose' => $validated['purpose'],
             'items' => json_encode($validated['items']),
@@ -183,7 +188,7 @@ class RequestController extends Controller
             'requested_employee' => $validated['requested_employee'] ?? null,
             'note' => $validated['note'] ?? null,
         ]);
-        
+
         UserLog::create([
             'user_id' => $requestedBy,
             'request_id' => $req->id,
@@ -194,7 +199,7 @@ class RequestController extends Controller
                 'note' => $validated['note'] ?? null,
             ])
         ]);
-        
+
         $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
 
         foreach ($admins as $admin) {
@@ -210,7 +215,7 @@ class RequestController extends Controller
 
         $requestData = $validated;
         $requestData['requested_by'] = $userName;
-        
+
         $requestData['setup_date'] = $validated['setup_date'] ?? null;
         $requestData['setup_time'] = $validated['setup_time'] ?? null;
         $requestData['users'] = $validated['users'] ?? null;
@@ -223,7 +228,7 @@ class RequestController extends Controller
 
         return redirect()->back()->with('success', 'Request submitted successfully!');
     }
-    
+
     public function requestReturn($id)
 {
     $requestRecord = Requests::findOrFail($id);
@@ -315,17 +320,8 @@ public function update(Request $request, $id)
     ]);
 
     $req->save();
-    
+
     $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
-
-    $requestData = $req->fresh()->toArray();
-
-    foreach ($admins as $admin) {
-        Mail::to($admin->email)->send(
-            new EditedRequestNotification($requestData, $changes)
-        );
-    }
-
 
     $newData = $req->fresh()->toArray();
 
@@ -363,6 +359,15 @@ public function update(Request $request, $id)
             ];
         }
     }
+
+    $requestData = $req->fresh()->toArray();
+
+    foreach ($admins as $admin) {
+        Mail::to($admin->email)->send(
+            new EditedRequestNotification($requestData, $changes)
+        );
+    }
+
 
     UserLog::create([
         'user_id' => auth()->id(),
@@ -434,22 +439,27 @@ public function update(Request $request, $id)
         $requests = $query->get();
         $totalRequests = $requests->count();
 
-        return view('admin.user-requests', compact('requests', 'totalRequests'));
+        return view('admin.user-requests', [
+            'requests' => $requests,
+            'totalRequests' => $totalRequests,
+            'assets' => $this->getAssetCategories(),
+            'personnel' => $this->getPersonnel(),
+        ]);
     }
 
 
 
     public function approve(Request $request, $id)
     {
-    
-        $deploymentRequest = Requests::findOrFail($id); 
+
+        $deploymentRequest = Requests::findOrFail($id);
 
         $deploymentRequest->other_equipments = $request->other_equipments;
         $deploymentRequest->status = 'Active';
         $deploymentRequest->handled_by = auth()->id();
         $deploymentRequest->handled_at = now();
         $deploymentRequest->save();
-        
+
         if ($request->has('asset_ids')) {
             foreach ($request->asset_ids as $assetId) {
 
@@ -462,24 +472,24 @@ public function update(Request $request, $id)
                 }
             }
         }
-        
+
         $deploymentRequest->user->notify(
             new RequestApprovedNotification(
                 $deploymentRequest,
                 auth()->user()
             )
         );
-        
+
         UserLog::create([
             'user_id' => auth()->id(),
             'request_id' => $deploymentRequest->id,
             'action' => 'request_approved',
             'description' => 'Approved request: ' . $deploymentRequest->event_name,
         ]);
-        
+
         return redirect()->back()->with('success', 'Request updated successfully.');
     }
-    
+
 
 
     public function getAdminNotifications()
@@ -543,8 +553,8 @@ public function update(Request $request, $id)
 
         $statusLabel = $request->status ?? 'All';
 
-        $dateLabel = $request->specific_date 
-            ? Carbon::parse($request->specific_date)->format('M d, Y') 
+        $dateLabel = $request->specific_date
+            ? Carbon::parse($request->specific_date)->format('M d, Y')
             : match($request->date_filter) {
                 '30_days' => 'Last 30 Days',
                 '7_days' => 'Last 7 Days',
@@ -615,7 +625,7 @@ public function update(Request $request, $id)
 
         return response()->stream($callback, 200, $headers);
     }
-    
+
     public function getUserNotifications()
     {
         return auth()->user()->notifications()
@@ -657,10 +667,11 @@ public function update(Request $request, $id)
 
         return view('admin.edit', [
             'request' => $request,
-            'assets' => $this->getAssetCategories()
+            'assets' => $this->getAssetCategories(),
+            'personnel' => $this->getPersonnel(),
         ]);
     }
-    
+
     private function getAssetCategories()
     {
         return Asset::where('asset_status', 'Available')
@@ -668,6 +679,14 @@ public function update(Request $request, $id)
             ->unique()
             ->values();
     }
-    
+
+    private function getPersonnel()
+    {
+        return User::where('role', 'personnel')
+            ->select('id', 'name', 'office')
+            ->orderBy('name')
+            ->get();
+    }
+
 }
 

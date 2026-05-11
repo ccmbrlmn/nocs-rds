@@ -5,8 +5,8 @@
              style="margin-left:5rem; margin-right:5rem;">
 
             <a href="{{ route('admin.created-admins') }}"
-               class="px-4 py-2 rounded-xl text-sm font-medium transition 
-                      bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 
+               class="px-4 py-2 rounded-xl text-sm font-medium transition
+                      bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
                       hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm flex items-center gap-2">
 
                 <span class="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -200,8 +200,8 @@
                                                 Requested Account Deletion
                                             </div>
                                         @break
-                                        
-                                        
+
+
                                         @case('user_updated')
                                         <div class="font-semibold text-blue-600">
                                             Updated User
@@ -318,13 +318,13 @@
             <span class="font-medium">Handled by:</span>
             {{ $data['handled_by'] ?? 'Admin' }}
         </div>
-        
+
 
     </div>
 @break
 
 
-                                        
+
 @case('profile_updated')
     <div class="font-semibold text-blue-600 mb-1">
         Updated Own Profile
@@ -383,7 +383,7 @@
         </div>
     @endif
 @break
-                                        
+
                                         @case('user_delete_requested')
                                             <div class="font-semibold text-red-500">
                                                 Requested Account Deletion
@@ -392,7 +392,7 @@
                                                 {{ $item['event_name'] ?? 'Admin requested account deletion' }}
                                             </div>
                                         @break
-                                    
+
 
                                         @case('user_updated')
                                             <div class="font-semibold text-blue-600 mb-1">
@@ -466,7 +466,7 @@
                                                 {{ $item['target_user_name'] ?? 'User' }}
                                             </div>
                                         @break
-                                                      
+
 
                                         @case('user_deleted')
                                             <div class="font-semibold text-red-600">
@@ -487,7 +487,7 @@
                                         @break
 
 
-                                                                      
+
                                         @case('asset_created')
                                             <div class="font-semibold text-green-600">
                                                 Created Asset
@@ -541,7 +541,7 @@
                                                     @endforeach
                                                 </div>
                                             @endif
-                                        @break                          
+                                        @break
 
                                         @default
                                             <div class="text-gray-500">Admin Action</div>
@@ -577,15 +577,15 @@
                                         @case('assets_retrieved')
                                             <span class="text-indigo-600">Retrieved Request</span>
                                         @break
-                                        
+
                                         @case('profile_updated')
                                             <span class="text-blue-600">Updated Profile</span>
                                         @break
-                                        
+
                                         @case('user_delete_requested')
                                             <span class="text-red-500">Account Deletion</span>
                                         @break
-                                        
+
                                         @case('user_created')
                                             <span class="text-blue-600">Created User</span>
                                         @break
@@ -593,27 +593,27 @@
                                         @case('user_registered')
                                             <span class="text-indigo-600">Registered User</span>
                                         @break
-                                        
+
                                         @case('user_approved')
                                             <span class="text-green-600">Approved User</span>
                                         @break
-                                        
+
                                         @case('user_updated')
                                             <span class="text-green-600">Edited User</span>
                                         @break
-                                        
+
                                         @case('user_deleted')
                                             <span class="text-indigo-600">Deleted User</span>
                                         @break
-                                        
+
                                         @case('user_restored')
                                             <span class="text-green-600">Restored User</span>
                                         @break
-                                        
+
                                         @case('asset_created')
                                             <span class="text-indigo-600">Created Asset</span>
                                         @break
-                                        
+
                                         @case('asset_updated')
                                             <span class="text-green-600">Updated Asset</span>
                                         @break

@@ -2,8 +2,8 @@
     <div class="header-container flex items-center justify-between p-3 mt-8 mb-6">
 
         <a href="{{ route('admin.requests') }}"
-           class="px-4 py-2 rounded-xl text-sm font-medium transition 
-                  bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 
+           class="px-4 py-2 rounded-xl text-sm font-medium transition
+                  bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
                   hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm flex items-center gap-2">
 
             <span class="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -97,7 +97,7 @@
                     <div class="flex gap-4 p-3">
                         <span class="material-symbols-outlined bg-blue-100 text-blue-600 p-2 rounded-lg">inventory_2</span>
                         <div>
-                            <p class="header-text">Requested Items</p>
+                            <p class="header-text  dark:text-gray-200">Requested Items</p>
 
                             @php
                                 $items = is_array($request->items)
@@ -105,7 +105,7 @@
                                     : json_decode($request->items, true) ?? [];
                             @endphp
 
-                            <ul class="detail-text">
+                            <ul class="detail-text dark:text-gray-200 ">
                                 @forelse($items as $item)
                                     <li>{{ $item['quantity'] }} {{ $item['name'] }}</li>
                                 @empty

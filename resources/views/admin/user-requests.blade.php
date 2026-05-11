@@ -7,7 +7,7 @@
      "
      @open-request-form.window="openRequestForm = true"
 >
-    
+
 
     <!-- HEADER -->
     <div class="header-container rounded-2xl mb-3 mx-3 mt-3">
@@ -17,7 +17,7 @@
             </div>
             @include('layouts.header')
         </div>
-        
+
     </div>
 
     @include('layouts.filter', [
@@ -37,21 +37,21 @@
         ],
         'exportPdf' => 'user.requests.pdf',
         'exportCsv' => 'user.requests.csv',
-        
+
         'showCreate' => true
     ])
 
     <!-- TABLE -->
     <div class="request-history-list rounded-xl shadow overflow-hidden mx-10">
 
-        <!-- HEADER -->
-        <div class="bg-blue-100 dark:bg-blue-900 px-4 py-2 flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-t-xl">
-            <div class="w-2/6 text-center">Event</div>
-            <div class="w-1/6 text-center">Date</div>
-            <div class="w-1/6 text-center">Purpose</div>
-            <div class="w-1/6 text-center">Status</div>
-            <div class="w-1/6 text-center">Action</div>
-        </div>
+        <!-- TABLE HEADER -->
+<div class="grid grid-cols-5 bg-blue-100 dark:bg-blue-900 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 rounded-t-xl text-center">
+    <div>Event</div>
+    <div>Date</div>
+    <div>Purpose</div>
+    <div>Status</div>
+    <div>Action</div>
+</div>
 
         <div class="request-history-wrapper max-h-[60vh] overflow-y-auto">
 
@@ -67,63 +67,62 @@
                     ];
                 @endphp
 
-                <div class="flex items-center px-4 py-3 text-sm bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700">
+<div class="grid grid-cols-5 items-center px-4 py-3 text-sm bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 text-center">
 
-                    <!-- ROW -->
-                    <div onclick="window.location='{{ route('request-details.show', $request->id) }}'"
-                        class="flex w-5/6 justify-between items-center cursor-pointer">
+    <!-- Event -->
+    <div class="text-gray-600 dark:text-gray-300 cursor-pointer"
+         onclick="window.location='{{ route('request-details.show', $request->id) }}'">
+        {{ $request->event_name }}
+    </div>
 
-                        <div class="w-2/6 text-center text-gray-600 dark:text-gray-300">
-                            {{ $request->event_name }}
-                        </div>
+    <!-- Date -->
+    <div class="text-gray-600 dark:text-gray-300">
+        {{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}
+    </div>
 
-                        <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
-                            {{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y') }}
-                        </div>
+    <!-- Purpose -->
+    <div class="text-gray-600 dark:text-gray-300">
+        {{ $request->purpose === 'Others' ? $request->other_purpose : $request->purpose }}
+    </div>
 
-                        <div class="w-1/6 text-center text-gray-600 dark:text-gray-300">
-                            {{ $request->purpose === 'Others' ? $request->other_purpose : $request->purpose }}
-                        </div>
+    <!-- Status -->
+    <div>
+        <span class="px-3 py-1 rounded-xl text-sm font-medium
+            {{ $statusClasses[$status] ?? 'bg-gray-200 text-gray-600' }}">
+            {{ $status }}
+        </span>
+    </div>
 
-                        <div class="w-1/6 text-center">
-                            <span class="px-3 py-1 rounded-xl text-sm font-medium
-                                {{ $statusClasses[$status] ?? 'bg-gray-200 text-gray-600' }}">
-                                {{ $status }}
-                            </span>
-                        </div>
-                    </div>
+    <!-- Action -->
+    <div class="flex justify-center gap-2">
 
-                    <!-- ACTIONS -->
-                    <div class="w-1/6 flex justify-center gap-2 relative z-10">
+        @if($status === 'Active')
+            <button type="button"
+                    @click.stop="openReturnModal({{ $request->id }})"
+                    class="text-xs px-3 py-1 rounded-lg bg-orange-500 text-white hover:bg-orange-600">
+                Return
+            </button>
+        @else
+            <button disabled class="text-xs px-3 py-1 rounded-lg bg-gray-400 text-white opacity-60">
+                Return
+            </button>
+        @endif
 
-                        {{-- RETURN --}}
-                        @if($status === 'Active')
-                            <button type="button"
-                                    @click.stop="openReturnModal({{ $request->id }})"
-                                    class="text-xs px-3 py-1 rounded-lg bg-orange-500 text-white hover:bg-orange-600">
-                                Return
-                            </button>
-                        @else
-                            <button disabled class="text-xs px-3 py-1 rounded-lg bg-gray-400 text-white opacity-60">
-                                Return
-                            </button>
-                        @endif
+        @if($status === 'Open' && !$request->is_edited)
+            <button type="button"
+                    @click.stop="confirmEdit({{ $request->id }}, {{ $request->is_edited ? '1' : '0' }})"
+                    class="text-xs px-3 py-1 rounded-lg bg-blue-500 text-white hover:bg-blue-600">
+                Edit
+            </button>
+        @else
+            <button disabled class="text-xs px-3 py-1 rounded-lg bg-gray-400 text-white opacity-60">
+                Edit
+            </button>
+        @endif
 
-                        {{-- EDIT --}}
-                        @if($status === 'Open' && !$request->is_edited)
-                            <button type="button"
-                                @click.stop="confirmEdit({{ $request->id }}, {{ $request->is_edited ? '1' : '0' }})"
-                                class="text-xs px-3 py-1 rounded-lg bg-blue-500 text-white hover:bg-blue-600">
-                                Edit
-                            </button>
-                        @else
-                            <button disabled class="text-xs px-3 py-1 rounded-lg bg-gray-400 text-white opacity-60">
-                                Edit
-                            </button>
-                        @endif
+    </div>
 
-                    </div>
-                </div>
+</div>
             @empty
                 <div class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
                     No requests found.
@@ -132,7 +131,7 @@
 
         </div>
     </div>
-    
+
 <!-- EDIT MODAL -->
 <div x-show="editOpen"
      x-cloak
@@ -142,19 +141,8 @@
     <div class="absolute inset-0 bg-black bg-opacity-50"
          @click="closeEditModal()"></div>
 
-    <!-- MODAL BOX -->
-    <div class="relative">
+                 <div x-html="editForm"></div>
 
-        <!-- CLOSE -->
-        <button type="button"
-                @click="closeEditModal()"
-                class="absolute top-3 right-3 text-gray-500 hover:text-red-500 text-xl">
-            ✕
-        </button>
-
-        <div x-html="editForm"></div>
-
-    </div>
 </div>
 
 <div x-show="confirmEditOpen"
@@ -183,7 +171,7 @@
                 Cancel
             </button>
 
-            <button 
+            <button
                 @click="
                     confirmEditOpen = false;
                     openEditModal(selectedRequestId);
@@ -247,7 +235,7 @@
 </div>
 </div>
 
-<div 
+<div
     x-show="showToast"
     x-transition
     x-cloak
@@ -278,10 +266,10 @@ function returnModal() {
             notLost: false,
             notDamaged: false
         },
-        
+
         openRequestForm: false,
 view: new URLSearchParams(window.location.search).get('view') || 'list',
-        
+
         showToastMessage(message, type = 'error') {
             this.toastMessage = message;
             this.toastType = type;
@@ -291,7 +279,7 @@ view: new URLSearchParams(window.location.search).get('view') || 'list',
                 this.showToast = false;
             }, 3000);
         },
-        
+
         confirmEdit(id, alreadyEdited) {
             alreadyEdited = Number(alreadyEdited);
 
@@ -327,7 +315,7 @@ view: new URLSearchParams(window.location.search).get('view') || 'list',
                 notDamaged: false
             };
         },
-        
+
         openEditModal(id) {
             this.editOpen = true;
             this.editForm = `<p class="text-gray-500">Loading...</p>`;
@@ -398,8 +386,8 @@ view: new URLSearchParams(window.location.search).get('view') || 'list',
     left: auto;
     right: auto;
     overflow: visible;
-    overflow-y: auto;       
-    max-height: 60vh;      
+    overflow-y: auto;
+    max-height: 60vh;
 
 .request-history-wrapper::-webkit-scrollbar {
     width: 8px;

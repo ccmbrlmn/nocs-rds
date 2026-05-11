@@ -26,10 +26,6 @@
                 <button @click="open = !open"
                     class="px-3 py-2 text-sm rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 flex items-center gap-2">
 
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                              d="M3 4h18M6 12h12M10 20h4"/>
-                    </svg>
 
                     <span class="text-gray-600 dark:text-gray-200 font-medium">
                         Filters
@@ -37,16 +33,16 @@
                 </button>
 
                 <div x-show="open" @click.away="open=false" x-transition
-                     class="absolute mt-2 p-4 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl z-50 space-y-3">
+                     class="absolute mt-2 p-4 w-60 bg-white dark:bg-gray-800 rounded-xl shadow-xl z-50 space-y-3">
 
                     <!-- DATE FILTER -->
                     <div class="flex flex-wrap gap-2">
                         @foreach($dateFilters as $key => $label)
                             <a href="{{ route($routeName, array_merge(request()->query(), ['date_filter' => $key])) }}"
-                               class="px-3 py-1 text-xs rounded-lg transition
-                               {{ request('date_filter') == $key
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200' }}">
+                            class="px-3 py-1 text-xs rounded-lg transition
+                            {{ request('date_filter') == $key
+                                    ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
                                 {{ $label }}
                             </a>
                         @endforeach
@@ -56,20 +52,25 @@
                     <form action="{{ route($routeName) }}" method="GET">
                         <input type="date" name="specific_date"
                             value="{{ request('specific_date') }}"
-                            class="w-full rounded-lg bg-gray-100 dark:bg-gray-700 text-sm px-3 py-2 border-none">
+                            class="w-full rounded-lg bg-gray-100 dark:bg-gray-700 text-sm px-3 py-2 border-none text-gray-800 dark:text-gray-100"
+                            style="color-scheme: dark;">
                     </form>
 
                     <!-- SORT -->
                     <div class="flex gap-2">
                         <a href="{{ route($routeName, array_merge(request()->except('sort'), ['sort'=>'desc'])) }}"
                            class="px-3 py-1 text-xs rounded-lg
-                           {{ request('sort','desc')=='desc' ? 'bg-indigo-600 text-white' : 'bg-gray-100' }}">
+                           {{ request('sort')=='asc'
+    ? 'bg-indigo-600 text-white'
+    : 'bg-gray-100 dark:bg-gray-700 dark:text-gray-200' }}">
                             Newest
                         </a>
 
                         <a href="{{ route($routeName, array_merge(request()->except('sort'), ['sort'=>'asc'])) }}"
                            class="px-3 py-1 text-xs rounded-lg
-                           {{ request('sort')=='asc' ? 'bg-indigo-600 text-white' : 'bg-gray-100' }}">
+                           {{ request('sort')=='asc'
+    ? 'bg-indigo-600 text-white'
+    : 'bg-gray-100 dark:bg-gray-700 dark:text-gray-200' }}">
                             Oldest
                         </a>
                     </div>
@@ -89,16 +90,16 @@
                 </button>
 
                 <div x-show="open" @click.away="open=false" x-transition
-                     class="absolute mt-2 w-40 bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden z-50">
+                     class="absolute mt-2 w-28 bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden z-50">
 
                     <a href="{{ route($exportPdf, request()->query()) }}"
-                       target="_blank"
-                       class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                    target="_blank"
+                    class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                         Export PDF
                     </a>
 
                     <a href="{{ route($exportCsv, request()->query()) }}"
-                       class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                    class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                         Export CSV
                     </a>
 

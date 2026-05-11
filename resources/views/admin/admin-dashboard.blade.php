@@ -15,11 +15,11 @@ x-data="{
 
         if (urlView) {
             this.view = urlView;
-        } 
+        }
         else if (this.pinnedView) {
             this.view = this.pinnedView;
             history.replaceState(null, '', `?view=${this.pinnedView}`);
-        } 
+        }
         else {
             this.view = 'calendar';
         }
@@ -67,34 +67,54 @@ x-data="{
 }"
 x-init="init()"
 >
-    
+
 <x-app-layout>
     <style>
         [x-cloak] { display: none !important; }
     </style>
-    
-    <div class="p-6 flex items-center justify-between rounded-2xl mb-3 mx-3 mt-3">
-        <div class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
-            @php
-                date_default_timezone_set('Asia/Manila');
-                $hour = now()->hour;
-                if ($hour < 12) $greeting = 'Good morning';
-                elseif ($hour < 18) $greeting = 'Good afternoon';
-                else $greeting = 'Good evening';
-            @endphp
 
-            @if(auth()->check())
-                {{ $greeting }}, {{ auth()->user()->name }}!
-            @else
-                {{ $greeting }}!
-            @endif
+<div class="rounded-2xl mb-3 mx-3 mt-3">
+
+    <!-- TOP NAV -->
+    <div class="p-4 flex items-center justify-between">
+        <div class="flex gap-3">
+
+            <button @click="setView('calendar')"
+                class="px-4 py-2 text-sm font-semibold rounded-xl transition"
+                :class="view === 'calendar'
+                    ? 'bg-white dark:bg-gray-900 text-indigo-600 shadow'
+                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'">
+                Calendar
+            </button>
+
+            <button @click="setView('asset-dashboard')"
+                class="px-4 py-2 text-sm font-semibold rounded-xl transition"
+                :class="view === 'asset-dashboard'
+                    ? 'bg-white dark:bg-gray-900 text-indigo-600 shadow'
+                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'">
+                Assets
+            </button>
+
+            <button @click="setView('request-dashboard')"
+                class="px-4 py-2 text-sm font-semibold rounded-xl transition"
+                :class="view === 'request-dashboard'
+                    ? 'bg-white dark:bg-gray-900 text-indigo-600 shadow'
+                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'">
+                Requests
+            </button>
+
         </div>
+
         @include('layouts.header')
     </div>
 
+
+
+</div>
+
     <div id="calendar-container"
          x-data="{
-            openRequestForm: false, 
+            openRequestForm: false,
             openCancelForm: false,
             openAssetForm: false,
             loading: false,
@@ -120,113 +140,13 @@ x-init="init()"
             }
          }">
 
-<div class="px-6 mb-4">
-    <div class="flex items-center w-full border-b border-gray-200 dark:border-gray-600 relative transition-all duration-150">
-    
-<button 
-    @click="setView('calendar')"
-    class="relative px-4 py-2 text-sm flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 transition">
-
-    <!-- ICON -->
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5"
-        viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round"
-            d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7H3v12a2 2 0 002 2z"/>
-    </svg>
-
-    <span :class="view === 'calendar' ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : ''">
-        Calendar
-    </span>
-
-    <span 
-        x-show="view === 'calendar' || isPinned('calendar')"
-        @click.stop="togglePin('calendar')"
-        class="ml-1 opacity-60 hover:opacity-100 cursor-pointer">
-
-        <svg class="w-4 h-4"
-            :class="isPinned('calendar') ? 'text-indigo-500' : 'text-gray-400'"
-            fill="currentColor"
-            viewBox="0 0 20 20">
-            <path d="M6 2l8 8-2 2-2-2-4 4v4H4v-6l4-4-2-2 2-2z"/>
-        </svg>
-    </span>
-
-    <span 
-        x-show="view === 'calendar'"
-        class="absolute left-0 bottom-[-1px] w-full h-[2px] bg-indigo-500 rounded-full">
-    </span>
-</button>
-        
-<button 
-    @click="
-        setView('asset-dashboard');
-        $nextTick(() => initAssetCharts());
-    "
-    class="px-4 py-2 text-sm flex items-center gap-2 transition border-b-2"
-    :class="view === 'asset-dashboard'
-        ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400 font-semibold'
-        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700'">
-
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5"
-        viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round"
-            d="M3 13h4v8H3zm7-6h4v14h-4zm7 3h4v11h-4z"/>
-    </svg>
-
-    Asset Dashboard
-
-    <button 
-        x-show="view === 'asset-dashboard' || isPinned('asset-dashboard')"
-        @click.stop="togglePin('asset-dashboard')"
-        class="ml-1 opacity-60 hover:opacity-100 transition">
-
-        <svg class="w-4 h-4"
-            :class="isPinned('asset-dashboard') ? 'text-indigo-500' : 'text-gray-400'"
-            fill="currentColor"
-            viewBox="0 0 20 20">
-            <path d="M6 2l8 8-2 2-2-2-4 4v4H4v-6l4-4-2-2 2-2z"/>
-        </svg>
-    </button>
-</button>
-        
-<button 
-    @click="setView('request-dashboard')"
-    class="px-4 py-2 text-sm flex items-center gap-2 transition border-b-2"
-    :class="view === 'request-dashboard'
-        ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400 font-semibold'
-        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700'">
-
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5"
-        viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round"
-            d="M3 3v18h18M9 17V9m4 8V5m4 12v-3"/>
-    </svg>
-
-    Request Dashboard
-
-    <button 
-        x-show="view === 'request-dashboard' || isPinned('request-dashboard')"
-        @click.stop="togglePin('request-dashboard')"
-        class="ml-1 opacity-60 hover:opacity-100 transition">
-
-        <svg class="w-4 h-4"
-            :class="isPinned('request-dashboard') ? 'text-indigo-500' : 'text-gray-400'"
-            fill="currentColor"
-            viewBox="0 0 20 20">
-            <path d="M6 2l8 8-2 2-2-2-4 4v4H4v-6l4-4-2-2 2-2z"/>
-        </svg>
-    </button>
-</button>
-
-    </div>
-</div>
 
 
 <div x-show="openAssetForm"
      x-cloak
      class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center px-4">
 
-    <div class="bg-white dark:bg-gray-800 dark:text-gray-200 rounded-2xl w-full max-w-3xl p-6 shadow-xl">
+    <div class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm dark:text-gray-200 rounded-2xl w-full max-w-3xl p-6 shadow-xl">
 
         <div class="flex justify-end">
             <button @click="openAssetForm = false"
@@ -294,11 +214,19 @@ x-init="init()"
         <div x-show="view === 'calendar'" x-cloak
              class="p-6 grid grid-cols-1 xl:grid-cols-12 gap-6">
 
-            <div class="cal-col xl:col-span-8 bg-white rounded-3xl dark:border-gray-200 p-3 sm:p-4 dark:bg-gray-800 text-gray-900 dark:text-gray-200">
+            <div class="cal-col xl:col-span-8  bg-white/40 dark:bg-gray-800/40 backdrop-blur-md rounded-3xl dark:border-gray-200 p-3 sm:p-4 dark:bg-gray-800 text-gray-900 dark:text-gray-200">
                 @include('layouts.calendar', ['calendarEvents' => $calendarEvents])
             </div>
 
-            <div class="card-sched xl:col-span-4 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 px-3 sm:px-4 py-4 flex flex-col text-gray-900 dark:text-gray-200">
+            <div class="card-sched xl:col-span-4
+                bg-white/40 dark:bg-gray-800/40
+                backdrop-blur-md
+                rounded-3xl
+                shadow-sm
+                border border-gray-200/60 dark:border-gray-600/40
+                px-3 sm:px-4 py-4
+                flex flex-col
+                text-gray-900 dark:text-gray-200">
 
                 @php
                     $todayRequests = $scheduledRequests
@@ -319,14 +247,15 @@ x-init="init()"
                         <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-200 tracking-tight">
                             Scheduled Requests
                         </h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-300 mt-1">
-                            Overview of all requests
-                        </p>
+
                     </div>
 
                     @if($todayRequests->isNotEmpty())
                         <a href="{{ route('admin.requests') }}"
-                           class="whitespace-nowrap inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow">
+                           class="px-4 py-2 rounded-xl text-sm font-medium transition
+                        bg-indigo-600 text-white
+                        hover:bg-indigo-700
+                        dark:bg-indigo-500 dark:hover:bg-indigo-600">
                             View Requests
                         </a>
                     @endif
@@ -340,10 +269,10 @@ x-init="init()"
                             $color = $statusConfig
                                 ? $statusConfig['bg'] . ' ' . $statusConfig['text']
                                 : 'bg-gray-100 text-gray-700 dark:text-gray-200';
-                        @endphp    
+                        @endphp
 
                         <a href="{{ url('/admin/requests/' . $sched->id) }}"
-                           class="block relative p-3 pt-7 pl-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200 hover:shadow-md cursor-pointer">
+                           class="block relative p-3 pt-7 pl-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200 hover:shadow-md cursor-pointer">
 
                             <div class="flex justify-between items-center gap-3">
                                 <div class="flex flex-col gap-1">
@@ -392,7 +321,11 @@ x-init="init()"
                                 You're all caught up. View other requests.
                             </p>
                             <a href="{{ route('admin.requests') }}"
-                               class="mt-5 whitespace-nowrap inline-flex items-center gap-2 bg-indigo-600 font-semibold text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow">
+                               class="mt-5 whitespace-nowrap inline-flex items-center gap-2 bg-indigo-600 font-semibold text-white px-4 py-2 rounded-xl text-sm font-medium transition
+        bg-indigo-600 text-white
+        hover:bg-indigo-700
+        dark:bg-indigo-500 dark:hover:bg-indigo-600">
+
                                 View Requests
                             </a>
                         </div>
@@ -419,7 +352,7 @@ x-init="init()"
                 @endif
 
             </div>
-            
+
         </div>
 
         <div x-show="view === 'asset-dashboard'" x-cloak>
@@ -429,13 +362,13 @@ x-init="init()"
                 'categoryStatusData' => $categoryStatusData
             ])
         </div>
-        
+
         <div x-show="view === 'request-dashboard'" x-cloak>
             @include('admin.admin-request-dashboard', [
                 'requests' => $requests
             ])
         </div>
-    
+
 
 
 </x-app-layout>

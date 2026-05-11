@@ -5,8 +5,8 @@
              style="margin-left:5rem; margin-right:5rem;">
 
             <a href="{{ route('admin.users') }}"
-               class="px-4 py-2 rounded-xl text-sm font-medium transition 
-                      bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 
+               class="px-4 py-2 rounded-xl text-sm font-medium transition
+                      bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
                       hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm flex items-center gap-2">
 
                 <span class="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -101,7 +101,7 @@
             <span class="font-medium">Event:</span>
             {{ $log->request->event_name ?? ($data['event_name'] ?? 'Unknown Event') }}
         </div>
-        
+
         @if($log->request?->personnel_name)
             <div>
                 <span class="font-medium">Assigned Personnel:</span>
@@ -141,7 +141,7 @@
                                     @case('request_approved')
                                         <div class="font-semibold text-red-600">Request Approved</div>
                                         <div class="text-gray-500 mt-1 space-y-1">{{ $log->request->event_name ?? ($data['event_name'] ?? 'Unknown Event') }}</div>
-                                        
+
                                     @break
 
                                     @case('request_cancelled_admin')
@@ -265,14 +265,14 @@
                                             Welcome to the system
                                         </div>
                                     @break
-                                    
+
                                     @case('user_approved')
                                         <div class="font-semibold text-green-700">Account Approved</div>
                                         <div class="text-gray-500">
                                             Your account has been approved by admin
                                         </div>
                                     @break
-                                    
+
                                     @case('user_updated')
                                         <div class="font-semibold text-blue-600 mb-1">
                                             Admin edited your account
@@ -327,7 +327,7 @@
                                             </div>
                                         @endif
                                     @break
-                                    
+
                                     @case('user_deleted')
                                             <div class="font-semibold text-red-700">
                                                 Account Deleted
@@ -336,7 +336,7 @@
                                                 Admin deleted your account
                                             </div>
                                     @break
-                                    
+
                                     @case('user_restored')
                                             <div class="font-semibold text-green-700">
                                                 Account Restored
@@ -345,7 +345,7 @@
                                                 Admin restored your account
                                             </div>
                                     @break
-                                        
+
 
                                     @case('user_delete_requested')
                                         <div class="font-semibold text-red-500">Account Deletion Requested</div>
@@ -404,20 +404,20 @@
                                     @case('user_created')
                                         <span class="text-green-600">Created Account</span>
                                     @break
-                                    
+
                                     @case('user_approved')
                                         <span class="text-green-700">Approved Account</span>
                                     @break
-                                    
+
                                     @case('user_updated')
                                         <span class="text-green-700">Updated Account</span>
                                     @break
-                                    
-                                                                        
+
+
                                     @case('user_deleted')
                                         <span class="text-green-700">Deleted Account</span>
                                     @break
-                                    
+
                                     @case('user_restored')
                                         <span class="text-green-700">Restored Account</span>
                                     @break

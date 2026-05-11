@@ -7,7 +7,7 @@
     <h2>New Request by {{ $requestData['requested_by'] }}</h2>
     <hr>
     <p>A new request has been submitted. Below are the details:</p>
-    
+
     <p><strong>Representative Name:</strong> {{ $requestData['representative_name'] }}</p>
     <p><strong>Event Name:</strong> {{ $requestData['event_name'] }}</p>
     <p><strong>Purpose:</strong> {{ $requestData['purpose'] }}</p>
@@ -46,9 +46,9 @@
             <li>{{ $item['name'] }} — Quantity: {{ $item['quantity'] }}</li>
         @endforeach
     </ul>
-    
+
     <br>
     <p>Kindly review the request in the system for further details and necessary action.</p>
-    
+
 </body>
 </html>

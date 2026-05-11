@@ -16,12 +16,12 @@ class AssetTransaction extends Model
         'retrieved_at',
         'personnel_name',
     ];
-    
+
     public function asset()
     {
         return $this->belongsTo(Asset::class, 'asset_id');
     }
-    
+
     public function user()
     {
         return $this->belongsTo(\App\Models\User::class, 'user_id');

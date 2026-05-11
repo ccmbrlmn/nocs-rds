@@ -2,7 +2,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    if (localStorage.theme === 'dark' || 
+    if (localStorage.theme === 'dark' ||
        (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
     } else {
@@ -13,13 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
-    
+
         <style>
         [x-cloak] {
             display: none !important;
         }
     </style>
-    
+
     <script src="//unpkg.com/alpinejs" defer></script>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -34,11 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-       
+
     </head>
     <body class="font-sans antialiased">
-    <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex">
-        
+    <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex">
+
         <div class="sidebar-layout bg-white dark:bg-gray-800">
     @include('layouts.sidebar-nav') {{-- single sidebar handles admin, user, guest --}}
         </div>

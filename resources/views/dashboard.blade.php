@@ -7,12 +7,15 @@
 
     <div class="p-6" x-data="{ openRequestForm: false }">
 
-        @guest 
+        @guest
             @include('modal.not-auth')
         @endguest
 
         @auth
-            @include('form.request-form')
+            @include('form.request-form', [
+                'personnel' => $personnel,
+                'assets' => $assets
+            ])
         @endauth
 
         <div class="calendar mt-6">

@@ -10,7 +10,7 @@ window.isGuest = window.userRole === null;
 
         <script src="//unpkg.com/alpinejs" defer></script>
 
-        <div class="col-span-full xl:col-span-7 px-3 py-3 sm:p-4 bg-white dark:bg-gray-800 rounded-2xl max-xl:row-start-1 w-full h-full">
+        <div class="max-xl:row-start-1 w-full h-full">
           <div class="flex flex-col md:flex-row gap-4 items-start justify-between mb-4">
 
             <div class="flex items-center gap-3">
@@ -33,7 +33,10 @@ window.isGuest = window.userRole === null;
               @auth
                   <button
                       @click="openRequestForm = true"
-                      class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow">
+                      class="px-4 py-2 rounded-xl text-sm font-medium transition
+                        bg-indigo-600 text-white
+                        hover:bg-indigo-700
+                        dark:bg-indigo-500 dark:hover:bg-indigo-600">
                       Create Request
                   </button>
               @endauth
@@ -42,8 +45,8 @@ window.isGuest = window.userRole === null;
           </div>
 
 <div class="border border-indigo-200 dark:border-gray-400 rounded-xl w-full flex flex-col">
-          
-            <div class="grid grid-cols-7 rounded-t-xl border-b border-indigo-200 bg-indigo-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-base font-semibold">
+
+            <div class="grid grid-cols-7 rounded-t-xl border-b border-indigo-200 bg-indigo-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-xs font-medium">
 
               <div class="py-3 border-r border-indigo-200 flex items-center justify-center cursor-pointer hover:bg-indigo-100 dark:hover:bg-gray-600"
                    data-weekday="0">Sun</div>
@@ -59,7 +62,7 @@ window.isGuest = window.userRole === null;
                    data-weekday="5">Fri</div>
               <div class="py-3 flex items-center justify-center cursor-pointer hover:bg-indigo-100 dark:hover:bg-gray-600"
                    data-weekday="6">Sat</div>
-             
+
             </div>
 
             <div id="calendar-days" class="grid grid-cols-7 rounded-b-xl text-gray-900 dark:text-gray-200"></div>
@@ -110,10 +113,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     for (let i = firstDayOfMonth; i > 0; i--) {
       calendarDays.innerHTML += `
-  <div class="flex p-3 
-    bg-gray-50 dark:bg-gray-700 
-    border-r border-b border-indigo-200 dark:border-gray-300 
-    text-xs font-semibold 
+  <div class="flex p-3
+    bg-gray-50 dark:bg-gray-700
+    border-r border-b border-indigo-200 dark:border-gray-300
+    text-xs font-semibold
     text-gray-400 dark:text-gray-500">
     ${lastDayOfPrevMonth - i + 1}
   </div>`;
@@ -142,18 +145,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const dayCell = document.createElement('div');
       dayCell.className = `
-  relative 
-  border-r border-b border-indigo-200 dark:border-gray-300 
-  text-xs font-semibold 
-  flex flex-col items-start justify-start 
-  p-2 pt-7 
-  cursor-pointer 
-  bg-white dark:bg-gray-800 
+  relative
+  border-r border-b border-indigo-200 dark:border-gray-300
+  text-xs font-semibold
+  flex flex-col items-start justify-start
+  p-2 pt-7
+  cursor-pointer
+bg-white/40 dark:bg-gray-800/40 backdrop-blur-md
   hover:bg-indigo-50 dark:hover:bg-gray-700
 `;
 
       dayCell.innerHTML = `
-        <span class="absolute top-1 left-2 ${isToday ? 'bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center' : ''}">
+        <span class="absolute top-1 left-2 text-[12px] font-medium ${isToday ? 'bg-indigo-100 text-indigo-700 rounded-full w-7 h-7 flex items-center justify-center' : ''}">
           ${day}
         </span>
         <div class="calendar-events">${eventsHtml}</div>
@@ -165,7 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center';
 
 modal.innerHTML = `
-  <div class="bg-white dark:bg-gray-800 rounded-2xl w-[420px] shadow-xl overflow-hidden">
+  <div class="bg-white/30 dark:bg-gray-800/30 backdrop-blur-lg rounded-2xl w-[420px] shadow-xl overflow-hidden">
 
     <!-- HEADER -->
     <div class="bg-blue-100 dark:bg-blue-900 px-4 py-3 flex justify-between items-center">
@@ -192,7 +195,7 @@ modal.innerHTML = `
                  class="block bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition border-b border-gray-200 dark:border-gray-700">
 
                 <div class="flex justify-between items-center px-4 py-3 text-sm">
-                  
+
                   <div class="flex flex-col">
                     <span class="text-gray-800 dark:text-gray-200 font-medium">
                       ${ev.event_name}
@@ -234,9 +237,9 @@ modal.innerHTML = `
     for (let i = 1; i <= nextDays; i++) {
       const emptyCell = document.createElement('div');
       emptyCell.className = `
-  border-r border-b 
-  border-indigo-200 dark:border-gray-300 
-  p-2 
+  border-r border-b
+  border-indigo-200 dark:border-gray-300
+  p-2
   bg-gray-50 dark:bg-gray-700
 `;
       calendarDays.appendChild(emptyCell);
@@ -296,7 +299,7 @@ document.querySelectorAll('[data-weekday]').forEach(header => {
     if (selectedWeekdayHeader) {
       selectedWeekdayHeader.classList.remove('bg-indigo-200', 'dark:bg-gray-600');
     }
-    
+
     header.classList.add('bg-indigo-200', 'dark:bg-gray-600');
     selectedWeekdayHeader = header;
 
@@ -351,12 +354,12 @@ calendarTitle.textContent = `${weekdayNames[weekday]}s of ${monthNames[month]} $
            <span class="absolute top-2 left-2 text-sm font-semibold">${new Date(displayDate).getDate()}</span>
 
            <textarea class="
-              w-full 
-              border border-indigo-100 dark:border-gray-600 
-              bg-indigo-50 dark:bg-gray-700 
-              text-gray-900 dark:text-gray-100 
-              placeholder-indigo-400 dark:placeholder-gray-400 
-              rounded-lg p-2 text-sm 
+              w-full
+              border border-indigo-100 dark:border-gray-600
+              bg-indigo-50 dark:bg-gray-700
+              text-gray-900 dark:text-gray-100
+              placeholder-indigo-400 dark:placeholder-gray-400
+              rounded-lg p-2 text-sm
               auto-save-note
            "
            maxlength="150"
@@ -435,7 +438,6 @@ fetch('/date-notes', {
     position: absolute;
     top: 4px;
     left: 6px;
-    font-size: 14px;
 }
 
 .calendar-events {
@@ -450,8 +452,8 @@ fetch('/date-notes', {
 .calendar-events > a,
 .calendar-events > div {
     display: block;
-    white-space: nowrap; 
-    overflow: hidden;  
+    white-space: nowrap;
+    overflow: hidden;
     text-overflow: ellipsis;
 }
 </style>

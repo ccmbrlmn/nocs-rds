@@ -24,7 +24,7 @@ class AdminCreateController extends Controller
         if (auth()->id() !== $firstAdminId) {
             abort(403, 'Only the first admin can create other admins.');
         }
-        
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => [
@@ -60,12 +60,12 @@ class AdminCreateController extends Controller
             'office' => $request->office,
             'created_by' => auth()->id(),
         ]);
-        
+
         \App\Models\UserLog::create([
             'user_id' => auth()->id(),
             'action' => 'admin_created',
         ]);
-        
+
         \App\Models\UserLog::create([
             'user_id' => $admin->id,
             'action' => 'account_registered',
@@ -74,7 +74,7 @@ class AdminCreateController extends Controller
         return redirect()->route('admin.dashboard')
                          ->with('success', 'New admin created successfully.');
     }
-    
+
     public function indexCreatedAdmins(Request $request)
     {
         $query = User::withTrashed()
@@ -284,7 +284,7 @@ class AdminCreateController extends Controller
                      ->where('role', 'admin')
                      ->firstOrFail();
         $admin->restore();
-        
+
         return back()->with('success', 'Admin restored successfully.');
     }
 }

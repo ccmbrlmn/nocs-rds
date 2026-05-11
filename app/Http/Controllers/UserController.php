@@ -29,7 +29,7 @@ public function logs($id)
                 'user_registered' => 'User Registration',
                 'profile_updated' => 'Profile Updated',
                 'user_delete_requested' => 'Account Deletion Requested',
-                
+
                 'user_updated' => 'Edited User',
                 'user_deleted' => 'Deleted User',
                 'user_restored' => 'Restored User',
@@ -49,15 +49,15 @@ public function logs($id)
 
     return view('admin.user-logs', compact('user', 'logs'));
 }
-    
-    
-    
+
+
+
     public function edit(User $user)
     {
         if (auth()->user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
- 
+
         if ($user->deleted_at) {
             return redirect()->route('admin.users')
                 ->with('error', 'Restore this user first before editing.');
@@ -73,7 +73,7 @@ public function update(Request $request, User $user)
     $request->validate([
         'name' => 'required|string|max:255',
         'email' => 'required|email|unique:users,email,' . $user->id,
-        'office' => 'required|string|max:255', 
+        'office' => 'required|string|max:255',
     ]);
 
     $user->update([
@@ -157,7 +157,7 @@ public function update(Request $request, User $user)
         }
 
         $user->delete();
-        
+
         UserLog::create([
             'actor_id' => auth()->id(),
             'user_id' => $user->id,
@@ -191,7 +191,7 @@ public function approve(User $user)
         'actor_name' => auth()->user()->name,
         'updated_at' => now(),
     ]);
-    
+
     $user->notify(new \App\Notifications\UserApprovedNotification(
         $user,
         auth()->user()
@@ -201,7 +201,7 @@ public function approve(User $user)
         $user,
         auth()->user()
     ));
-    
+
     $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
 
     foreach ($admins as $admin) {
@@ -255,7 +255,7 @@ public function approve(User $user)
             'deleted' => 'Deleted',
             default => 'All'
         };
-        
+
         $dateLabel = $request->specific_date ?? ($request->date_filter ?? 'All Time');
         $sortLabel = $sort === 'asc' ? 'Oldest First' : 'Newest First';
         $exportedAt = now()->format('M d, Y - h:i A');
@@ -344,7 +344,7 @@ public function approve(User $user)
     public function restore($id)
     {
         $user = User::withTrashed()->findOrFail($id);
-        
+
         $firstAdmin = User::where('role', 'admin')->orderBy('id')->first();
 
         if ($firstAdmin && $firstAdmin->id !== auth()->id()) {
@@ -376,7 +376,7 @@ public function approve(User $user)
         }
 
         $user->restore();
-        
+
         UserLog::create([
             'actor_id' => auth()->id(),
             'user_id' => $user->id,
@@ -394,7 +394,7 @@ public function approve(User $user)
     public function index(Request $request)
     {
         $query = User::withTrashed()
-                     ->where('role', '!=', 'admin');
+                    ->where('role', 'user');
 
         if ($request->has('status')) {
 

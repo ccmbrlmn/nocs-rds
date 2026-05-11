@@ -12,7 +12,7 @@
     @php
         $statusColors = config('status');
     @endphp
-    
+
     @php
         $firstAdmin = \App\Models\User::where('role', 'admin')
             ->orderBy('id')
@@ -20,7 +20,7 @@
 
         $isFirstAdmin = $firstAdmin && auth()->id() === $firstAdmin->id;
     @endphp
-    
+
 <div class="mx-3 flex items-center justify-between flex-wrap gap-2">
 
     {{-- FILTER (LEFT SIDE) --}}
@@ -47,13 +47,14 @@
     @if($isFirstAdmin)
         <a href="{{ route('admin.create') }}"
            class="px-4 py-2 rounded-xl text-sm font-medium transition
-                  bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
-                  hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm whitespace-nowrap">
+                  bg-indigo-600 text-white
+                        hover:bg-indigo-700
+                        dark:bg-indigo-500 dark:hover:bg-indigo-600">
             Add Admin
         </a>
     @else
         <button onclick="alert('Only the first admin can create new admins.')"
-            class="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-400 
+            class="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-400
                    cursor-not-allowed border border-gray-200 dark:border-gray-600 whitespace-nowrap">
             Add Admin
         </button>
@@ -85,7 +86,7 @@
                 $isHighlighted = $highlightAdminId == $admin->id;
             @endphp
 
-            <div class="request-row {{ $isHighlighted ? 'highlighted-admin' : '' }} 
+            <div class="request-row {{ $isHighlighted ? 'highlighted-admin' : '' }}
                 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition cursor-pointer"
                 onclick="window.location='{{ route('admin.logs', $admin->id) }}'">
 

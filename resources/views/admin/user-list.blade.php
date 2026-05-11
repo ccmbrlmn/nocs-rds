@@ -8,7 +8,7 @@
         @include('layouts.header')
         </div>
     </div>
-    
+
     @php
         $highlightUserId = request()->query('highlight');
     @endphp
@@ -17,7 +17,7 @@
         @php
             $statusColors = config('status');
         @endphp
-        
+
         @php
         $allowedAdmins = [
             'nocs_services@gbox.adnu.edu.ph',
@@ -27,7 +27,7 @@
 
         $isAllowedAdmin = in_array(auth()->user()->email, $allowedAdmins);
     @endphp
-    
+
     <div class="mx-3 flex items-center justify-between flex-wrap gap-2">
         @include('layouts.filter', [
             'routeName' => 'admin.users',
@@ -47,41 +47,36 @@
 
             'exportPdf' => 'admin.users.pdf',
             'exportCsv' => 'admin.users.csv',
-             
+
         ])
-            
-      
+
+
     {{-- ADD USER (RIGHTMOST) --}}
-    @if($isAllowedAdmin)
-        <a href="{{ route('register') }}"
-                class="px-4 py-2 rounded-xl text-sm font-medium transition
-                       bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
-                       hover:bg-blue-100 dark:hover:bg-gray-600
-                       border border-gray-200 dark:border-gray-600
-                       shadow-sm
-                       flex items-center justify-center gap-2 whitespace-nowrap shrink-0">
+@php
+    $role = strtolower(auth()->user()->role ?? '');
+    $isAdmin = $role === 'admin';
+@endphp
 
-                <span x-show="$root.sidebarExpanded"
-                      x-transition
-                      class="transition-all duration-200">
-                    Add User
-                </span>
-      </a>
-    @else
-        <button onclick="alert(\'You are not allowed to create users.\')"
-                class="px-4 py-2 rounded-xl text-sm font-medium
-                       bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-400
-                       border border-gray-200 dark:border-gray-600
-                       cursor-not-allowed
-                       shadow-sm
-                       flex items-center justify-center gap-2 whitespace-nowrap shrink-0">
+<button
+    onclick="
+        if ({{ $isAdmin ? 'true' : 'false' }}) {
+            window.location.href = '{{ route('register') }}';
+        } else {
+            alert('Only admin can add users.');
+        }
+    "
+    class="px-4 py-2 rounded-xl text-sm font-medium transition
+                        bg-indigo-600 text-white
+                        hover:bg-indigo-700
+                        dark:bg-indigo-500 dark:hover:bg-indigo-600
+           shadow-sm
+           flex items-center justify-center gap-2 whitespace-nowrap shrink-0">
 
-                <span>Add User</span>
-        </button>
-    @endif
+    <span>Add User</span>
+</button>
 
 </div>
-    
+
 <div class="request-history-list rounded-xl shadow overflow-hidden mx-10">
 
     <!-- Table Header -->
@@ -185,20 +180,20 @@
 
                 </div>
             </div>
-@empty
-    @php
-        $statusFilter = request()->query('status', 'all');
-    @endphp
-    <div class="px-6 py-6 text-center text-gray-500">
-        @if($statusFilter === 'deleted')
-            No deleted user yet.
-        @elseif($statusFilter === 'pending')
-            No pending users yet.
-        @else
-            No registered users yet.
-        @endif
-    </div>
-@endforelse
+                @empty
+                    @php
+                        $statusFilter = request()->query('status', 'all');
+                    @endphp
+                    <div class="px-6 py-6 text-center text-gray-500">
+                        @if($statusFilter === 'deleted')
+                            No deleted user yet.
+                        @elseif($statusFilter === 'pending')
+                            No pending users yet.
+                        @else
+                            No registered users yet.
+                        @endif
+                    </div>
+                @endforelse
     </div>
 </div>
 

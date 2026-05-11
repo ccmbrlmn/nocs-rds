@@ -1,4 +1,4 @@
-<div 
+<div
     x-data="Object.assign(assetDashboard(), {
         openEdit: false,
         selectedAsset: null,
@@ -40,15 +40,15 @@ x-init="
 
     <!-- FILTER BUTTON -->
     <div class="relative">
-        <button 
+        <button
             @click="openFilter = !openFilter"
-            class="border px-4 py-2 rounded-lg shadow transition
+            class="border px-4 py-2 rounded-xl text-sm font-medium transition
                    bg-white dark:bg-gray-800
                    text-gray-800 dark:text-gray-200
                    border-gray-300 dark:border-gray-600
                    hover:bg-gray-50 dark:hover:bg-gray-700"
-            :class="selectedCategory 
-                ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-600 dark:border-indigo-600' 
+            :class="selectedCategory
+                ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-600 dark:border-indigo-600'
                 : ''">
             Filter
         </button>
@@ -79,8 +79,8 @@ x-init="
                 class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition
                        text-gray-700 dark:text-gray-200
                        hover:bg-gray-100 dark:hover:bg-gray-700"
-                :class="selectedCategory === null 
-                    ? 'bg-indigo-500 text-white' 
+                :class="selectedCategory === null
+                    ? 'bg-indigo-500 text-white'
                     : ''">
                 All Categories
             </button>
@@ -96,8 +96,8 @@ x-init="
                         class="w-full text-left px-3 py-2 rounded-lg text-sm transition
                                text-gray-700 dark:text-gray-200
                                hover:bg-gray-100 dark:hover:bg-gray-700"
-                        :class="selectedCategory === cat 
-                            ? 'bg-indigo-500 text-white' 
+                        :class="selectedCategory === cat
+                            ? 'bg-indigo-500 text-white'
                             : ''"
                         x-text="cat">
                     </button>
@@ -107,15 +107,15 @@ x-init="
         </div>
     </div>
 
-    <!-- ADD BUTTON -->
-    <button
-        @click="openAssetForm = true"
-        class="px-4 py-2 rounded-lg shadow transition
-               bg-indigo-600 text-white
-               hover:bg-indigo-700
-               dark:bg-indigo-500 dark:hover:bg-indigo-600">
-        + Add Asset
-    </button>
+<!-- VIEW ASSET BUTTON -->
+<a
+    href="{{ route('admin.assets') }}"
+    class="px-4 py-2 rounded-xl text-sm font-medium transition
+        bg-indigo-600 text-white
+        hover:bg-indigo-700
+        dark:bg-indigo-500 dark:hover:bg-indigo-600">
+    View Asset
+</a>
 
 </div>
 </div>
@@ -125,7 +125,7 @@ x-init="
 
     <!-- TOTAL -->
     <div class="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
-        <p class="text-xs text-gray-500 dark:text-gray-300">Total (Filtered)</p>
+        <p class="text-xs text-gray-500 dark:text-gray-300">Total</p>
         <p class="text-2xl font-semibold text-gray-900 dark:text-white" x-text="filteredAssets.length"></p>
     </div>
 
@@ -175,9 +175,9 @@ x-init="
     <div class="overflow-auto max-h-[500px]">
         <table class="w-full text-sm">
 
-            <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0">
-                <tr class="text-gray-700 dark:text-gray-200">
-                    <th class="p-3 text-left">Asset Name</th>
+            <thead class="bg-gray-100 dark:bg-gray-800 sticky top-0">
+                <tr class=" text-gray-700 dark:text-gray-200">
+                    <th class="p-4 text-left">Asset Name</th>
                     <th class="p-3 text-left">Tag</th>
                     <th class="p-3 text-left">Serial</th>
                     <th class="p-3 text-left">Model</th>
@@ -187,7 +187,7 @@ x-init="
             </thead>
             <tbody>
                 <template x-for="asset in filteredAssets" :key="asset.id">
-                    <tr 
+                    <tr
                         class="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                         @click="window.location = `/admin/assets/${asset.id}`"
                     >
@@ -203,7 +203,7 @@ x-init="
                         <td class="p-3 text-gray-600 dark:text-gray-300" x-text="asset.asset_category"></td>
 
                         <td class="p-3">
-                            <span 
+                            <span
                                 class="px-2 py-1 rounded-full text-xs font-medium"
                                 :class="{
                                     'bg-green-100 text-green-700': (asset.computed_status ?? asset.asset_status) === 'Available',
@@ -282,7 +282,7 @@ function assetDashboard() {
             this.selectedCategory = cat;
             this.renderChart();
         },
-        
+
         openFilter: false,
         searchCategory: '',
 

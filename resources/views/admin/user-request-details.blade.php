@@ -4,8 +4,8 @@
 <div class="header-container flex items-center justify-between p-3 mt-8 mb-6">
 
     <a href="{{ route('user.requests') }}"
-       class="px-4 py-2 rounded-xl text-sm font-medium transition 
-              bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 
+       class="px-4 py-2 rounded-xl text-sm font-medium transition
+              bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
               hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm flex items-center gap-2">
 
         <span class="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -83,7 +83,7 @@
     {{-- DETAILS --}}
     <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-500 mb-6">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-8 dark:text-gray-200">
 
             {{-- LEFT --}}
             <div class="space-y-6">
@@ -91,29 +91,28 @@
                 <x-request-field icon="location_on" label="Location" :value="$request->location" />
 
                 <x-request-field icon="event" label="Requester" :value="optional($request->user)->name ?? 'Unknown User'" />
-                
-                <x-request-field icon="event" label="Requester" :value="optional($request->user)->name ?? 'Unknown User'" />
 
-<x-request-field 
-    icon="badge" 
-    label="Requested Employee" 
-    :value="$request->requested_employee ?? 'N/A'" 
+
+<x-request-field
+    icon="badge"
+    label="Requested Employee"
+    :value="$request->requested_employee ?? 'N/A'"
 />
 
 <x-request-field icon="event_available" label="Purpose"
     :value="$request->purpose === 'Others' ? $request->other_purpose : $request->purpose" />
 
-<x-request-field 
-    icon="notes" 
-    label="Notes" 
-    :value="$request->note ?? 'N/A'" 
+<x-request-field
+    icon="notes"
+    label="Notes"
+    :value="$request->note ?? 'N/A'"
 />
 
             </div>
 
             {{-- RIGHT --}}
             <div class="space-y-6">
-            
+
                             <x-request-field icon="event_available" label="Purpose"
                     :value="$request->purpose === 'Others' ? $request->other_purpose : $request->purpose" />
 
@@ -133,7 +132,7 @@
                         </ul>
                     </div>
                 </div>
-                
+
 
                 <x-request-field icon="calendar_clock" label="Event Date"
                     :value="\Carbon\Carbon::parse($request->start_date)->format('M d') . ' - ' . \Carbon\Carbon::parse($request->end_date)->format('d, Y')" />
