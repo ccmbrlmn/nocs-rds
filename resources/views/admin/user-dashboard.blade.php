@@ -1,6 +1,4 @@
 <x-app-layout>
-
-    <!-- ✅ Dark Mode Script (ONLY ONCE) -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (
@@ -14,7 +12,6 @@
         });
     </script>
 
-    <!-- ✅ HEADER (FIXED & SAME AS USER-REQUESTS) -->
     <div class="header-container rounded-2xl mb-3 mx-3 mt-3">
         <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
@@ -31,13 +28,11 @@
 {{ $greeting }}, {{ auth()->check() ? auth()->user()->name : 'Guest' }}!
             </div>
 
-            <!-- ✅ Shared Header (Notifications FIXED HERE) -->
             @include('layouts.header')
 
         </div>
     </div>
 
-    <!-- ✅ MAIN CONTENT -->
     <div class="p-6 grid grid-cols-1 xl:grid-cols-12 gap-6"
          x-data="{
             openRequestForm: false,
@@ -72,7 +67,7 @@
                     })
                     ->values();
             @endphp
-            
+
         <div class="card-sched xl:col-span-4 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 px-3 sm:px-4 py-4 flex flex-col text-gray-900 dark:text-gray-200">
 
             <div class="flex items-start justify-between gap-4 mb-4 pt-4 px-2 sm:px-3">
@@ -137,7 +132,7 @@
 
                 @empty
                     <div class="flex flex-col items-center justify-center h-full text-center py-12">
-                    
+
                             <div class="w-20 h-20 flex items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-900 mb-4">
             <svg class="w-10 h-10 text-indigo-400 dark:text-indigo-300" fill="none" stroke="currentColor" stroke-width="1.5"
                 viewBox="0 0 24 24">
@@ -145,7 +140,7 @@
                     d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7H3v12a2 2 0 002 2z"/>
             </svg>
         </div>
-        
+
                         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
                             No scheduled requests yet
                         </h3>
@@ -158,8 +153,8 @@
                             View Requests
                         </a>
                     </div>
-                    
-                    
+
+
                 @endforelse
             </div>
 

@@ -17,18 +17,18 @@ class UserLog extends Model
         'target_user_id',
         'target_user_name',
         'actor_name',
+        'actor_id',
     ];
 
-public function user() {
-    return $this->belongsTo(User::class, 'user_id');
-}
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
     
     public function request()
-{
-    return $this->belongsTo(Requests::class, 'request_id', 'id')->withDefault();
-}
-
-
+    {
+        return $this->belongsTo(Requests::class, 'request_id', 'id')->withDefault();
+    }
 
 }
 

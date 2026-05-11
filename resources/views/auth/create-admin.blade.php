@@ -33,19 +33,20 @@
 
             <div class="mb-4">
                 <x-input-label for="name" value="Admin Name" class="dark:text-gray-200"/>
-                <x-text-input id="name" name="name" required 
-                    class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200" />
+                <x-text-input id="name" name="name" required
+                        class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500" />
             </div>
 
             <div class="mb-4">
                 <x-input-label for="email" value="Admin Email" class="dark:text-gray-200"/>
-                <x-text-input id="email" name="email" type="email" required 
-                    class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200" />
+                <x-text-input id="email" name="email" type="email" required
+                        class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500" />
             </div>
-            
+
             <div class="mb-4">
                 <x-input-label for="office" value="Office" class="dark:text-gray-200"/>
-                <x-text-input id="office" class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
+                <x-text-input id="office" name="email" type="email" required
+                    class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500"
                     type="text" name="office" value="{{ old('office') }}" required />
                 @error('office')
                     <span class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</span>
@@ -54,18 +55,16 @@
 
             <div class="mb-4">
                 <x-input-label for="password" value="Password" class="dark:text-gray-200"/>
-                <x-text-input id="password" name="password" type="password" required 
-                    class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200" />
-                <p class="text-gray-500 dark:text-gray-300 text-sm mt-1">
+                <x-text-input id="password" name="password" type="password" required
+    class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500" />                <p class="text-gray-500 dark:text-gray-300 text-sm mt-1">
                     Password must be at least 8 characters, include uppercase, lowercase, number, and special character.
                 </p>
             </div>
 
             <div class="mb-4">
                 <x-input-label for="password_confirmation" value="Confirm Password" class="dark:text-gray-200"/>
-                <x-text-input id="password_confirmation" name="password_confirmation" type="password" required 
-                    class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200" />
-            </div>
+                <x-text-input id="password_confirmation" name="password_confirmation" type="password" required
+    class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500" />            </div>
 
             <div class="flex items-center justify-end mt-4">
                 <x-primary-button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white">

@@ -1,26 +1,34 @@
 <x-app-layout>
-    <!-- HEADER: Greeting + Actions -->
     <div class="header-container rounded-2xl mb-3 mx-3 mt-3">
         <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <!-- Page Title -->
             <div class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
                 User List
             </div>
 
-            <!-- Include header actions (Dark Mode, Notifications, Profile) -->
         @include('layouts.header')
         </div>
     </div>
-    
+
     @php
-    $highlightUserId = request()->query('highlight');
-@endphp
+        $highlightUserId = request()->query('highlight');
+    @endphp
 
 
         @php
             $statusColors = config('status');
         @endphp
 
+        @php
+        $allowedAdmins = [
+            'nocs_services@gbox.adnu.edu.ph',
+            'aandrada@gbox.adnu.edu.ph',
+            'dgirodriguez@gbox.adnu.edu.ph'
+        ];
+
+        $isAllowedAdmin = in_array(auth()->user()->email, $allowedAdmins);
+    @endphp
+
+    <div class="mx-3 flex items-center justify-between flex-wrap gap-2">
         @include('layouts.filter', [
             'routeName' => 'admin.users',
 
@@ -32,16 +40,43 @@
             ],
 
             'dateFilters' => [
-                null => 'All Time',
                 '30_days' => '30 Days',
                 '7_days' => '7 Days',
                 '24_hours' => '24 Hours'
             ],
 
             'exportPdf' => 'admin.users.pdf',
-            'exportCsv' => 'admin.users.csv'
+            'exportCsv' => 'admin.users.csv',
+
         ])
-    
+
+
+    {{-- ADD USER (RIGHTMOST) --}}
+@php
+    $role = strtolower(auth()->user()->role ?? '');
+    $isAdmin = $role === 'admin';
+@endphp
+
+<button
+    onclick="
+        if ({{ $isAdmin ? 'true' : 'false' }}) {
+            window.location.href = '{{ route('register') }}';
+        } else {
+            alert('Only admin can add users.');
+        }
+    "
+    class="px-4 py-2 rounded-xl text-sm font-medium transition
+                        bg-indigo-600 text-white
+                        hover:bg-indigo-700
+                        dark:bg-indigo-500 dark:hover:bg-indigo-600
+           shadow-sm
+           flex items-center justify-center gap-2 whitespace-nowrap shrink-0">
+
+    <span>Add User</span>
+</button>
+
+</div>
+
 <div class="request-history-list rounded-xl shadow overflow-hidden mx-10">
 
     <!-- Table Header -->
@@ -145,20 +180,20 @@
 
                 </div>
             </div>
-@empty
-    @php
-        $statusFilter = request()->query('status', 'all');
-    @endphp
-    <div class="px-6 py-6 text-center text-gray-500">
-        @if($statusFilter === 'deleted')
-            No deleted user yet.
-        @elseif($statusFilter === 'pending')
-            No pending users yet.
-        @else
-            No registered users yet.
-        @endif
-    </div>
-@endforelse
+                @empty
+                    @php
+                        $statusFilter = request()->query('status', 'all');
+                    @endphp
+                    <div class="px-6 py-6 text-center text-gray-500">
+                        @if($statusFilter === 'deleted')
+                            No deleted user yet.
+                        @elseif($statusFilter === 'pending')
+                            No pending users yet.
+                        @else
+                            No registered users yet.
+                        @endif
+                    </div>
+                @endforelse
     </div>
 </div>
 

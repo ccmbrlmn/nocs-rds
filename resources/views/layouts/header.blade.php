@@ -77,38 +77,46 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
                                 if(userId){
                                     openModal = false;
                                     setTimeout(() => {
-                                        if(data?.type === 'profile_updated') {
-                                            if(data?.is_admin) {
-                                                window.location.href = `{{ url('/created-admins') }}?highlight=${userId}`;
-                                            } else {
-                                                window.location.href = `{{ route('admin.users') }}?highlight=${userId}`;
-                                            }
-
-                                            return;
-                                        }
-
+                                    
                                         if(data?.is_admin){
                                             window.location.href = `{{ url('/created-admins') }}?highlight=${userId}`;
                                         } else {
                                             window.location.href = `{{ route('admin.users') }}?highlight=${userId}`;
                                         }
+                                        
                                     }, 150);
                                 }
                                 return;
                             }
 
                             // Request notifications
-                            const requestId = data?.request_id;
-                            if(requestId){
-                                openModal = false;
-                                setTimeout(() => {
-                                    window.location.href = userRole === 'admin'
-                                        ? `{{ url('/admin/requests') }}/${requestId}`
-                                        : `{{ url('/request-details') }}/${requestId}`;
-                                }, 150);
-                                return;
-                            }
-                        "
+                        const requestId = data?.request_id;
+
+                        if(requestId){
+                            openModal = false;
+
+                            setTimeout(() => {
+
+                                // ADMIN behavior
+                                if(userRole === 'admin') {
+
+                                    // Only CREATED → go to list with highlight
+                                    if(data?.type === 'created'){
+                                        window.location.href = `{{ route('admin.requests') }}?highlight=${requestId}`;
+                                    } else {
+                                        // others still go to details
+                                        window.location.href = `{{ url('/admin/requests') }}/${requestId}`;
+                                    }
+
+                                } else {
+                                    // USER behavior unchanged
+                                    window.location.href = `{{ url('/request-details') }}/${requestId}`;
+                                }
+
+                            }, 150);
+
+                            return;
+                        }"
                              :class="notif.is_read
                                 ? 'block p-3 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 cursor-pointer'
                                 : 'block p-3 mb-3 border rounded-lg font-semibold cursor-pointer'">
@@ -119,26 +127,24 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
                                         const d = notif.data ?? {};
 
                                         // Helper to get the actor name
-                                        const actor = d?.user_name || d?.requester_name || 'User';
+                                        const actor = d?.actor_name || d?.user_name || d?.requester_name || 'User';
 
                                            switch(d?.type || d?.action){
-                                                case 'user_management':
-                                            const action = d.action;
+                                                case 'user_management': {
+                                                    const action = d.action;
 
-                                            switch(action){
-                                                case 'updated':
-                                                    return `[User Updated] ${d.user_name} was updated by ${d.actor_name}.`;
+                                                    if(action === 'updated'){
+                                                        return `[User Updated] ${d.user_name} was updated by ${d.actor_name}.`;
+                                                    }
+                                                    if(action === 'deleted'){
+                                                        return `[User Deleted] ${d.user_name} was deleted by ${d.actor_name}.`;
+                                                    }
+                                                    if(action === 'restored'){
+                                                        return `[User Restored] ${d.user_name} was restored by ${d.actor_name}.`;
+                                                    }
 
-                                                case 'deleted':
-                                                    return `[User Deleted] ${d.user_name} was deleted by ${d.actor_name}.`;
-
-                                                case 'restored':
-                                                    return `[User Restored] ${d.user_name} was restored by ${d.actor_name}.`;
-
-                                                default:
                                                     return `[User Action] ${d.actor_name} performed ${action} on ${d.user_name}.`;
-                                            }
-                                                    return `[User ${actionLabel.charAt(0).toUpperCase() + actionLabel.slice(1)}] ${d.actor_name} ${actionLabel} ${d.user_name}.`;
+                                                }
 
                                                 case 'user_deletion_request':
                                                     return `[${d.is_admin ? 'Admin' : 'User'} Deletion Request] ${actor} requested account deletion.`;
@@ -147,14 +153,17 @@ const isFirstAdmin = {{ auth()->user() && $firstAdmin ? (auth()->user()->id === 
                                                 case 'edited':
                                                     return `[${d.type_label || 'Request'}] ${actor} ${d.type === 'created' ? 'submitted' : 'updated'} ${d.request_name || d.eventName}.`;
 
-                                                case 'request_accepted':
-                                                    return `[Accepted Request] ${actor} had their request accepted.`;
+                                                case 'request_approved':
+                                                    return `[Approved Request] ${actor} approved your request for an item.`;
 
-                                                case 'request_declined':
-                                                    return `[Declined Request] ${actor} had their request declined.`;
+                                                case 'request_cancelled':
+                                                    return `[Cancelled Request] ${actor} cancelled your request for an item.`;
+                                                    case 'return_requested':
+    return `[Return Requested] ${actor} requested a return for ${d.request_name}.`;
 
                                                 case 'user_registration':
-                                                    return `[User Registration] ${actor} recently created an account.`;
+                                                    return `[User Registration] ${d.actor_name} recently created an account for ${d.user_name}.`;
+                                                 
 
                                                 case 'user_approved':
                                                     return `[User Approved] ${d.user_name} was approved by ${d.actor_name}.`;

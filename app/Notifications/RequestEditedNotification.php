@@ -51,7 +51,10 @@ public function toDatabase($notifiable)
         'request_id' => $this->requestId,
         'request_name' => $this->requestName,
         'type' => $this->type,
-        'type_label' => ucfirst($this->type),
+        'type_label' => match ($this->type) {
+            'edited' => 'Edited Request',
+            default => ucfirst($this->type),
+        },
         'message' => $this->user->name . ' ' . $this->type . ' a request: ' . $this->requestName,
     ];
 }

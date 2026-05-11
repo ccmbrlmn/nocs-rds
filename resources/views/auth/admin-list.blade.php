@@ -4,6 +4,8 @@
             <div class="text-2xl font-semibold text-gray-800 dark:text-gray-200 tracking-tight">
                 Admins Created
             </div>
+
+        @include('layouts.header')
         </div>
     </div>
 
@@ -11,6 +13,17 @@
         $statusColors = config('status');
     @endphp
 
+    @php
+        $firstAdmin = \App\Models\User::where('role', 'admin')
+            ->orderBy('id')
+            ->first();
+
+        $isFirstAdmin = $firstAdmin && auth()->id() === $firstAdmin->id;
+    @endphp
+
+<div class="mx-3 flex items-center justify-between flex-wrap gap-2">
+
+    {{-- FILTER (LEFT SIDE) --}}
     @include('layouts.filter', [
         'routeName' => 'admin.created-admins',
 
@@ -21,7 +34,6 @@
         ],
 
         'dateFilters' => [
-            null => 'All Time',
             '30_days' => '30 Days',
             '7_days' => '7 Days',
             '24_hours' => '24 Hours'
@@ -29,23 +41,26 @@
 
         'exportPdf' => 'admin.created-admins.pdf',
         'exportCsv' => 'admin.created-admins.csv',
-
-        'rightSlot' => '
-            <a href="'.route('admin.create').'"
-               class="px-4 py-2 rounded-xl text-sm font-medium transition
-                      bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
-                      hover:bg-blue-100 dark:hover:bg-gray-600 shadow-sm
-                      flex items-center justify-center gap-2 whitespace-nowrap">
-
-                <span x-show="$root.sidebarExpanded"
-                      x-transition
-                      class="transition-all duration-200">
-                    Add Admin
-                </span>
-
-            </a>
-        '
     ])
+
+    {{-- ADD ADMIN (RIGHTMOST) --}}
+    @if($isFirstAdmin)
+        <a href="{{ route('admin.create') }}"
+           class="px-4 py-2 rounded-xl text-sm font-medium transition
+                  bg-indigo-600 text-white
+                        hover:bg-indigo-700
+                        dark:bg-indigo-500 dark:hover:bg-indigo-600">
+            Add Admin
+        </a>
+    @else
+        <button onclick="alert('Only the first admin can create new admins.')"
+            class="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-400
+                   cursor-not-allowed border border-gray-200 dark:border-gray-600 whitespace-nowrap">
+            Add Admin
+        </button>
+    @endif
+
+</div>
 
     @php
         $highlightAdminId = request()->query('highlight');
@@ -71,7 +86,7 @@
                 $isHighlighted = $highlightAdminId == $admin->id;
             @endphp
 
-            <div class="request-row {{ $isHighlighted ? 'highlighted-admin' : '' }} 
+            <div class="request-row {{ $isHighlighted ? 'highlighted-admin' : '' }}
                 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition cursor-pointer"
                 onclick="window.location='{{ route('admin.logs', $admin->id) }}'">
 

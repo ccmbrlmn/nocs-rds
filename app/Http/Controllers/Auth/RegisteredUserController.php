@@ -55,20 +55,30 @@ class RegisteredUserController extends Controller
         ]);
         
         UserLog::create([
+            'actor_id' => auth()->id(),
+            'actor_name' => auth()->check() ? auth()->user()->name : 'Guest',
+
             'user_id' => $user->id,
-            'action' => 'user_registered',
-            'handled_by' => null,
+
+            'action' => auth()->check() ? 'user_created' : 'user_registered',
+
+            'description' => auth()->check()
+                ? 'Admin created user account for ' . $user->name
+                : 'User registered an account',
+
             'target_user_id' => $user->id,
             'target_user_name' => $user->name,
         ]);
         
-
         event(new Registered($user));
         
         $admins = User::whereIn('role', ['first_admin', 'admin'])->get();
 
         foreach ($admins as $admin) {
-            $admin->notify(new UserRegisteredNotification($user));
+            $admin->notify(new UserRegisteredNotification(
+                $user,
+                auth()->user()
+            ));
         }
 
         return redirect(route('dashboard', absolute: false))

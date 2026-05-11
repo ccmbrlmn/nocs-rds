@@ -20,7 +20,7 @@ class UserProfileUpdatedNotification extends Notification
     {
         return ['database'];
     }
-
+    
     public function toDatabase($notifiable)
     {
         return [
@@ -28,6 +28,7 @@ class UserProfileUpdatedNotification extends Notification
             'user_name' => $this->user->name,
             'type' => 'profile_updated',
             'type_label' => 'Profile Updated',
+            'is_admin' => in_array($this->user->role, ['admin', 'first_admin']),
             'message' => $this->user->name . ' updated their profile.',
         ];
     }

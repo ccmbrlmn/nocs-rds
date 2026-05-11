@@ -5,11 +5,11 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
-class RequestRejectedNotification extends Notification
+class RequestReturnAcceptedNotification extends Notification
 {
     use Queueable;
 
-    protected $request;
+    public $request;
 
     public function __construct($request)
     {
@@ -25,8 +25,7 @@ class RequestRejectedNotification extends Notification
     {
         return [
             'request_id' => $this->request->id,
-            'message' => "Your request '{$this->request->event_name}' was declined. Reason: {$this->request->decline_reason}",
-            'type' => 'request_declined',
+            'message' => 'Your return request has been accepted. Please wait for retrieval.',
         ];
     }
 }

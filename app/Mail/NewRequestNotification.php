@@ -49,7 +49,7 @@ class NewRequestNotification extends Mailable
             view: 'emails.new-request',
         );
     }
-    
+
 
     /**
      * Get the attachments for the message.
