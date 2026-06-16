@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\UserLog;
 use App\Models\Notification;
 use PDF;
+use App\Models\Asset;
 use Carbon\Carbon;
 use App\Notifications\RequestCreatedNotification;
 use App\Notifications\RequestAcceptedNotification;
-use Illuminate\Support\Facades\Mail;
 use App\Mail\RequestAcceptedMail;
         
 class RequestController extends Controller
@@ -623,42 +623,32 @@ public function update(Request $request, $id)
 
         return response()->stream($callback, 200, $headers);
     }
-    
+
 public function getUserNotifications()
 {
     return auth()->user()->notifications()
+        ->whereIn('type', [
+            \App\Notifications\RequestApprovedNotification::class,
+            \App\Notifications\RequestRejectedNotification::class,
+        ])
         ->latest()
         ->take(20)
         ->get()
         ->map(function ($notif) {
             $data = $notif->data;
 
-    public function getUserNotifications()
-    {
-        return auth()->user()->notifications()
-            ->whereIn('type', [
-                \App\Notifications\RequestApprovedNotification::class,
-                \App\Notifications\RequestRejectedNotification::class,
-            ])
-            ->latest()
-            ->take(20)
-            ->get()
-            ->map(function ($notif) {
-                $data = $notif->data;
-
-                return [
-                    'id' => $notif->id,
-                    'message' => $data['message'] ?? '',
-                    'type' => $notif->type,
-                    'type_label' => $data['type_label'] ?? $data['action'] ?? '',
-                    'data' => $data,
-                    'is_read' => $notif->read_at ? true : false,
-                    'request_id' => $data['request_id'] ?? null,
-                    'created_at' => optional($notif->created_at)->format('M d, Y h:i A'),
-                ];
-            });
-    }
-
+            return [
+                'id' => $notif->id,
+                'message' => $data['message'] ?? '',
+                'type' => $notif->type,
+                'type_label' => $data['type_label'] ?? $data['action'] ?? '',
+                'data' => $data,
+                'is_read' => $notif->read_at ? true : false,
+                'request_id' => $data['request_id'] ?? null,
+                'created_at' => optional($notif->created_at)->format('M d, Y h:i A'),
+            ];
+        });
+}
 
     public function edit($id)
     {

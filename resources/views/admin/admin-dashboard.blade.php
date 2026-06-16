@@ -1,3 +1,4 @@
+<x-app-layout>
 <div
 x-data="{
     view: 'calendar',
@@ -68,7 +69,7 @@ x-data="{
 x-init="init()"
 >
 
-<x-app-layout>
+
     <style>
         [x-cloak] { display: none !important; }
     </style>

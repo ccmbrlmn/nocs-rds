@@ -38,7 +38,7 @@ class RequestCreatedNotification extends Notification
             'request_name' => $this->eventName,
             'type' => $this->type,
             'type_label' => ucfirst($this->type),
-            'message' => $this->user->name . ' ' . $this->type . ' a request: ' . $this->requestName,
+            'message' => $this->user->name . ' ' . $this->type . ' a request: ' . $this->eventName,
         ];
     }
 }
